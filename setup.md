@@ -18,7 +18,6 @@ CS701/
 mkdir CS701 && cd CS701
 git clone https://github.com/Rayner3103/CS701.git cs701-sar-benchmark
 cd cs701-sar-benchmark
-git remote add upstream https://github.com/doem97/cs701-sar-benchmark   # the TA's original code
 ```
 
 Set up the Python environment (once per machine):
