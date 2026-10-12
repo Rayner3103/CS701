@@ -9,7 +9,7 @@ from sarbench.adapters import MoELoRA, add_adapters
 from sarbench.backbones import build_backbone
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import detection_metrics
-from sarbench.model import MultiTaskModel
+from sarbench.model import MultiTaskModel, SimpleFeaturePyramid
 
 ROOT = Path(__file__).resolve().parents[2] / 'dataset' / 'SARFact-Course-20K'
 
@@ -60,6 +60,30 @@ def test_moelora_runs_the_backbone_once_per_task():
     with torch.no_grad():
         forward(model, first_train_images(2)[0])
     assert tasks == [0, 1]  # classification, then detection
+
+
+def test_spatial_prior_starts_as_the_plain_neck_and_is_trained():
+    torch.manual_seed(0)
+    plain, with_prior = SimpleFeaturePyramid(), SimpleFeaturePyramid(spatial_prior=True)
+    with_prior.load_state_dict(plain.state_dict(), strict=False)  # same rescale/project weights
+    x, images = torch.randn(2, 768, 32, 32), torch.randn(2, 1, 512, 512)
+    expected, features = plain(x), with_prior(x, images)
+    assert all(torch.allclose(expected[k], features[k]) for k in expected)  # zero laterals: no change at step 0
+    sum(f.sum() for f in features.values()).backward()
+    assert all(conv.weight.grad.abs().sum() > 0 for conv in with_prior.lateral)  # the prior can still learn
+
+
+def test_spatial_prior_leaves_the_rest_of_a_seeded_run_unchanged():
+    def build(spatial_prior):
+        torch.manual_seed(0)
+        backbone = torch.nn.Identity()
+        backbone.embed_dim = 768
+        model = MultiTaskModel(backbone, task_routing=False, spatial_prior=spatial_prior)
+        return model.state_dict(), torch.rand(4)  # the weights, and the next random numbers (data order, flips)
+
+    (plain, plain_next), (with_prior, prior_next) = build(False), build(True)
+    assert all(torch.equal(plain[k], with_prior[k]) for k in plain)  # every shared weight is identical
+    assert torch.equal(plain_next, prior_next)
 
 
 def test_pretrained_vit_overfits_16_training_images():
