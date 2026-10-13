@@ -84,7 +84,7 @@ python prepare_course_data.py   # -> ../dataset/SARFact-Course-20K, the layout t
 
 - Converts the [course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data) download and holds out
   10% + 10% of train (stratified, `--seed 0`) as local val and test: the released val/test have no labels.
-- Images are symlinked, not copied. Full walkthrough (download, layout, smoke test): [setup.md](setup.md).
+- Images are symlinked, not copied. Full walkthrough (download, layout, smoke test): [docs/setup.md](docs/setup.md).
 
 ### 2.3 Train
 
@@ -99,7 +99,7 @@ PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True nohup python train.py --backbon
 
 - TerraMind + MoE-LoRA had the best test Δm in our own runs (`runs/full_seed0`: +5.0 on the local split, seed 0).
   Add `--spatial-prior` to try the small-object branch.
-- Results go to `runs/single/terramind_pretrained_moelora/`. Files in it: [usage.md](usage.md#outputs).
+- Results go to `runs/single/terramind_pretrained_moelora/`. Files in it: [docs/usage.md](docs/usage.md#outputs).
 - `PYTORCH_CUDA_ALLOC_CONF` reduces memory fragmentation: without it, TerraMind + MoE-LoRA runs out of memory at batch
   size 8 on 10 GB.
 - It runs in the background and keeps going after you close the terminal. Follow it with
@@ -113,7 +113,7 @@ Other runs:
 python train.py --backbone vit --init pretrained --adapt lora   # the Δm reference; one run, about 50 min
 bash run_all.sh                                                  # the eight reference runs, about 7 h
 bash run_all_3080.sh 24                                          # the four adapter runs, without and with the
-                                                                 #   spatial prior, at batch size 8: usage.md
+                                                                 #   spatial prior, at batch size 8: docs/usage.md
 ```
 
 - `--adapt full` and `--init scratch` train 106 M parameters: over the 40 M budget, for reference only.
@@ -208,9 +208,10 @@ Accuracy and AP50: [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
 prepare_course_data.py  course data download -> the layout train.py reads, with local val/test hold-outs
 train.py              entry: train + evaluate one configuration
 run_all.sh            the eight reference runs (calls train.py)
-run_all_3080.sh       the four adapter runs, without and with --spatial-prior, on a 10 GB GPU (usage.md)
+run_all_3080.sh       the four adapter runs, without and with --spatial-prior, on a 10 GB GPU (docs/usage.md)
 compare_runs.py       one line per run: test macro-F1, mAP, Δm, best epoch
 predict.py            a trained run on unlabelled images -> submission.zip
+visualize.py          browse a run's predictions vs ground truth (docs/visualize_usage.md)
 make_submission.py    write_submission(): predictions -> submission.zip
 sarbench/             the code behind train.py
 ├── data.py           images + boxes at 512 × 512, flips; boxes back to original pixels
@@ -219,9 +220,11 @@ sarbench/             the code behind train.py
 ├── model.py          backbone + class head + ViTDet feature pyramid + Faster R-CNN
 └── metrics.py        accuracy, macro-F1, COCO box AP
 tests/                checks of sarbench/ (python -m pytest tests)
-setup.md              from nothing to a smoke test: clone, environment, data
-usage.md              run_all_3080.sh: commands, resuming, outputs, troubleshooting
+docs/setup.md         from nothing to a smoke test: clone, environment, data
+docs/usage.md         run_all_3080.sh: commands, resuming, outputs, troubleshooting
 docs/DETAILS.md       model, training protocol, design notes, time and memory
+docs/visualize_usage.md  visualize.py: commands, options, keys
+docs/improvement.md   ideas for improving the model and research directions
 ```
 
 More: [docs/DETAILS.md](docs/DETAILS.md).

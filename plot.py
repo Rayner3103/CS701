@@ -5,9 +5,9 @@ Writes two figures to OUT (default FOLDER/plots), one line per run:
   - train_loss.png: the training loss and each of its parts, averaged per epoch over the iterations in the log.
 Runs of the same configuration share a color; a spatial-prior run (name ending in _sp) is dashed.
 Examples:
-  python visualise.py runs/full_seed0                          # every run in the folder
-  python visualise.py runs/full_seed0/vit_pretrained_lora      # one run
-  python visualise.py runs/full_seed0 --runs 'vit_*' --show    # only the ViT runs, also opened in a window"""
+  python plot.py runs/full_seed0                          # every run in the folder
+  python plot.py runs/full_seed0/vit_pretrained_lora      # one run
+  python plot.py runs/full_seed0 --runs 'vit_*' --show    # only the ViT runs, also opened in a window"""
 import argparse
 import fnmatch
 import re
