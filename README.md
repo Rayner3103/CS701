@@ -14,9 +14,10 @@ image (9 classes) and **detect** its objects.
    - [1.4 Small Objects](#14-small-objects)
 2. [Quick Start](#2-quick-start)
    - [2.1 Install](#21-install)
-   - [2.2 Train Baseline](#22-train-baseline)
-   - [2.3 Use Course Data](#23-use-course-data)
-   - [2.4 Make Submission](#24-make-submission)
+   - [2.2 Prepare Course Data](#22-prepare-course-data)
+   - [2.3 Train](#23-train)
+   - [2.4 Training Options](#24-training-options)
+   - [2.5 Make Submission](#25-make-submission)
 3. [Baseline Results (for reference)](#3-baseline-results-for-reference)
 4. [Code Structure](#4-code-structure)
 5. [Links](#5-links)
@@ -55,7 +56,7 @@ image (9 classes) and **detect** its objects.
 
 - Classification: macro-F1. Detection: COCO mAP.
 - Ranking: **Δm**, mean relative change of macro-F1 and mAP vs a reference model (ViT + LoRA, the example command
-  in 2.2; mean of 3 seeds):
+  in 2.3; mean of 3 seeds):
   `Δm = 100% × ½ [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref]`
 - Δm = 0: as good as the reference. Δm > 0: better. ViT full fine-tuning: about +13 (over the trainable budget: an
   upper bound).
@@ -75,32 +76,94 @@ conda create -n cs701bench python=3.12 -y && conda activate cs701bench
 pip install -r requirements.txt   # CUDA 12.8 builds of torch 2.9.0 / torchvision 0.24.0
 ```
 
-### 2.2 Train Baseline
+### 2.2 Prepare Course Data
+
+```bash
+python prepare_course_data.py   # -> ../dataset/SARFact-Course-20K, the layout train.py reads
+```
+
+- Converts the [course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data) download and holds out
+  10% + 10% of train (stratified, `--seed 0`) as local val and test: the released val/test have no labels.
+- Images are symlinked, not copied. Full walkthrough (download, layout, smoke test): [setup.md](setup.md).
+
+### 2.3 Train
+
+One run, on a 10 GB GPU (e.g. RTX 3080), with early stopping:
+
+```bash
+mkdir -p runs/single
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True nohup python train.py --backbone terramind --init pretrained \
+    --adapt moelora --batch-size 8 --epochs 50 --eval-every 2 --patience 5 --out runs/single \
+    >> runs/single/run.log 2>&1 &
+```
+
+- TerraMind + MoE-LoRA had the best test Δm in our own runs (`runs/full_seed0`: +5.0 on the local split, seed 0).
+  Add `--spatial-prior` to try the small-object branch.
+- Results go to `runs/single/terramind_pretrained_moelora/`. Files in it: [usage.md](usage.md#outputs).
+- `PYTORCH_CUDA_ALLOC_CONF` reduces memory fragmentation: without it, TerraMind + MoE-LoRA runs out of memory at batch
+  size 8 on 10 GB.
+- It runs in the background and keeps going after you close the terminal. Follow it with
+  `tail -f runs/single/terramind_pretrained_moelora/log.txt`. `runs/single/run.log` also catches crash messages.
+- 50 epochs take about 5.5 h on an RTX 3080 (24 epochs took 2.7 h), less if early stopping triggers.
+- Interrupted? Run the same command with `--resume` (keep `--epochs 50`).
+
+Other runs:
 
 ```bash
 python train.py --backbone vit --init pretrained --adapt lora   # the Δm reference; one run, about 50 min
-bash run_all.sh                                                  # all eight runs, about 7 h
+bash run_all.sh                                                  # the eight reference runs, about 7 h
+bash run_all_3080.sh 24                                          # the four adapter runs, without and with the
+                                                                 #   spatial prior, at batch size 8: usage.md
 ```
 
-- Options: `--backbone vit|terramind`, `--init pretrained|scratch`, `--adapt full|lora|moelora`
-  (`python train.py -h`).
 - `--adapt full` and `--init scratch` train 106 M parameters: over the 40 M budget, for reference only.
 - Pretrained weights download from Hugging Face on first use (ViT 0.4 GB, TerraMind 1.5 GB).
 - Times for one RTX PRO 6000 Blackwell GPU. Memory: [docs/DETAILS.md](docs/DETAILS.md#time-and-memory).
 
-### 2.3 Use Course Data
+### 2.4 Training Options
 
-TA Zichen ran this code on fully labelled data in another folder layout. For the
-[course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data), adapt `sarbench/data.py` and `train.py`:
+All options of `train.py` (`python train.py -h`):
 
-- train on `train/labels.csv` + `train/instances.json`
-- hold out part of train for local validation (val and test have no labels)
-- predict on the images in `val/images.json` and `test/images.json`
+| Option | Default | What it does |
+|---|---|---|
+| `--backbone vit\|terramind` | required | ViT-B/16 (ImageNet-21k) or TerraMind-1.0-base (Earth observation) |
+| `--init pretrained\|scratch` | required | `scratch` only with `--adapt full` |
+| `--adapt full\|lora\|moelora` | required | fine-tune the whole backbone, or freeze it and train LoRA / MoE-LoRA adapters |
+| `--spatial-prior` | off | a small CNN on the raw image feeds the neck at strides 4 and 8 (small objects); the run folder gets `_sp` |
+| `--epochs` | 24 | one epoch of warmup, then cosine decay to 0 at the last epoch |
+| `--batch-size` | 16 | set for a 96 GB GPU; 8 on 10-12 GB, 4 if `CUDA out of memory` |
+| `--lr` | 1e-4 | new modules: heads, neck, adapters |
+| `--backbone-lr` | `--lr` | trainable backbone parameters; `run_all.sh` uses 2e-5 for full fine-tuning |
+| `--weight-decay` | 0.05 | AdamW weight decay |
+| `--eval-every` | 4 | validate every N epochs and after the last one; the best val Δm so far is saved as `best_model.pt` |
+| `--patience` | off | early stopping: stop once N validations in a row have not beaten the best val Δm (see below) |
+| `--resume` | off | continue from the run folder's `last_checkpoint.pt`; needs the same `--epochs` |
+| `--seed` | 0 | random seed |
+| `--out` | `runs` | the run folder is `OUT/<backbone>_<init>_<adapt>[_sp]` |
+| `--data` | `../dataset/SARFact-Course-20K` | the prepared data (2.2) |
+| `--workers` | 8 | data-loading processes |
+| `--limit` | all | only the first N images of every split (quick checks) |
 
-### 2.4 Make Submission
+Early stopping (`--patience`):
 
-`make_submission.py` has `write_submission` (the function in the briefing video): maps your boxes back to
-original image pixels, writes `submission.zip` for Codabench.
+- It counts validations, not epochs: `--eval-every 2 --patience 3` stops after 6 epochs without improvement.
+- The epoch where training stops becomes the "last" model (`model.pt`, `test (last, epoch k)` in `log.txt`).
+  `metrics.json` records `last_epoch` and `stopped_early`.
+- The learning-rate schedule still spans all `--epochs`, so a run that stops early never decays to 0. Give it the
+  full `--epochs` you would otherwise train.
+- Works with `--resume`, and `run_all_3080.sh` counts a run that stopped early as complete.
+
+### 2.5 Make Submission
+
+```bash
+python predict.py --run runs/single/terramind_pretrained_moelora --images ../dataset-v2/val   # -> submission.zip
+```
+
+- Predicts on the released, unlabelled images (`--images`: the folder holding `images.json`) with the run's
+  `best_model.pt` (`--weights model.pt` for the last epoch), and writes `submission.zip` for Codabench.
+- It calls `write_submission` from `make_submission.py` (the function in the briefing video), which maps boxes back to
+  original image pixels.
+- Compare several runs first: `python compare_runs.py runs/full_seed0`.
 
 ## 3. Baseline Results (for reference)
 
@@ -142,8 +205,12 @@ Accuracy and AP50: [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
 ## 4. Code Structure
 
 ```
+prepare_course_data.py  course data download -> the layout train.py reads, with local val/test hold-outs
 train.py              entry: train + evaluate one configuration
 run_all.sh            the eight reference runs (calls train.py)
+run_all_3080.sh       the four adapter runs, without and with --spatial-prior, on a 10 GB GPU (usage.md)
+compare_runs.py       one line per run: test macro-F1, mAP, Δm, best epoch
+predict.py            a trained run on unlabelled images -> submission.zip
 make_submission.py    write_submission(): predictions -> submission.zip
 sarbench/             the code behind train.py
 ├── data.py           images + boxes at 512 × 512, flips; boxes back to original pixels
@@ -152,6 +219,8 @@ sarbench/             the code behind train.py
 ├── model.py          backbone + class head + ViTDet feature pyramid + Faster R-CNN
 └── metrics.py        accuracy, macro-F1, COCO box AP
 tests/                checks of sarbench/ (python -m pytest tests)
+setup.md              from nothing to a smoke test: clone, environment, data
+usage.md              run_all_3080.sh: commands, resuming, outputs, troubleshooting
 docs/DETAILS.md       model, training protocol, design notes, time and memory
 ```
 

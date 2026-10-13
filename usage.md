@@ -45,6 +45,7 @@ All eight are within the challenge limits (about 21 M trainable, 107 M total par
 | Short comparison | `bash run_all_3080.sh 12` |
 | Full runs, as in the README, in their own folder | `OUT_FOLDER=runs/full_seed0 bash run_all_3080.sh 24` |
 | Pick the best epoch more finely | `bash run_all_3080.sh 24 --eval-every 2` |
+| Early stopping: stop after 3 validations without a better val Δm | `bash run_all_3080.sh 24 --eval-every 2 --patience 3` |
 | Another seed, in its own folder | `SEED=1 OUT_FOLDER=runs/full_seed1 bash run_all_3080.sh 24` |
 
 Use a different `OUT_FOLDER` for every set of runs you want to keep. Launching again into the same folder with the
@@ -64,7 +65,7 @@ For each of the eight runs, the script reads its `log.txt` and prints what it do
 
 | The run's `log.txt` | What happens | Printed |
 |---|---|---|
-| ends with the final results of epoch `EPOCHS` (`test (last, epoch 24)`) | complete: skipped | `finished all 24 epochs: skipped` |
+| ends with the final test results (`test (last, epoch 24)`, or an earlier epoch after early stopping) | complete: skipped | `finished (test results in log.txt): skipped` |
 | stops in epoch n, and `last_checkpoint.pt` exists | resumes from the last completed epoch (n - 1 when it crashed during epoch n) and continues its `log.txt` | `log.txt stops in epoch n: resuming from the last completed epoch` |
 | stops in epoch n, no checkpoint (it crashed in epoch 1, or it was trained before checkpoints existed) | starts over | `... there is no checkpoint: starting over` |
 | is from a run of a different number of epochs | starts over (the learning-rate schedule depends on the total) | `... not 24: starting over` |
