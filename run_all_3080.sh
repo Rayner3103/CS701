@@ -10,7 +10,7 @@
 #   OUT_FOLDER=runs/smoke bash run_all_3080.sh 1 --limit 64   # quick end-to-end check
 #   SEED=1 OUT_FOLDER=runs/seed1 bash run_all_3080.sh 24      # all eight runs again with seed 1
 # Resuming: launch again with the same OUT_FOLDER and EPOCHS. Each run's log.txt decides what happens to it:
-#   - it ends with the final results of epoch EPOCHS: the run is complete and is skipped;
+#   - it ends with the final test results (after epoch EPOCHS, or earlier with --patience): complete, skipped;
 #   - it stops in epoch n: the run resumes from last_checkpoint.pt, the last completed epoch (n - 1);
 #   - no log, no checkpoint, or a log of a different number of epochs: the run starts over.
 # Each configuration's pair runs back to back, so an interrupted script still leaves complete pairs to compare.
@@ -55,8 +55,8 @@ run_status() {
     last_epoch=$(grep -oE '^epoch [0-9]+' "$log" | tail -1 | grep -oE '[0-9]+$')
     if [ "$logged_epochs" != "$EPOCHS" ]; then
         echo "fresh log.txt is from a run of ${logged_epochs:-?} epochs, not $EPOCHS: starting over"
-    elif grep -q "^test (last, epoch $EPOCHS)" "$log"; then
-        echo "skip finished all $EPOCHS epochs: skipped"
+    elif grep -q "^test (last, epoch " "$log"; then  # all EPOCHS epochs, or fewer with --patience
+        echo "skip finished (test results in log.txt): skipped"
     elif [ -f "$dir/last_checkpoint.pt" ]; then
         echo "resume log.txt stops in epoch ${last_epoch:-1}: resuming from the last completed epoch"
     else

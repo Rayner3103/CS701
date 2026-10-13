@@ -32,6 +32,9 @@ def parse_args():
     p.add_argument('--backbone-lr', type=float, help='for the trainable backbone parameters (default: --lr)')
     p.add_argument('--weight-decay', type=float, default=0.05)
     p.add_argument('--eval-every', type=int, default=4, help='validate every N epochs, and after the last one')
+    p.add_argument('--patience', type=int,
+                   help='early stopping: stop once N validations in a row have not improved the best val Δm '
+                        '(default: off, train all --epochs)')
     p.add_argument('--workers', type=int, default=8)
     p.add_argument('--limit', type=int, help='use only the first N images of every split (quick checks)')
     p.add_argument('--seed', type=int, default=0)
@@ -117,6 +120,11 @@ def delta_m(metrics, reference=VAL_REFERENCE):
     return 100 * sum((metrics[k] - ref) / ref for k, ref in reference.items()) / len(reference)
 
 
+def should_stop(history, best, patience):
+    """Early stopping: True once the last `patience` validations have all come after the best one."""
+    return bool(patience) and best is not None and sum(h['epoch'] > best['epoch'] for h in history) >= patience
+
+
 def save_checkpoint(path, **state):
     """Write to a temporary file, then rename: a crash while saving leaves the previous checkpoint intact."""
     torch.save(state, path.with_suffix('.tmp'))
@@ -177,9 +185,17 @@ def main():
     # Train, validating every --eval-every epochs. The model with the best val Δm so far is saved as best_model.pt
     # at once, so it survives an interrupted run; the last-epoch model stays the reported one, as in the README.
     # After every epoch, last_checkpoint.pt is overwritten with everything --resume needs.
-    start = time.time()
+    # With --patience, training stops early; the epoch it stops at is then the "last" one. The check reads the val
+    # history, so it also holds after --resume. The learning-rate schedule still follows --epochs.
+    start, last_epoch, stopped_early = time.time(), first_epoch - 1, False
     for epoch in range(first_epoch, args.epochs + 1):
+        if should_stop(history, best, args.patience):
+            stopped_early = True
+            log(f'early stopping after epoch {last_epoch}: no better val delta_m in the last {args.patience} '
+                f'validations (best: epoch {best["epoch"]}, delta_m {best["val"]["delta_m"]:+.2f})', log_file)
+            break
         train_one_epoch(model, train_loader, optimizer, schedule, epoch, log_file)
+        last_epoch = epoch
         if epoch % args.eval_every == 0 or epoch == args.epochs:
             val, val_detections = evaluate(model, val_loader, args.data / 'detection' / 'instances_val.json')
             val['delta_m'] = delta_m(val)
@@ -203,20 +219,21 @@ def main():
     test, test_detections = evaluate(model, test_loader, test_json)
     test['delta_m'] = delta_m(test)
     torch.save(model.state_dict(), run_dir / 'model.pt')
-    if best['epoch'] == args.epochs:
+    if best['epoch'] == last_epoch:
         best['test'], best_test_detections = test, test_detections
     else:
         model.load_state_dict(torch.load(run_dir / 'best_model.pt'))
         best['test'], best_test_detections = evaluate(model, test_loader, test_json)
         best['test']['delta_m'] = delta_m(best['test'])
     peak_gb = torch.cuda.max_memory_allocated() / 2**30
-    log(f'test (last, epoch {args.epochs}): {headline(test)}\n'
+    log(f'test (last, epoch {last_epoch}): {headline(test)}\n'
         f'test (best, epoch {best["epoch"]}): {headline(best["test"])}\n'
         f'training {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
 
     # Save
     summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable,
                'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb,
+               'last_epoch': last_epoch, 'stopped_early': stopped_early,
                'val_history': history, 'val': history[-1], 'test': test, 'best': best}
     (run_dir / 'metrics.json').write_text(json.dumps(summary, indent=2, default=str))
     (run_dir / 'predictions_test.json').write_text(json.dumps(test_detections))
