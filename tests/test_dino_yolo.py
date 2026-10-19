@@ -1,8 +1,9 @@
 """sarbench/dino_yolo.py: the parameter limits, the zero-initialised DINO fusion (training starts from the plain YOLO12),
-the DINO learning-rate groups and the image class read from the detections. No data, no downloads (random DINO weights);
+the DINO learning-rate groups, the classification head and the image class. No data, no downloads (random DINO weights);
 runs on the CPU."""
 import numpy as np
 import torch
+from ultralytics.cfg import get_cfg
 from ultralytics.nn.tasks import DetectionModel
 
 from sarbench.dino_yolo import MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, image_class, parameter_counts
@@ -51,3 +52,34 @@ def test_dino_parameters_get_their_own_lower_learning_rate():
 def test_image_class_is_the_class_with_the_highest_total_score():
     assert image_class(np.array([7, 2, 2]), np.array([0.9, 0.5, 0.5])) == 2
     assert image_class(np.array([], dtype=int), np.array([])) == 0
+
+
+def batch_of_two():
+    return {'img': torch.rand(2, 3, 64, 64), 'cls': torch.tensor([[0.], [3.], [3.]]), 'batch_idx': torch.tensor([0., 1., 1.]),
+            'bboxes': torch.tensor([[.5, .5, .3, .3], [.3, .3, .2, .2], [.7, .7, .2, .2]])}
+
+
+def test_classification_head_adds_an_image_loss_that_trains_the_head():
+    model = DinoYOLO('yolo12s.yaml', nc=9, verbose=False, pretrained_dino=False, cls_head=True)
+    model.args = get_cfg()  # the loss hyperparameters, as the trainer sets them
+    loss, items = model.loss(batch_of_two())
+    assert set(items) == {'box_loss', 'cls_loss', 'dfl_loss', 'img_loss'} and loss.ndim == 0
+    loss.backward()
+    assert model.cls_head[1].weight.grad.abs().sum() > 0
+    assert 'cls_logits' not in model.__dict__  # the graph is not kept on the module
+    model.eval()
+    with torch.no_grad():
+        model(torch.rand(1, 3, 64, 64))
+    assert model.cls_logits.shape == (1, 9)
+    assert image_class(np.array([1]), np.array([0.9]), logits=np.eye(9)[4]) == 4
+
+
+def test_models_saved_before_the_classification_head_still_run():
+    model = build()
+    del model.__dict__['cls_head']  # as unpickled from a checkpoint of the first version
+    model.args = get_cfg()
+    assert 'img_loss' not in model.loss(batch_of_two())[1]
+    model.eval()
+    with torch.no_grad():
+        model(torch.rand(1, 3, 64, 64))
+    assert not hasattr(model, 'cls_logits')

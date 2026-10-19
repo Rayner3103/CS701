@@ -1,6 +1,6 @@
 """Score a DINO-YOLO run (train_yolo.py) on the local val and test splits with the metrics of train.py: macro-F1 (the
-image class read from the detections), COCO mAP and Δm. Writes metrics.json and predictions_{split}.json into the run
-folder, so compare_runs.py lists the run.
+image class from the classification head, or read from the detections), COCO mAP and Δm. Writes metrics.json and
+predictions_{split}.json into the run folder, so compare_runs.py lists the run.
 Example: python eval_yolo.py --run runs/yolo/dino_yolo12s"""
 import argparse
 import csv
@@ -25,10 +25,10 @@ def evaluate(model, root, split, imgsz=512, batch=16):
     coco_images = {img['file_name']: img for img in json.loads(gt_json.read_text())['images']}
     labels, predicted, detections, image_ids = [], [], [], []
     paths = [str(root / row['image']) for row in rows]
-    for row, (boxes, classes, scores) in zip(rows, predict(model, paths, imgsz=imgsz, batch=batch)):
+    for row, (boxes, classes, scores, logits) in zip(rows, predict(model, paths, imgsz=imgsz, batch=batch)):
         image_id = coco_images[row['image']]['id']
         labels.append(int(row['label']))
-        predicted.append(image_class(classes, scores))
+        predicted.append(image_class(classes, scores, logits))
         image_ids.append(image_id)
         xywh = np.concatenate([boxes[:, :2], boxes[:, 2:] - boxes[:, :2]], axis=1)
         detections += [{'image_id': image_id, 'category_id': int(c) + 1, 'bbox': b, 'score': float(s)}

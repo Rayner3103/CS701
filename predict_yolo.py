@@ -24,11 +24,12 @@ def main():
     images = json.loads((args.images / 'images.json').read_text())['images']
     paths = [str(args.images / im['file_name']) for im in images]
     preds, size = {}, 512
-    for im, (boxes, classes, scores) in zip(images, predict(model, paths, imgsz=args.imgsz, batch=args.batch_size)):
+    for im, (boxes, classes, scores, logits) in zip(images, predict(model, paths, imgsz=args.imgsz,
+                                                                    batch=args.batch_size)):
         # Boxes are in original pixels; write_submission expects them on a size x size input and scales them back
         sx, sy = size / im['width'], size / im['height']
         boxes = boxes * [sx, sy, sx, sy]
-        preds[im['file_name']] = (image_class(classes, scores), boxes.tolist(), classes.tolist(), scores.tolist())
+        preds[im['file_name']] = (image_class(classes, scores, logits), boxes.tolist(), classes.tolist(), scores.tolist())
         print(f'\r{len(preds)}/{len(images)}', end='', flush=True)
 
     write_submission(images, preds, size=size, out=args.out)

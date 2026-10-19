@@ -1,7 +1,7 @@
 """DINO-YOLO: YOLO12 whose backbone also gets the features of a DINOv3 ViT run on the same image, after the
 DINOv3 + YOLOv12 design of Sompote/DINOV3-YOLOV12, built on the official ultralytics package.
-There is no classification head: every box of an image has the image's class, so the image class is read from the
-detections (image_class)."""
+The image class comes from an optional classification head on the DINO features (cls_head=True), or else from the
+detections: every box of an image has the image's class (image_class)."""
 import numpy as np
 import timm
 import torch
@@ -19,14 +19,18 @@ MAX_TOTAL, MAX_TRAINABLE = 130e6, 40e6
 class DinoYOLO(DetectionModel):
     """YOLO12 + a DINOv3 ViT. The ViT's stride-16 map is resized to the outputs of the backbone layers `fuse`
     (YOLO12: 4 = P3/8, 6 = P4/16, 8 = P5/32), projected by 1x1 convs and added to them. The convs start at zero, so
-    training starts from exactly the plain (COCO-pretrained) YOLO12."""
+    training starts from exactly the plain (COCO-pretrained) YOLO12.
+    cls_head=True adds an image classifier: LayerNorm + Linear on the ViT's CLS token and mean patch token (the DINOv2
+    linear probe), trained with a multi-label loss of weight cls_weight (loss)."""
 
     def __init__(self, cfg='yolo12s.yaml', ch=3, nc=None, verbose=True, dino='vit_small_patch16_dinov3.lvd1689m',
-                 fuse=(4, 6, 8), pretrained_dino=True):
+                 fuse=(4, 6, 8), pretrained_dino=True, cls_head=False, cls_weight=1.0):
         super().__init__(cfg, ch=ch, nc=nc, verbose=False)
         # A checkpoint stores self.yaml, and resume and predict rebuild the model from it: it carries the DINO settings
         dino = self.yaml.setdefault('dino', dino)
         fuse = self.yaml.setdefault('dino_fuse', list(fuse))
+        cls_head = self.yaml.setdefault('dino_cls_head', cls_head)
+        self.yaml.setdefault('dino_cls_weight', cls_weight)
         channels = self._output_channels(fuse, ch)
         self.dino = timm.create_model(dino, pretrained=pretrained_dino, num_classes=0, dynamic_img_size=True)
         mean, std = self.dino.pretrained_cfg['mean'], self.dino.pretrained_cfg['std']
@@ -36,6 +40,8 @@ class DinoYOLO(DetectionModel):
         for conv in self.dino_proj.values():
             nn.init.zeros_(conv.weight)
             nn.init.zeros_(conv.bias)
+        d = self.dino.embed_dim
+        self.cls_head = nn.Sequential(nn.LayerNorm(2 * d), nn.Linear(2 * d, self.yaml['nc'])) if cls_head else None
         if verbose:
             self.info()
 
@@ -54,13 +60,21 @@ class DinoYOLO(DetectionModel):
         return channels
 
     def dino_features(self, x):
-        """images [B, 3, H, W] in [0, 1] (H, W multiples of 16) -> last ViT block as a map [B, embed_dim, H/16, W/16]."""
+        """images [B, 3, H, W] in [0, 1] (H, W multiples of 16) -> the last ViT block: patch tokens as a map
+        [B, embed_dim, H/16, W/16] and the CLS token [B, embed_dim]."""
         x = (x - self.dino_mean) / self.dino_std
-        return self.dino.forward_intermediates(x, indices=1, norm=True, output_fmt='NCHW', intermediates_only=True)[0]
+        tokens, prefix = self.dino.forward_intermediates(x, indices=1, norm=True, output_fmt='NCHW',
+                                                         intermediates_only=True, return_prefix_tokens=True)[0]
+        return tokens, prefix[:, 0]
 
     def _predict_once(self, x, profile=False, embed=None):
-        """DetectionModel._predict_once (ultralytics 8.4.170) with the DINO features added after the `fuse` layers."""
-        dino = self.dino_features(x) if hasattr(self, 'dino_proj') else None  # None while __init__ builds the YOLO12
+        """DetectionModel._predict_once (ultralytics 8.4.170) with the DINO features added after the `fuse` layers.
+        With the classification head, its logits [B, nc] are left in self.cls_logits for loss() and predict()."""
+        dino = None  # stays None while __init__ builds the YOLO12
+        if hasattr(self, 'dino_proj'):
+            dino, cls_token = self.dino_features(x)
+            if getattr(self, 'cls_head', None) is not None:  # getattr: models saved before the head have no attribute
+                self.cls_logits = self.cls_head(torch.cat([cls_token, dino.mean((2, 3))], 1))
         y, dt, embeddings = [], [], []  # outputs
         embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
@@ -79,6 +93,21 @@ class DinoYOLO(DetectionModel):
                 if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
+
+    def loss(self, batch, preds=None):
+        """The detection loss, plus cls_weight x the image-class loss when there is a classification head. Mosaic puts
+        up to four images into one, so the target is every class with a box in it (multi-label, binary cross-entropy);
+        after close_mosaic that is the image's one class."""
+        if getattr(self, 'cls_head', None) is None:
+            return super().loss(batch, preds)
+        if preds is None:
+            preds = self.forward(batch['img'])
+        loss, items = super().loss(batch, preds)
+        logits = self.__dict__.pop('cls_logits').float()  # pop: the graph is not kept on the module
+        target = torch.zeros_like(logits)
+        target[batch['batch_idx'].long(), batch['cls'].view(-1).long()] = 1
+        img_loss = F.binary_cross_entropy_with_logits(logits, target, reduction='sum') / len(logits)
+        return loss.sum() + self.yaml['dino_cls_weight'] * img_loss * len(logits), {**items, 'img_loss': img_loss.detach()}
 
 
 def parameter_counts(model):
@@ -99,13 +128,16 @@ class DinoYOLOTrainer(DetectionTrainer):
     """DetectionTrainer that builds DinoYOLO, checks the parameter limits, and gives the DINO ViT dino_lr_mult x the
     learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4)."""
 
-    def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=(4, 6, 8), dino_lr_mult=0.1, **kwargs):
-        self.dino, self.fuse, self.dino_lr_mult = dino, fuse, dino_lr_mult  # before super(): it may build the model
+    def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=(4, 6, 8), dino_lr_mult=0.1,
+                 cls_head=False, cls_weight=1.0, **kwargs):
+        # before super(): it may build the model
+        self.dino, self.fuse, self.dino_lr_mult, self.cls_head, self.cls_weight = dino, fuse, dino_lr_mult, cls_head, cls_weight
         super().__init__(*args, **kwargs)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = self.set_model_names_for_load(DinoYOLO(cfg, ch=self.data['channels'], nc=self.data['nc'],
-                                                       verbose=verbose and RANK == -1, dino=self.dino, fuse=self.fuse))
+                                                       verbose=verbose and RANK == -1, dino=self.dino, fuse=self.fuse,
+                                                       cls_head=self.cls_head, cls_weight=self.cls_weight))
         if weights:
             model.load(weights)  # COCO-pretrained YOLO12 (all but the class outputs), or a checkpoint to resume
         check_limits(model)
@@ -125,17 +157,23 @@ class DinoYOLOTrainer(DetectionTrainer):
         return optimizer
 
 
-def image_class(classes, scores, num_classes=9):
-    """The image class from its detections (classes 0..8, scores): the class with the highest total score.
-    An image without detections gets class 0."""
+def image_class(classes, scores, logits=None, num_classes=9):
+    """The image class: the classification head's argmax if the model has one (logits), else read from the detections
+    (classes 0..8, scores): the class with the highest total score. An image without detections gets class 0."""
+    if logits is not None:
+        return int(logits.argmax())
     return int(np.bincount(classes, weights=scores, minlength=num_classes).argmax())
 
 
 def predict(model, paths, imgsz=512, batch=16, conf=0.001, iou=0.7, max_det=100):
-    """Yield (boxes XYXY in original pixels [N, 4], classes 0..8 [N], scores [N]) per image, in the order of `paths`.
-    conf 0.001 and 100 boxes per image: as COCO mAP is computed. No test-time augmentation."""
-    for start in range(0, len(paths), batch):  # ultralytics runs a list of paths as one batch
-        for r in model.predict(paths[start:start + batch], imgsz=imgsz, conf=conf, iou=iou, max_det=max_det,
-                               verbose=False):
+    """Yield (boxes XYXY in original pixels [N, 4], classes 0..8 [N], scores [N], class logits [nc] or None without a
+    classification head) per image, in the order of `paths`. conf 0.001 and 100 boxes per image: as COCO mAP is
+    computed. No test-time augmentation."""
+    for start in range(0, len(paths), batch):  # ultralytics runs a list of paths as one batch: one forward pass
+        results = model.predict(paths[start:start + batch], imgsz=imgsz, conf=conf, iou=iou, max_det=max_det,
+                                verbose=False)
+        logits = getattr(model.predictor.model.backend.model, 'cls_logits', None)  # left by that forward pass
+        for i, r in enumerate(results):
             b = r.boxes
-            yield b.xyxy.cpu().numpy(), b.cls.cpu().numpy().astype(int), b.conf.cpu().numpy()
+            yield (b.xyxy.cpu().numpy(), b.cls.cpu().numpy().astype(int), b.conf.cpu().numpy(),
+                   None if logits is None else logits[i].float().cpu().numpy())

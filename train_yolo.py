@@ -22,6 +22,9 @@ def parse_args():
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--lr', type=float, default=1e-3, help='AdamW, cosine decay to lr x 0.01')
     p.add_argument('--dino-lr-mult', type=float, default=0.1, help='the DINO ViT trains at lr x this')
+    p.add_argument('--cls-head', action='store_true',
+                   help='classify the image with a head on the DINO features, not from the detections')
+    p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the image-class loss (with --cls-head)')
     p.add_argument('--weight-decay', type=float, default=0.05)
     p.add_argument('--imgsz', type=int, default=512, help='at most 512 (assignment limit)')
     p.add_argument('--patience', type=int, default=20, help='stop after N epochs without a better val fitness')
@@ -51,7 +54,8 @@ def main():
             workers=args.workers, seed=args.seed, project=str(run.parent), name=run.name, exist_ok=True,
             # Augmentation: overhead images have no "up", so vertical flips too; gray images: no hue or saturation
             flipud=0.5, hsv_h=0.0, hsv_s=0.0)
-    trainer = DinoYOLOTrainer(overrides=overrides, dino=args.dino, fuse=args.fuse, dino_lr_mult=args.dino_lr_mult)
+    trainer = DinoYOLOTrainer(overrides=overrides, dino=args.dino, fuse=args.fuse, dino_lr_mult=args.dino_lr_mult,
+                              cls_head=args.cls_head, cls_weight=args.cls_weight)
     trainer.train()
     total, trainable = parameter_counts(trainer.model)
     print(f'parameters: {total / 1e6:.2f} M total, {trainable / 1e6:.2f} M trainable')

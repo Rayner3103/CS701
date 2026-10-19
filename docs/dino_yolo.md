@@ -22,8 +22,8 @@ image class = the class with the highest total detection score
   weights.
 - The 1x1 fusion convs start at zero, so training starts from exactly the COCO-pretrained YOLO12-s
   (`tests/test_dino_yolo.py`).
-- **No classification head.** Every box of an image has the image's class, so the image class is read from the
-  detections. An image without detections gets class 0 (aircraft). The prediction threshold is 0.001, so this
+- **No classification head by default.** Every box of an image has the image's class, so the image class is read
+  from the detections. `--cls-head` adds one instead (see Next steps). An image without detections gets class 0 (aircraft). The prediction threshold is 0.001, so this
   hardly ever happens.
 - **Parameters: 31.24 M in total, all trainable**: DINOv3 ViT-S/16 21.59 M, YOLO12-s and the fusion convs 9.65 M.
   That is within the limits of 130 M total and 40 M trainable. `DinoYOLOTrainer.get_model` checks the limits and
@@ -79,12 +79,20 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | run | epochs | params (total / trainable) | val F1 | val mAP | test F1 | test mAP | test Δm |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | dino_yolo12s_ep24 (best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 91.1 | 30.7 | 90.4 | 30.8 | +7.4 |
+| dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
+| dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
 | terramind + MoE-LoRA (`runs/full_seed0`) | 24 | | | | 90.9 | 29.4 | +5.0 |
 | vit + MoE-LoRA + spatial prior (`runs/full_seed0`) | 24 | | | | 92.8 | 28.6 | +4.5 |
-| terramind + MoE-LoRA (`runs/single_seed0`) | 50 | | | | 91.8 | 35.2 | +16.5 |
+| terramind + MoE-LoRA (`runs/single_seed0`) | 50 | | 90.2 | 33.6 | 91.8 | 35.2 | +16.5 |
+| terramind + MoE-LoRA (`runs/single_seed0_ep100`, best epoch 86) | 100 | | 90.2 | 36.8 | 91.8 | 38.0 | +21.8 |
 
 - 24 epochs took 59 min on an RTX 3080. Val mAP was still rising at the last epoch: longer runs should gain more, as
   the TerraMind runs did from 24 to 50 epochs.
+- 50 epochs (about 2 h) beat TerraMind + MoE-LoRA at 50 epochs on val (Δm +14.3 vs +12.7), with higher macro-F1
+  (92.2 vs 90.2). It ran all 50 epochs, so a 100-epoch run followed.
+- 100 epochs (about 4 h): val Δm +20.9 vs +18.8 for TerraMind + MoE-LoRA at 100 epochs, but on test it is behind
+  (+19.0 vs +21.8). TerraMind's test mAP is 1.7 points higher. The best val epoch was the last one (fitness 37.5), so
+  training had not yet plateaued. DINO-YOLO keeps the higher macro-F1 on both splits.
 - Detection carries the score. mAP 30.8 is close to the full fine-tuning upper bound of the reference (31.8), but
   macro-F1 is about 2.4 points below the adapter runs.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
@@ -93,10 +101,10 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 
 ## Next steps
 
-- Train longer (50 epochs: about 2 h) before tuning anything else.
-- Raise F1 with a pooled classification head on the DINO features, trained with the detector. This needs a custom
-  ultralytics loss. It targets the bridge / oil tank / playground confusions, where the vote from weak detections
-  fails.
+- Classification head (`--cls-head`, implemented and unit-tested, not yet benchmarked): LayerNorm + Linear on the
+  DINO CLS token and mean patch token, trained with the detector by a multi-label BCE loss (mosaic mixes classes).
+  The image class then comes from the head, not from the detections. It targets the bridge / oil tank / playground
+  confusions, where the vote from weak detections fails.
 - Bigger DINO: ViT-S+/16 (29 M; `--dino vit_small_plus_patch16_dinov3.lvd1689m`) still fits the limits.
   ViT-B/16 (86 M) needs a frozen or LoRA DINO.
 - 90° rotations and copy-paste of small objects (docs/improvement.md 4); smaller anchor-free strides (a P2 head) for
