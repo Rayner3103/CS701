@@ -134,6 +134,8 @@ def compile_blocks(backbone):
     container = getattr(getattr(backbone, 'vit', None), 'blocks', None)
     if container is None:
         return
+    import torch._dynamo
+    torch._dynamo.config.cache_size_limit = max(torch._dynamo.config.cache_size_limit, 64)  # 12 blocks x train/eval x batch sizes
     for i in range(len(container)):
         container[i] = torch.compile(container[i], dynamic=False)
 
