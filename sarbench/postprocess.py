@@ -76,13 +76,14 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
     keep = box_ops.remove_small_boxes(boxes, min_size)
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
-    if nms == 'soft':
+    if nms == 'soft':  # a sequential loop of small ops: faster on the CPU
+        device = boxes.device
+        boxes, scores, labels = boxes.cpu(), scores.cpu(), labels.cpu()
         keep, new_scores = soft_nms(boxes, scores, labels, soft_sigma, score_thresh, per_class)
         boxes, scores, labels = boxes[keep], new_scores, labels[keep]
-        keep = torch.arange(len(scores), device=scores.device)
         if total is not None:
-            keep = keep[:total]
-        return boxes[keep], scores[keep], labels[keep]
+            boxes, scores, labels = boxes[:total], scores[:total], labels[:total]
+        return boxes.to(device), scores.to(device), labels.to(device)
     keep = box_ops.batched_nms(boxes, scores, labels, nms_thresh)  # sorted by score, descending
     if per_class is not None:
         # rank of each kept box within its class, in score order
