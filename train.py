@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from sarbench.adapters import add_adapters, add_lora, unfreeze
+from sarbench.adapters import add_adapters, add_lora, add_mona, unfreeze
 from sarbench.backbones import BACKBONES, build_backbone
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
@@ -38,6 +38,7 @@ def parse_args(argv=None):
     p.add_argument('--train-pos-embed', action='store_true', help='train the position embedding (and CLS/register tokens)')
     p.add_argument('--cnx-full-stages', default='', help="ConvNeXt: fully train the stem and these stages (e.g. '0,1,3'), LoRA on the others")
     p.add_argument('--drop-path', type=float, default=0.0, help='stochastic depth rate of the backbone')
+    p.add_argument('--mona', type=int, default=0, help='hidden size of Mona adapters in every ViT block (0: off)')
     # model
     p.add_argument('--spatial-prior', type=int, default=0, help='channels of the CNN spatial-prior branch (0: off)')
     p.add_argument('--ml-levels', default='', help="multi-level neck: 4 block indices feeding strides 4..32, e.g. '2,5,8,11'")
@@ -129,6 +130,8 @@ def build_model(args):
             add_adapters(backbone, 'lora')  # the reference, unchanged
         else:
             add_lora(backbone, targets, args.lora_rank, args.lora_alpha, skip_blocks=skip)
+    if getattr(args, 'mona', 0):
+        add_mona(backbone, args.mona)  # trainable (created after the backbone was frozen)
     if args.adapt != 'full':
         unfreeze(backbone, norms=args.train_norms, biases=args.train_bias, patch_embed=args.train_patch_embed,
                  layer_scale=args.train_ls, last_blocks=args.unfreeze_last, pos_embed=getattr(args, 'train_pos_embed', False))

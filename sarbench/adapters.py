@@ -1,4 +1,8 @@
-"""LoRA and MoE-LoRA adapters for the attention layers of a frozen backbone."""
+"""LoRA, MoE-LoRA and Mona adapters for a frozen backbone."""
+import types
+
+import torch
+import torch.nn.functional as F
 from torch import nn
 
 
@@ -94,3 +98,62 @@ def set_task(module, task):
     for layer in module.modules():
         if isinstance(layer, MoELoRA):
             layer.task = task
+
+
+class Mona(nn.Module):
+    """Mona (Yin et al., CVPR 2025): a multi-cognitive visual adapter on the residual stream,
+    x + up(drop(GELU(MultiScaleDWConv(down(gamma * LN(x) + gamma_x * x))))). The depthwise 3/5/7 convs run on the
+    patch-token grid (prefix tokens skip them). up is zero-initialised: at step 0 the block is unchanged."""
+
+    def __init__(self, dim, hidden=64, prefix=1):
+        super().__init__()
+        self.prefix = prefix
+        self.norm = nn.LayerNorm(dim)
+        self.gamma = nn.Parameter(torch.full((dim,), 1e-6))
+        self.gamma_x = nn.Parameter(torch.ones(dim))
+        self.down = nn.Linear(dim, hidden)
+        self.convs = nn.ModuleList(nn.Conv2d(hidden, hidden, k, padding=k // 2, groups=hidden) for k in (3, 5, 7))
+        self.proj = nn.Conv2d(hidden, hidden, 1)
+        self.drop = nn.Dropout(0.1)
+        self.up = nn.Linear(hidden, dim)
+        nn.init.zeros_(self.up.weight)
+        nn.init.zeros_(self.up.bias)
+
+    def forward(self, x):
+        z = self.down(self.norm(x) * self.gamma + x * self.gamma_x)
+        p, t = z[:, :self.prefix], z[:, self.prefix:]
+        b, n, c = t.shape
+        side = int(n ** 0.5)
+        grid = t.transpose(1, 2).reshape(b, c, side, side)
+        grid = sum(conv(grid) for conv in self.convs) / 3.0 + grid
+        grid = self.proj(grid) + grid
+        z = torch.cat([p, grid.flatten(2).transpose(1, 2)], dim=1)
+        return x + self.up(self.drop(F.gelu(z)))
+
+
+def _vit_block_forward(self, x, attn_mask=None):
+    x = x + self.drop_path1(self.ls1(self.attn(self.norm1(x), attn_mask=attn_mask)))
+    x = self.mona1(x)
+    x = x + self.drop_path2(self.ls2(self.mlp(self.norm2(x))))
+    return self.mona2(x)
+
+
+def _eva_block_forward(self, x, rope=None, attn_mask=None):
+    g1 = 1 if self.gamma_1 is None else self.gamma_1
+    g2 = 1 if self.gamma_2 is None else self.gamma_2
+    x = x + self.drop_path1(g1 * self.attn(self.norm1(x), rope=rope, attn_mask=attn_mask))
+    x = self.mona1(x)
+    x = x + self.drop_path2(g2 * self.mlp(self.norm2(x)))
+    return self.mona2(x)
+
+
+def add_mona(backbone, hidden=64):
+    """Insert two Mona adapters into every block of a timm plain ViT (Block or EvaBlock): after the attention residual
+    and after the MLP residual. Returns the number of adapters."""
+    prefix = backbone.vit.num_prefix_tokens
+    for blk in backbone.blocks:
+        dim = blk.norm1.normalized_shape[0]
+        blk.mona1, blk.mona2 = Mona(dim, hidden, prefix), Mona(dim, hidden, prefix)
+        fwd = _eva_block_forward if hasattr(blk, 'gamma_1') else _vit_block_forward
+        blk.forward = types.MethodType(fwd, blk)
+    return 2 * len(backbone.blocks)
