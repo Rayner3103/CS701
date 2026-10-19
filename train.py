@@ -65,6 +65,7 @@ def parse_args(argv=None):
     p.add_argument('--dump-raw', action='store_true', help='save raw per-class boxes and logits of the eval splits')
     p.add_argument('--save', default='trainable', choices=['full', 'trainable', 'none'])
     p.add_argument('--allow-over-budget', action='store_true', help='only for reference runs that break the Terms')
+    p.add_argument('--compile', action='store_true', help='torch.compile each backbone block (same math, faster)')
     p.add_argument('--workers', type=int, default=8)
     p.add_argument('--limit', type=int, help='use only the first N images of every split (quick checks)')
     p.add_argument('--seed', type=int, default=0)
@@ -126,6 +127,15 @@ def build_model(args):
     model.roi_heads.giou_weight = getattr(args, 'giou', 0.0)
     model.roi_heads.giou_only = getattr(args, 'giou_only', False)
     return model
+
+
+def compile_blocks(backbone):
+    """torch.compile every block of the backbone in place (the parameters stay the same objects)."""
+    container = getattr(getattr(backbone, 'vit', None), 'blocks', None)
+    if container is None:
+        return
+    for i in range(len(container)):
+        container[i] = torch.compile(container[i], dynamic=False)
 
 
 class EMA:
@@ -227,6 +237,8 @@ def main():
     # Model: adapters are created on the CPU, so they are added before .cuda()
     model = build_model(args).cuda()
     model.roi_heads.post['score_thresh'] = args.score_thresh
+    if args.compile:
+        compile_blocks(model.backbone)
     parameters = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log(f'parameters: {parameters:,} total, {trainable:,} trainable', log_file)

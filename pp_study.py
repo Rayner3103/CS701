@@ -62,6 +62,20 @@ def run_one(job):
     return name, m, ap50, per_class, len(dets) / len(raw['image_ids'])
 
 
+def cls_study(raw_path, lambdas=(0.0, 0.25, 0.5, 1.0, 2.0)):
+    """Macro-F1 when the image class is argmax_c [log p_img(c) + lam * log q(c)], q(c) = the highest detector
+    probability of class c over the image's proposals (the same forward pass)."""
+    from sarbench.metrics import classification_metrics
+    raw = torch.load(raw_path)
+    logp = torch.stack([lg.log_softmax(0) for lg in raw['cls_logits']])
+    logq = torch.stack([torch.log(rl.float().softmax(-1)[:, 1:].max(0).values + 1e-6) for rl in raw['raw_logits']])
+    out = {}
+    for lam in lambdas:
+        pred = (logp + lam * logq).argmax(1).tolist()
+        out[lam] = classification_metrics(raw['labels'], pred)['macro_f1']
+    return out
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--run', type=Path, required=True)
@@ -81,6 +95,10 @@ def main():
         r = results[name]
         print(f'{name:30s} ' + ' '.join(f'{100 * r[s]["mAP"]:9.2f} {100 * r[s]["AP50"]:9.2f}' for s in a.splits.split(','))
               + f'  {np.mean([r[s]["dets_per_img"] for s in r]):.0f}')
+    cls = {split: cls_study(a.run / f'raw_{split}.pt') for split in a.splits.split(',')}
+    for lam in next(iter(cls.values())):
+        print(f'cls fusion lambda {lam:4.2f}: macro-F1 ' + ' '.join(f'{s} {100 * cls[s][lam]:.2f}' for s in cls))
+    results['cls_fusion'] = {s: {str(k): v for k, v in d.items()} for s, d in cls.items()}
     (a.run / 'pp_study.json').write_text(json.dumps(results, indent=1))
 
 
