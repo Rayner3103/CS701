@@ -37,11 +37,14 @@ def parse_args(argv=None):
     p.add_argument('--train-ls', action='store_true', help='train layer-scale gammas')
     # model
     p.add_argument('--spatial-prior', type=int, default=0, help='channels of the CNN spatial-prior branch (0: off)')
+    p.add_argument('--ml-levels', default='', help="multi-level neck: 4 block indices feeding strides 4..32, e.g. '2,5,8,11'")
     p.add_argument('--anchor-sizes', default=';'.join(','.join(str(s) for s in lvl) for lvl in REFERENCE_ANCHORS))
     p.add_argument('--anchor-ratios', default='0.5,1.0,2.0')
     p.add_argument('--box-head', default='mlp', choices=['mlp', 'small'])
     p.add_argument('--cls-pool', default='mean', choices=['mean', 'clsmean', 'attn'])
     p.add_argument('--roi-batch', type=int, default=512)
+    p.add_argument('--giou', type=float, default=0.0, help='weight of a GIoU loss on the RoI boxes (0: off)')
+    p.add_argument('--giou-only', action='store_true', help='the GIoU loss replaces the smooth-L1 RoI box loss')
     # optimisation
     p.add_argument('--epochs', type=int, default=24)
     p.add_argument('--batch-size', type=int, default=16)
@@ -99,6 +102,9 @@ def lr_factor(step, warmup, total):
 def build_model(args):
     """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
     backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
+    if getattr(args, 'ml_levels', ''):
+        backbone.ml_indices = [int(i) for i in args.ml_levels.split(',')]
+        assert len(backbone.ml_indices) == 4, '--ml-levels needs 4 block indices'
     if args.adapt == 'moelora':
         add_adapters(backbone, 'moelora')
     elif args.adapt == 'lora':
@@ -114,9 +120,12 @@ def build_model(args):
                  layer_scale=args.train_ls, last_blocks=args.unfreeze_last)
     anchors = tuple(tuple(float(s) for s in lvl.split(',')) for lvl in args.anchor_sizes.split(';'))
     ratios = tuple(float(r) for r in args.anchor_ratios.split(','))
-    return MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior,
-                          anchor_sizes=anchors, anchor_ratios=ratios, box_head=args.box_head, cls_pool=args.cls_pool,
-                          roi_batch=args.roi_batch)
+    model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior,
+                           anchor_sizes=anchors, anchor_ratios=ratios, box_head=args.box_head, cls_pool=args.cls_pool,
+                           roi_batch=args.roi_batch)
+    model.roi_heads.giou_weight = getattr(args, 'giou', 0.0)
+    model.roi_heads.giou_only = getattr(args, 'giou_only', False)
+    return model
 
 
 class EMA:

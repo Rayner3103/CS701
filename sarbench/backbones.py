@@ -5,6 +5,16 @@ from terratorch.registry import BACKBONE_REGISTRY  # as in the reference: this i
 from torch import nn
 
 
+def forward_tokens(backbone, x):
+    """The final normed tokens; with backbone.ml_indices set, also keep the normed outputs of those blocks as
+    [B, D, h, w] maps in backbone.intermediates (shallower blocks keep finer spatial detail)."""
+    if backbone.ml_indices:
+        tokens, backbone.intermediates = backbone.vit.forward_intermediates(
+            x, indices=list(backbone.ml_indices), norm=True, output_fmt='NCHW')
+        return tokens
+    return backbone.vit.forward_features(x)
+
+
 class ViT(nn.Module):
     """timm ViT-B/16 pretrained on ImageNet-21k."""
 
@@ -20,8 +30,10 @@ class ViT(nn.Module):
     def blocks(self):
         return self.vit.blocks
 
+    ml_indices = None  # block indices whose (normed) outputs feed the pyramid levels; None: last block only
+
     def forward(self, x):
-        tokens = self.vit.forward_features(x)  # [B, 1 + N, 768], final norm applied
+        tokens = forward_tokens(self, x)  # [B, 1 + N, 768], final norm applied
         self.prefix_tokens = tokens[:, :self.vit.num_prefix_tokens]  # CLS, for poolings that use it
         return tokens[:, self.vit.num_prefix_tokens:]  # drop the CLS token
 
@@ -40,8 +52,10 @@ class TimmViT(nn.Module):
     def blocks(self):
         return self.vit.blocks
 
+    ml_indices = None
+
     def forward(self, x):
-        tokens = self.vit.forward_features(x)  # final norm applied
+        tokens = forward_tokens(self, x)  # final norm applied
         n = self.vit.num_prefix_tokens
         self.prefix_tokens = tokens[:, :n]
         return tokens[:, n:]

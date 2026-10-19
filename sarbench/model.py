@@ -8,9 +8,9 @@ from torch import nn
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor, TwoMLPHead
 from torchvision.models.detection.image_list import ImageList
-from torchvision.models.detection.roi_heads import RoIHeads
+from torchvision.models.detection.roi_heads import RoIHeads, fastrcnn_loss
 from torchvision.models.detection.rpn import RegionProposalNetwork, RPNHead
-from torchvision.ops import FeaturePyramidNetwork, MultiScaleRoIAlign
+from torchvision.ops import FeaturePyramidNetwork, MultiScaleRoIAlign, generalized_box_iou_loss
 from torchvision.ops.feature_pyramid_network import LastLevelMaxPool
 
 from .adapters import set_task
@@ -69,8 +69,10 @@ class SimpleFeaturePyramid(nn.Module):
                           nn.Conv2d(channels, channels, 3, padding=1, bias=False), nn.GroupNorm(32, channels))
             for c in (dim // 4, dim // 2, dim, dim))
 
-    def forward(self, x, images=None):
-        scaled = [rescale(x) for rescale in self.rescale]
+    def forward(self, x, images=None, maps=None):
+        """x: the last block's map [B, dim, H/16, W/16]; maps: optionally one map per level (multi-level neck:
+        the shallowest block feeds stride 4, the last one stride 32); images: needed only with the spatial prior."""
+        scaled = [rescale(m) for rescale, m in zip(self.rescale, maps)] if maps else [rescale(x) for rescale in self.rescale]
         if self.prior is not None:
             for i, (prior, lateral) in enumerate(zip(self.prior(images), self.lateral)):
                 scaled[i] = scaled[i] + lateral(prior)
@@ -109,10 +111,28 @@ class RoIHeadsPlus(RoIHeads):
     torchvision's postprocess_detections exactly) and can also return the raw per-class boxes and logits."""
 
     post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9)
+    giou_weight = 0.0  # > 0: add a GIoU loss on the positive RoIs' decoded boxes (tighter boxes for tiny objects)
+    giou_only = False  # True: the GIoU loss replaces the smooth-L1 box loss
 
     def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False):
-        if self.training:
+        if self.training and not self.giou_weight:
             return super().forward(features, proposals, image_shapes, targets)
+        if self.training:
+            proposals, _, labels, regression_targets = self.select_training_samples(proposals, targets)
+            box_features = self.box_head(self.box_roi_pool(features, proposals, image_shapes))
+            class_logits, box_regression = self.box_predictor(box_features)
+            loss_classifier, loss_box_reg = fastrcnn_loss(class_logits, box_regression, labels, regression_targets)
+            labels, props = torch.cat(labels), torch.cat(proposals)
+            targets_d = torch.cat(regression_targets)
+            pos = torch.where(labels > 0)[0]
+            deltas = box_regression.reshape(len(labels), -1, 4)[pos, labels[pos]]
+            pred = self.box_coder.decode_single(deltas, props[pos])
+            gt = self.box_coder.decode_single(targets_d[pos], props[pos])
+            loss_giou = self.giou_weight * generalized_box_iou_loss(pred, gt, reduction='sum') / max(labels.numel(), 1)
+            losses = {'loss_classifier': loss_classifier, 'loss_giou': loss_giou}
+            if not self.giou_only:
+                losses['loss_box_reg'] = loss_box_reg
+            return [], losses
         box_features = self.box_head(self.box_roi_pool(features, proposals, image_shapes))
         class_logits, box_regression = self.box_predictor(box_features)
         boxes_all = self.box_coder.decode(box_regression, proposals)  # [sum N, C + 1, 4]
@@ -140,7 +160,7 @@ class MultiTaskModel(nn.Module):
         self.backbone = backbone
         self.task_routing = task_routing  # MoE-LoRA: the backbone runs once per task, with that task's routers
         self.hierarchical = getattr(backbone, 'hierarchical', False)
-        self.cls_pool = cls_pool
+        self.cls_pool = cls_pool = 'mean' if self.hierarchical else cls_pool  # ConvNeXt: mean of the last map
         dim = backbone.embed_dim
         feat = dim * (2 if cls_pool in ('clsmean', 'attn') else 1)
         if cls_pool == 'attn':
@@ -190,7 +210,8 @@ class MultiTaskModel(nn.Module):
                 out = self.backbone(images)
             p = self.backbone.patch_size
             h, w = images.shape[-2] // p, images.shape[-1] // p  # one token per p x p patch
-            features = self.neck(out.transpose(1, 2).unflatten(2, (h, w)), images)
+            maps = getattr(self.backbone, 'intermediates', None) if getattr(self.backbone, 'ml_indices', None) else None
+            features = self.neck(out.transpose(1, 2).unflatten(2, (h, w)), images, maps)
         # Precision rule: the box coder casts anchors to the dtype of the regression output, so in bf16 every
         # coordinate near 512 would snap to a 2 px grid. RPN and RoIHeads therefore run in fp32.
         with torch.autocast(images.device.type, enabled=False):
