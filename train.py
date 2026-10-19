@@ -35,6 +35,9 @@ def parse_args(argv=None):
     p.add_argument('--train-bias', action='store_true', help='train every bias of the backbone')
     p.add_argument('--train-patch-embed', action='store_true')
     p.add_argument('--train-ls', action='store_true', help='train layer-scale gammas')
+    p.add_argument('--train-pos-embed', action='store_true', help='train the position embedding (and CLS/register tokens)')
+    p.add_argument('--cnx-full-stages', default='', help="ConvNeXt: fully train the stem and these stages (e.g. '0,1,3'), LoRA on the others")
+    p.add_argument('--drop-path', type=float, default=0.0, help='stochastic depth rate of the backbone')
     # model
     p.add_argument('--spatial-prior', type=int, default=0, help='channels of the CNN spatial-prior branch (0: off)')
     p.add_argument('--ml-levels', default='', help="multi-level neck: 4 block indices feeding strides 4..32, e.g. '2,5,8,11'")
@@ -51,6 +54,8 @@ def parse_args(argv=None):
     p.add_argument('--lr', type=float, default=1e-4)
     p.add_argument('--backbone-lr', type=float, help='for the trainable backbone parameters (default: --lr)')
     p.add_argument('--weight-decay', type=float, default=0.05)
+    p.add_argument('--wd-hygiene', action='store_true', help='no weight decay on 1-D parameters (norms, biases, gammas) and embeddings')
+    p.add_argument('--loraplus', type=float, default=1.0, help='LoRA+: learning-rate multiplier for the LoRA B (up) matrices')
     p.add_argument('--label-smoothing', type=float, default=0.0)
     p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the classification loss')
     p.add_argument('--ema', type=float, default=0.0, help='EMA decay of the trainable weights (0: off); EMA weights are evaluated and saved')
@@ -102,7 +107,7 @@ def lr_factor(step, warmup, total):
 
 def build_model(args):
     """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
-    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
+    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained', drop_path=getattr(args, 'drop_path', 0.0))
     if getattr(args, 'ml_levels', ''):
         backbone.ml_indices = [int(i) for i in args.ml_levels.split(',')]
         assert len(backbone.ml_indices) == 4, '--ml-levels needs 4 block indices'
@@ -112,13 +117,25 @@ def build_model(args):
         targets = tuple(t for t in args.lora_targets.split(',') if t)
         n = len(list(backbone.blocks))
         skip = set(range(n - args.unfreeze_last, n)) if args.unfreeze_last else set()
+        full_stages = [int(i) for i in getattr(args, 'cnx_full_stages', '').split(',') if i]
+        if full_stages:  # ConvNeXt: blocks of the fully trained stages get no LoRA
+            first = 0
+            for i in range(4):
+                count = len(getattr(backbone.body, f'stages_{i}').blocks)
+                if i in full_stages:
+                    skip |= set(range(first, first + count))
+                first += count
         if targets == ('attn.qkv', 'attn.proj') and args.lora_rank == 16 and args.lora_alpha == 32 and not skip:
             add_adapters(backbone, 'lora')  # the reference, unchanged
         else:
             add_lora(backbone, targets, args.lora_rank, args.lora_alpha, skip_blocks=skip)
     if args.adapt != 'full':
         unfreeze(backbone, norms=args.train_norms, biases=args.train_bias, patch_embed=args.train_patch_embed,
-                 layer_scale=args.train_ls, last_blocks=args.unfreeze_last)
+                 layer_scale=args.train_ls, last_blocks=args.unfreeze_last, pos_embed=getattr(args, 'train_pos_embed', False))
+        for i in [int(i) for i in getattr(args, 'cnx_full_stages', '').split(',') if i]:
+            getattr(backbone.body, f'stages_{i}').requires_grad_(True)
+            backbone.body.stem_0.requires_grad_(True)
+            backbone.body.stem_1.requires_grad_(True)
     anchors = tuple(tuple(float(s) for s in lvl.split(',')) for lvl in args.anchor_sizes.split(';'))
     ratios = tuple(float(r) for r in args.anchor_ratios.split(','))
     model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior,
@@ -127,6 +144,25 @@ def build_model(args):
     model.roi_heads.giou_weight = getattr(args, 'giou', 0.0)
     model.roi_heads.giou_only = getattr(args, 'giou_only', False)
     return model
+
+
+def param_groups(model, args):
+    """Trainable backbone parameters at --backbone-lr, all new modules at --lr (the reference: two groups, every
+    parameter with --weight-decay). --loraplus multiplies the LR of LoRA B matrices; --wd-hygiene removes weight decay
+    from 1-D parameters and embeddings. The head group stays last (the log prints its LR)."""
+    hygiene, lp = getattr(args, 'wd_hygiene', False), getattr(args, 'loraplus', 1.0)
+    groups = {}
+    for name, p in model.named_parameters():
+        if not p.requires_grad:
+            continue
+        backbone = name.startswith('backbone.')
+        lr = args.backbone_lr if backbone else args.lr
+        if backbone and lp != 1.0 and name.endswith('.up.weight'):
+            lr = lr * lp
+        no_wd = hygiene and (p.ndim <= 1 or name.rsplit('.', 1)[-1] in ('pos_embed', 'cls_token', 'reg_token', 'pool_query'))
+        key = (not backbone, lr, 0.0 if no_wd else args.weight_decay)
+        groups.setdefault(key, []).append(p)
+    return [{'params': ps, 'lr': lr, 'weight_decay': wd} for (_, lr, wd), ps in sorted(groups.items(), key=lambda kv: kv[0][0])]
 
 
 def compile_blocks(backbone):
@@ -249,10 +285,7 @@ def main():
                          f'{trainable:,} trainable (max {MAX_TRAINABLE:,})')
 
     # Optimizer and schedule: trainable backbone parameters at --backbone-lr, all new modules at --lr
-    backbone_params = [p for p in model.backbone.parameters() if p.requires_grad]
-    head_params = [p for name, p in model.named_parameters() if not name.startswith('backbone.') and p.requires_grad]
-    optimizer = torch.optim.AdamW([{'params': backbone_params, 'lr': args.backbone_lr}, {'params': head_params}],
-                                  lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = torch.optim.AdamW(param_groups(model, args), lr=args.lr, weight_decay=args.weight_decay)
     warmup, total = len(train_loader), args.epochs * len(train_loader)  # one epoch of warmup
     schedule = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: lr_factor(step, warmup, total))
     ema = EMA(model, args.ema) if args.ema else None

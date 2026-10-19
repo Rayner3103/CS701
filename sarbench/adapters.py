@@ -69,7 +69,7 @@ def add_lora(backbone, targets=('attn.qkv', 'attn.proj'), rank=16, alpha=32, ski
     return wrapped
 
 
-def unfreeze(backbone, norms=False, biases=False, patch_embed=False, layer_scale=False, last_blocks=0):
+def unfreeze(backbone, norms=False, biases=False, patch_embed=False, layer_scale=False, last_blocks=0, pos_embed=False):
     """Make more of a frozen backbone trainable: LayerNorm weights, all biases, the patch embedding, layer-scale
     gammas, and/or every weight of the last `last_blocks` blocks."""
     for name, p in backbone.named_parameters():
@@ -81,6 +81,8 @@ def unfreeze(backbone, norms=False, biases=False, patch_embed=False, layer_scale
         if patch_embed and ('patch_embed' in name or 'stem' in name):
             p.requires_grad_(True)
         if layer_scale and (leaf in ('gamma', 'scale') or '.ls1.' in name or '.ls2.' in name or 'gamma_' in leaf):
+            p.requires_grad_(True)
+        if pos_embed and leaf in ('pos_embed', 'cls_token', 'reg_token'):
             p.requires_grad_(True)
     if last_blocks:
         for blk in list(backbone.blocks)[-last_blocks:]:

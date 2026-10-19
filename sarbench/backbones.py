@@ -18,11 +18,12 @@ def forward_tokens(backbone, x):
 class ViT(nn.Module):
     """timm ViT-B/16 pretrained on ImageNet-21k."""
 
-    def __init__(self, pretrained: bool):
+    def __init__(self, pretrained: bool, drop_path=0.0):
         super().__init__()
         # in_chans=1: timm sums the RGB patch-embedding weights; img_size=512: it resamples the position embedding
+        extra = {'drop_path_rate': drop_path} if drop_path else {}  # the reference passes nothing
         self.vit = timm.create_model('vit_base_patch16_224.augreg_in21k', pretrained=pretrained,
-                                     img_size=512, in_chans=1, num_classes=0)
+                                     img_size=512, in_chans=1, num_classes=0, **extra)
         self.embed_dim = 768
         self.patch_size = 16
 
@@ -42,9 +43,10 @@ class TimmViT(nn.Module):
     """Any timm plain ViT (DINOv3, DINOv2, EVA-02, CLIP, ...) at img_size px with a 1-channel patch embedding.
     The prefix tokens (CLS, registers) are dropped from the output and kept in self.prefix_tokens."""
 
-    def __init__(self, name: str, pretrained: bool, img_size=512):
+    def __init__(self, name: str, pretrained: bool, img_size=512, drop_path=0.0):
         super().__init__()
-        self.vit = timm.create_model(name, pretrained=pretrained, img_size=img_size, in_chans=1, num_classes=0)
+        self.vit = timm.create_model(name, pretrained=pretrained, img_size=img_size, in_chans=1, num_classes=0,
+                                     drop_path_rate=drop_path)
         self.embed_dim = self.vit.embed_dim
         self.patch_size = self.vit.patch_embed.patch_size[0]
 
@@ -67,10 +69,10 @@ class TimmConvNeXt(nn.Module):
 
     hierarchical = True
 
-    def __init__(self, name: str, pretrained: bool):
+    def __init__(self, name: str, pretrained: bool, drop_path=0.0):
         super().__init__()
         self.body = timm.create_model(name, pretrained=pretrained, in_chans=1, features_only=True,
-                                      out_indices=(0, 1, 2, 3))
+                                      out_indices=(0, 1, 2, 3), drop_path_rate=drop_path)
         self.channels = self.body.feature_info.channels()
         self.embed_dim = self.channels[-1]
         # With terratorch imported (TF32 settings), cuDNN rejects the depthwise conv on the channels-last-strided
@@ -108,24 +110,27 @@ class TerraMind(nn.Module):
 
 TIMM_VITS = {
     'dinov3': 'vit_base_patch16_dinov3.lvd1689m',
-    'dinov3s': 'vit_small_plus_patch16_dinov3.lvd1689m',
+    'dinov3s': 'vit_small_plus_patch16_dinov3.lvd1689m',  # SwiGLU MLP (mlp.fc1_g / fc1_x / fc2)
+    'dinov3_vits': 'vit_small_patch16_dinov3.lvd1689m',
     'dinov2': 'vit_base_patch14_reg4_dinov2.lvd142m',
     'eva02': 'eva02_base_patch14_224.mim_in22k',
     'clip': 'vit_base_patch16_clip_224.openai',
 }
 TIMM_CONVNEXTS = {
     'convnext_dinov3': 'convnext_base.dinov3_lvd1689m',
+    'convnext_s_dinov3': 'convnext_small.dinov3_lvd1689m',
+    'convnext_t_dinov3': 'convnext_tiny.dinov3_lvd1689m',
     'convnext_in22k': 'convnext_base.fb_in22k',
 }
 BACKBONES = ['vit', 'terramind', *TIMM_VITS, *TIMM_CONVNEXTS]
 
 
-def build_backbone(name, pretrained, img_size=512):
+def build_backbone(name, pretrained, img_size=512, drop_path=0.0):
     """name: one of BACKBONES. pretrained=False builds the same architecture with random weights."""
     if name == 'vit':
-        return ViT(pretrained)
+        return ViT(pretrained, drop_path)
     if name == 'terramind':
         return TerraMind(pretrained)
     if name in TIMM_VITS:
-        return TimmViT(TIMM_VITS[name], pretrained, img_size)
-    return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained)
+        return TimmViT(TIMM_VITS[name], pretrained, img_size, drop_path)
+    return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained, drop_path)
