@@ -38,6 +38,15 @@ def load_run(run_dir, weights='model.pt'):
     return model.cuda().eval(), args
 
 
+def image_class(logits, out, lam):
+    """The image's class: argmax of the classifier, or with lam > 0 of log p_img(c) + lam * log q(c), where q(c) is the
+    highest detector probability of class c over the image's proposals (pp_study.cls_study, same forward pass)."""
+    if lam <= 0:
+        return int(logits.argmax())
+    logq = torch.log(out['raw_logits'].float().softmax(-1)[:, 1:].max(0).values + 1e-6)
+    return int((logits.float().log_softmax(0) + lam * logq).argmax())
+
+
 def set_post(model, a):
     model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class,
                                 total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk)
@@ -51,6 +60,7 @@ def main():
     p.add_argument('--split', help='a labelled local split to score (val, test)')
     p.add_argument('--dump-raw', action='store_true')
     p.add_argument('--images', type=Path, help='a released split folder holding images.json (Codabench val/test)')
+    p.add_argument('--images-json', default='images.json', help='file under --images listing the images to predict')
     p.add_argument('--out', type=Path, default=Path('submission.zip'))
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--workers', type=int, default=8)
@@ -62,6 +72,8 @@ def main():
     p.add_argument('--fusion', default='none', choices=['none', 'mult', 'agn', 'hard'])
     p.add_argument('--gamma', type=float, default=1.0)
     p.add_argument('--topk', type=int, default=9)
+    p.add_argument('--cls-lambda', type=float, default=0.0,
+                   help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     a = p.parse_args()
 
     model, args = load_run(a.run, a.weights)
@@ -77,18 +89,19 @@ def main():
             torch.save(raw, a.run / f'raw_{a.split}.pt')
         return
 
-    images = json.loads((a.images / 'images.json').read_text())['images']
+    images = json.loads((a.images / a.images_json).read_text())['images']
     loader = DataLoader(SARImages(a.images, images), a.batch_size, num_workers=a.workers,
                         collate_fn=lambda b: (torch.stack([x for x, _ in b]), [i for _, i in b]))
     preds, n_img, t0 = {}, 0, time.time()
     with torch.no_grad():
         for batch, infos in loader:
             with torch.autocast('cuda', dtype=torch.bfloat16):
-                logits, outputs, _ = model(batch.cuda())
+                logits, outputs, _ = model(batch.cuda(), return_raw=a.cls_lambda > 0)
             for info, lg, out in zip(infos, logits, outputs):
                 name = images[n_img]['file_name']
                 assert images[n_img]['id'] == info['image_id']
-                preds[name] = (lg.argmax().item(), out['boxes'].float().tolist(),
+                label = image_class(lg, out, a.cls_lambda)
+                preds[name] = (label, out['boxes'].float().tolist(),
                                (out['labels'] - 1).tolist(),  # detector labels 1..9; write_submission adds 1
                                out['scores'].float().tolist())
                 n_img += 1
