@@ -1,5 +1,6 @@
-"""Train one model jointly for classification and detection, then score it on val and test.
-Example: python train.py --backbone vit --init pretrained --adapt lora"""
+"""Train one model jointly for classification and detection, then score it on the local holdouts.
+Example (the reference): python train.py --backbone vit --init pretrained --adapt lora
+Every option beyond the reference is opt-in; the defaults reproduce the reference run."""
 import argparse
 import json
 import math
@@ -10,30 +11,63 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from sarbench.adapters import add_adapters
-from sarbench.backbones import build_backbone
+from sarbench.adapters import add_adapters, add_lora, unfreeze
+from sarbench.backbones import BACKBONES, build_backbone
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
-from sarbench.model import MultiTaskModel
+from sarbench.model import REFERENCE_ANCHORS, MultiTaskModel
+
+MAX_TOTAL, MAX_TRAINABLE = 130_000_000, 40_000_000  # Codabench Terms
 
 
-def parse_args():
+def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--data', type=Path, default=Path(__file__).resolve().parents[1] / 'dataset' / 'SARFact-Course-20K')
-    p.add_argument('--backbone', required=True, choices=['vit', 'terramind'])
+    p.add_argument('--backbone', required=True, choices=BACKBONES)
     p.add_argument('--init', required=True, choices=['pretrained', 'scratch'])
     p.add_argument('--adapt', required=True, choices=['full', 'lora', 'moelora'])
+    # adaptation capacity
+    p.add_argument('--lora-targets', default='attn.qkv,attn.proj', help='layers inside each block to wrap with LoRA')
+    p.add_argument('--lora-rank', type=int, default=16)
+    p.add_argument('--lora-alpha', type=float, default=32)
+    p.add_argument('--unfreeze-last', type=int, default=0, help='fully train the last N blocks (no LoRA on them)')
+    p.add_argument('--train-norms', action='store_true', help='train the backbone LayerNorm weights and biases')
+    p.add_argument('--train-bias', action='store_true', help='train every bias of the backbone')
+    p.add_argument('--train-patch-embed', action='store_true')
+    p.add_argument('--train-ls', action='store_true', help='train layer-scale gammas')
+    # model
+    p.add_argument('--spatial-prior', type=int, default=0, help='channels of the CNN spatial-prior branch (0: off)')
+    p.add_argument('--anchor-sizes', default=';'.join(','.join(str(s) for s in lvl) for lvl in REFERENCE_ANCHORS))
+    p.add_argument('--anchor-ratios', default='0.5,1.0,2.0')
+    p.add_argument('--box-head', default='mlp', choices=['mlp', 'small'])
+    p.add_argument('--cls-pool', default='mean', choices=['mean', 'clsmean', 'attn'])
+    p.add_argument('--roi-batch', type=int, default=512)
+    # optimisation
     p.add_argument('--epochs', type=int, default=24)
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--lr', type=float, default=1e-4)
     p.add_argument('--backbone-lr', type=float, help='for the trainable backbone parameters (default: --lr)')
     p.add_argument('--weight-decay', type=float, default=0.05)
+    p.add_argument('--label-smoothing', type=float, default=0.0)
+    p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the classification loss')
+    p.add_argument('--ema', type=float, default=0.0, help='EMA decay of the trainable weights (0: off); EMA weights are evaluated and saved')
+    p.add_argument('--aug', default='flip', choices=['flip', 'd4'])
+    p.add_argument('--zoom-p', type=float, default=0.0)
+    p.add_argument('--zoom-max', type=float, default=1.5)
+    # data, evaluation, output
+    p.add_argument('--train-split', default='train', help="e.g. 'train+val+test' for the final model")
+    p.add_argument('--eval-splits', default='val,test', help="comma-separated; '' for none")
     p.add_argument('--eval-every', type=int, default=4, help='validate every N epochs, and after the last one')
+    p.add_argument('--score-thresh', type=float, default=0.05, help='detection score threshold at evaluation')
+    p.add_argument('--dump-raw', action='store_true', help='save raw per-class boxes and logits of the eval splits')
+    p.add_argument('--save', default='trainable', choices=['full', 'trainable', 'none'])
+    p.add_argument('--allow-over-budget', action='store_true', help='only for reference runs that break the Terms')
     p.add_argument('--workers', type=int, default=8)
     p.add_argument('--limit', type=int, help='use only the first N images of every split (quick checks)')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--out', type=Path, default=Path('runs'))
-    args = p.parse_args()
+    p.add_argument('--name', help='run folder name under --out (default: backbone_init_adapt)')
+    args = p.parse_args(argv)
     if args.init == 'scratch' and args.adapt != 'full':
         p.error('--init scratch is only valid with --adapt full')
     if args.backbone_lr is None:
@@ -47,12 +81,12 @@ def log(message, file):
     print(message, file=file, flush=True)
 
 
-def make_loader(args, split):
+def make_loader(args, split, train):
     """Batches of `split`; only the training set is shuffled and augmented."""
-    train = split == 'train'
-    dataset = SARMultiTask(args.data, split, train=train, limit=args.limit)
+    dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
+                           zoom_max=args.zoom_max)
     return DataLoader(dataset, args.batch_size, shuffle=train, num_workers=args.workers, collate_fn=collate,
-                      persistent_workers=train and args.workers > 0)  # training workers live across epochs
+                      persistent_workers=train and args.workers > 0, drop_last=False)
 
 
 def lr_factor(step, warmup, total):
@@ -62,7 +96,51 @@ def lr_factor(step, warmup, total):
     return 0.5 * (1 + math.cos(math.pi * (step - warmup) / max(total - warmup, 1)))  # --epochs 1: no decay phase
 
 
-def train_one_epoch(model, loader, optimizer, schedule, epoch, log_file):
+def build_model(args):
+    """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
+    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
+    if args.adapt == 'moelora':
+        add_adapters(backbone, 'moelora')
+    elif args.adapt == 'lora':
+        targets = tuple(t for t in args.lora_targets.split(',') if t)
+        n = len(list(backbone.blocks))
+        skip = set(range(n - args.unfreeze_last, n)) if args.unfreeze_last else set()
+        if targets == ('attn.qkv', 'attn.proj') and args.lora_rank == 16 and args.lora_alpha == 32 and not skip:
+            add_adapters(backbone, 'lora')  # the reference, unchanged
+        else:
+            add_lora(backbone, targets, args.lora_rank, args.lora_alpha, skip_blocks=skip)
+    if args.adapt != 'full':
+        unfreeze(backbone, norms=args.train_norms, biases=args.train_bias, patch_embed=args.train_patch_embed,
+                 layer_scale=args.train_ls, last_blocks=args.unfreeze_last)
+    anchors = tuple(tuple(float(s) for s in lvl.split(',')) for lvl in args.anchor_sizes.split(';'))
+    ratios = tuple(float(r) for r in args.anchor_ratios.split(','))
+    return MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior,
+                          anchor_sizes=anchors, anchor_ratios=ratios, box_head=args.box_head, cls_pool=args.cls_pool,
+                          roi_batch=args.roi_batch)
+
+
+class EMA:
+    """Exponential moving average of the trainable weights (one model: the average replaces the weights)."""
+
+    def __init__(self, model, decay):
+        self.decay = decay
+        self.params = [p for p in model.parameters() if p.requires_grad]
+        self.shadow = [p.detach().clone() for p in self.params]
+
+    @torch.no_grad()
+    def update(self, step):
+        d = min(self.decay, (1 + step) / (10 + step))
+        torch._foreach_lerp_(self.shadow, [p.detach() for p in self.params], 1 - d)
+
+    @torch.no_grad()
+    def swap(self):
+        for p, s in zip(self.params, self.shadow):
+            tmp = p.detach().clone()
+            p.copy_(s)
+            s.copy_(tmp)
+
+
+def train_one_epoch(model, loader, optimizer, schedule, epoch, log_file, args, ema=None, step0=0):
     """One pass over the training set; the loss is cross-entropy plus the four Faster R-CNN losses."""
     model.train()
     start, seen = time.time(), 0
@@ -70,37 +148,53 @@ def train_one_epoch(model, loader, optimizer, schedule, epoch, log_file):
         targets = [{'boxes': t['boxes'].cuda(), 'labels': t['labels'].cuda()} for t in targets]
         with torch.autocast('cuda', dtype=torch.bfloat16):  # bf16 has fp32's range: no loss scaling needed
             logits, _, det_losses = model(images.cuda(), targets)
-            losses = {'classification': F.cross_entropy(logits, labels.cuda()), **det_losses}
+            losses = {'classification': args.cls_weight * F.cross_entropy(logits.float(), labels.cuda(),
+                                                                          label_smoothing=args.label_smoothing),
+                      **det_losses}
         loss = sum(losses.values())
+        if not torch.isfinite(loss):
+            raise RuntimeError(f'nan loss at epoch {epoch} step {step}: {losses}')
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         schedule.step()
+        if ema is not None:
+            ema.update(step0 + step)
         seen += len(images)
         if step % 50 == 0 or step == len(loader):
             parts = ' '.join(f'{name} {value.item():.3f}' for name, value in losses.items())
             log(f'epoch {epoch} iter {step}/{len(loader)} loss {loss.item():.3f} ({parts}) '
-                f'lr {optimizer.param_groups[1]["lr"]:.2e} {seen / (time.time() - start):.1f} images/s', log_file)
+                f'lr {optimizer.param_groups[-1]["lr"]:.2e} {seen / (time.time() - start):.1f} images/s', log_file)
             start, seen = time.time(), 0
+    return step0 + len(loader)
 
 
 @torch.no_grad()
-def evaluate(model, loader, gt_json):
-    """Classification and COCO detection metrics on one split, and the detections in COCO result format."""
+def evaluate(model, loader, gt_json, raw=False):
+    """Classification and COCO detection metrics on one split, the detections in COCO result format and, with
+    raw=True, the raw outputs (class logits, per-class boxes and logits of every proposal) for offline study."""
     model.eval()
     labels, predicted, detections, image_ids = [], [], [], []
+    dump = {'image_ids': [], 'orig_sizes': [], 'labels': [], 'cls_logits': [], 'raw_boxes': [], 'raw_logits': []}
     for images, y, targets in loader:
         with torch.autocast('cuda', dtype=torch.bfloat16):
-            logits, outputs, _ = model(images.cuda())
+            logits, outputs, _ = model(images.cuda(), return_raw=raw)
         labels += y.tolist()
         predicted += logits.argmax(dim=1).tolist()
-        for target, out in zip(targets, outputs):
+        for target, out, lg, yy in zip(targets, outputs, logits, y.tolist()):
             image_ids.append(target['image_id'])
             boxes = to_original_xywh(out['boxes'], target['orig_size']).tolist()
             detections += [{'image_id': target['image_id'], 'category_id': c, 'bbox': b, 'score': s}
                            for b, c, s in zip(boxes, out['labels'].tolist(), out['scores'].tolist())]
+            if raw:
+                dump['image_ids'].append(target['image_id'])
+                dump['orig_sizes'].append(target['orig_size'])
+                dump['labels'].append(yy)
+                dump['cls_logits'].append(lg.float().cpu())
+                dump['raw_boxes'].append(out['raw_boxes'].float().cpu())
+                dump['raw_logits'].append(out['raw_logits'].half().cpu())
     metrics = {**classification_metrics(labels, predicted), **detection_metrics(gt_json, detections, image_ids)}
-    return metrics, detections
+    return metrics, detections, (dump if raw else None)
 
 
 def headline(metrics):
@@ -110,54 +204,81 @@ def headline(metrics):
 def main():
     args = parse_args()
     torch.manual_seed(args.seed)
-    run_dir = args.out / f'{args.backbone}_{args.init}_{args.adapt}'
+    torch.backends.cudnn.benchmark = True
+    run_dir = args.out / (args.name or f'{args.backbone}_{args.init}_{args.adapt}')
     run_dir.mkdir(parents=True, exist_ok=True)
     log_file = open(run_dir / 'log.txt', 'w')
     log(json.dumps(vars(args), default=str), log_file)
 
     # Data
-    train_loader, val_loader, test_loader = (make_loader(args, split) for split in ('train', 'val', 'test'))
+    train_loader = make_loader(args, args.train_split, train=True)
+    eval_splits = [s for s in args.eval_splits.split(',') if s]
+    eval_loaders = {s: make_loader(args, s, train=False) for s in eval_splits}
 
     # Model: adapters are created on the CPU, so they are added before .cuda()
-    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
-    if args.adapt != 'full':
-        add_adapters(backbone, args.adapt)  # also freezes the backbone
-    model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora').cuda()
+    model = build_model(args).cuda()
+    model.roi_heads.post['score_thresh'] = args.score_thresh
     parameters = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log(f'parameters: {parameters:,} total, {trainable:,} trainable', log_file)
+    if (parameters > MAX_TOTAL or trainable > MAX_TRAINABLE) and not args.allow_over_budget:
+        raise SystemExit(f'over the Codabench budget: {parameters:,} total (max {MAX_TOTAL:,}), '
+                         f'{trainable:,} trainable (max {MAX_TRAINABLE:,})')
 
     # Optimizer and schedule: trainable backbone parameters at --backbone-lr, all new modules at --lr
     backbone_params = [p for p in model.backbone.parameters() if p.requires_grad]
-    head_params = [p for name, p in model.named_parameters() if not name.startswith('backbone.')]
+    head_params = [p for name, p in model.named_parameters() if not name.startswith('backbone.') and p.requires_grad]
     optimizer = torch.optim.AdamW([{'params': backbone_params, 'lr': args.backbone_lr}, {'params': head_params}],
                                   lr=args.lr, weight_decay=args.weight_decay)
     warmup, total = len(train_loader), args.epochs * len(train_loader)  # one epoch of warmup
     schedule = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: lr_factor(step, warmup, total))
+    ema = EMA(model, args.ema) if args.ema else None
 
-    # Train, validating every --eval-every epochs; the reported model is the last-epoch model
-    history, start = [], time.time()
+    # Train, validating every --eval-every epochs on the first eval split; the reported model is the last-epoch model
+    history, start, step = [], time.time(), 0
     for epoch in range(1, args.epochs + 1):
-        train_one_epoch(model, train_loader, optimizer, schedule, epoch, log_file)
-        if epoch % args.eval_every == 0 or epoch == args.epochs:
-            val, val_detections = evaluate(model, val_loader, args.data / 'detection' / 'instances_val.json')
+        step = train_one_epoch(model, train_loader, optimizer, schedule, epoch, log_file, args, ema, step)
+        if eval_splits and (epoch % args.eval_every == 0 or epoch == args.epochs) and epoch != args.epochs:
+            s = eval_splits[0]
+            if ema:
+                ema.swap()
+            val, _, _ = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json')
+            if ema:
+                ema.swap()
             history.append({'epoch': epoch, **val})
-            log(f'epoch {epoch} val: {headline(val)}', log_file)
+            log(f'epoch {epoch} {s}: {headline(val)}', log_file)
     train_hours = (time.time() - start) / 3600
+    if ema:
+        ema.swap()  # from here on the model holds the EMA weights
 
-    # Evaluate on test, once
-    test, test_detections = evaluate(model, test_loader, args.data / 'detection' / 'instances_test.json')
+    # Final evaluation of the last-epoch model on every eval split
+    results = {}
+    for s in eval_splits:
+        t0 = time.time()
+        m, dets, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
+        m['seconds'] = time.time() - t0
+        results[s] = m
+        log(f'{s}: {headline(m)}', log_file)
+        (run_dir / f'predictions_{s}.json').write_text(json.dumps(dets))
+        if raw is not None:
+            torch.save(raw, run_dir / f'raw_{s}.pt')
     peak_gb = torch.cuda.max_memory_allocated() / 2**30
-    log(f'test: {headline(test)}\ntraining {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
+    log(f'training {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
 
     # Save
     summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable,
-               'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb,
-               'val_history': history, 'val': history[-1], 'test': test}
+               'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb, 'val_history': history,
+               **{s: results[s] for s in eval_splits}}
+    if 'val' in results:
+        summary['val'] = results['val']
     (run_dir / 'metrics.json').write_text(json.dumps(summary, indent=2, default=str))
-    (run_dir / 'predictions_val.json').write_text(json.dumps(val_detections))
-    (run_dir / 'predictions_test.json').write_text(json.dumps(test_detections))
-    torch.save(model.state_dict(), run_dir / 'model.pt')
+    if args.save != 'none':
+        state = model.state_dict()
+        if args.save == 'trainable':
+            keep = {n for n, p in model.named_parameters() if p.requires_grad} | {n for n, _ in model.named_buffers()}
+            state = {k: v for k, v in state.items() if k in keep}
+        torch.save(state, run_dir / 'model.pt')
+    log('RESULT ' + json.dumps({s: {k: round(results[s][k], 4) for k in ('macro_f1', 'mAP', 'AP50')} for s in eval_splits}), log_file)
 
 
 if __name__ == '__main__':

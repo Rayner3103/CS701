@@ -1,6 +1,7 @@
-"""The two ViT-B/16 backbones, built for 512 px input: images [B, 1, 512, 512] -> patch tokens [B, 1024, 768]."""
+"""The backbones, built for 512 px input. Plain ViTs map images [B, 1, 512, 512] -> patch tokens [B, N, D];
+the ConvNeXt maps them to four feature maps at strides 4, 8, 16 and 32."""
 import timm
-from terratorch.registry import BACKBONE_REGISTRY
+from terratorch.registry import BACKBONE_REGISTRY  # as in the reference: this import also switches fp32 matmuls to TF32
 from torch import nn
 
 
@@ -13,6 +14,7 @@ class ViT(nn.Module):
         self.vit = timm.create_model('vit_base_patch16_224.augreg_in21k', pretrained=pretrained,
                                      img_size=512, in_chans=1, num_classes=0)
         self.embed_dim = 768
+        self.patch_size = 16
 
     @property
     def blocks(self):
@@ -20,7 +22,55 @@ class ViT(nn.Module):
 
     def forward(self, x):
         tokens = self.vit.forward_features(x)  # [B, 1 + N, 768], final norm applied
+        self.prefix_tokens = tokens[:, :self.vit.num_prefix_tokens]  # CLS, for poolings that use it
         return tokens[:, self.vit.num_prefix_tokens:]  # drop the CLS token
+
+
+class TimmViT(nn.Module):
+    """Any timm plain ViT (DINOv3, DINOv2, EVA-02, CLIP, ...) at img_size px with a 1-channel patch embedding.
+    The prefix tokens (CLS, registers) are dropped from the output and kept in self.prefix_tokens."""
+
+    def __init__(self, name: str, pretrained: bool, img_size=512):
+        super().__init__()
+        self.vit = timm.create_model(name, pretrained=pretrained, img_size=img_size, in_chans=1, num_classes=0)
+        self.embed_dim = self.vit.embed_dim
+        self.patch_size = self.vit.patch_embed.patch_size[0]
+
+    @property
+    def blocks(self):
+        return self.vit.blocks
+
+    def forward(self, x):
+        tokens = self.vit.forward_features(x)  # final norm applied
+        n = self.vit.num_prefix_tokens
+        self.prefix_tokens = tokens[:, :n]
+        return tokens[:, n:]
+
+
+class TimmConvNeXt(nn.Module):
+    """A timm ConvNeXt as a feature extractor: four maps at strides 4, 8, 16, 32 (hierarchical: no neck upsampling
+    needed for small objects)."""
+
+    hierarchical = True
+
+    def __init__(self, name: str, pretrained: bool):
+        super().__init__()
+        self.body = timm.create_model(name, pretrained=pretrained, in_chans=1, features_only=True,
+                                      out_indices=(0, 1, 2, 3))
+        self.channels = self.body.feature_info.channels()
+        self.embed_dim = self.channels[-1]
+        # With terratorch imported (TF32 settings), cuDNN rejects the depthwise conv on the channels-last-strided
+        # tensors that ConvNeXt's permuted LayerNorms produce (CUDNN_STATUS_BAD_PARAM): give it contiguous input.
+        for m in self.body.modules():
+            if isinstance(m, nn.Conv2d) and m.groups > 1:
+                m.register_forward_pre_hook(lambda module, args: (args[0].contiguous(),))
+
+    @property
+    def blocks(self):  # features_only renames the stages (stages_0, ...): collect the blocks by type, in order
+        return [m for m in self.body.modules() if type(m).__name__ == 'ConvNeXtBlock']
+
+    def forward(self, x):
+        return self.body(x)
 
 
 class TerraMind(nn.Module):
@@ -31,6 +81,7 @@ class TerraMind(nn.Module):
         self.terramind = BACKBONE_REGISTRY.build('terratorch_terramind_v1_base', pretrained=pretrained,
                                                  modalities=['S1GRD'])
         self.embed_dim = 768
+        self.patch_size = 16
 
     @property
     def blocks(self):
@@ -41,6 +92,26 @@ class TerraMind(nn.Module):
         return per_block[-1]  # last block's tokens [B, N, 768]; terratorch already applied encoder_norm
 
 
-def build_backbone(name, pretrained):
-    """name: 'vit' or 'terramind'. pretrained=False builds the same architecture with random weights."""
-    return {'vit': ViT, 'terramind': TerraMind}[name](pretrained)
+TIMM_VITS = {
+    'dinov3': 'vit_base_patch16_dinov3.lvd1689m',
+    'dinov3s': 'vit_small_plus_patch16_dinov3.lvd1689m',
+    'dinov2': 'vit_base_patch14_reg4_dinov2.lvd142m',
+    'eva02': 'eva02_base_patch14_224.mim_in22k',
+    'clip': 'vit_base_patch16_clip_224.openai',
+}
+TIMM_CONVNEXTS = {
+    'convnext_dinov3': 'convnext_base.dinov3_lvd1689m',
+    'convnext_in22k': 'convnext_base.fb_in22k',
+}
+BACKBONES = ['vit', 'terramind', *TIMM_VITS, *TIMM_CONVNEXTS]
+
+
+def build_backbone(name, pretrained, img_size=512):
+    """name: one of BACKBONES. pretrained=False builds the same architecture with random weights."""
+    if name == 'vit':
+        return ViT(pretrained)
+    if name == 'terramind':
+        return TerraMind(pretrained)
+    if name in TIMM_VITS:
+        return TimmViT(TIMM_VITS[name], pretrained, img_size)
+    return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained)
