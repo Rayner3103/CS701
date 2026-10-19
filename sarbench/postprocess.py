@@ -9,18 +9,44 @@ import torch.nn.functional as F
 from torchvision.ops import boxes as box_ops
 
 
+def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100):
+    """Gaussian soft-NMS (Bodla et al., ICCV 2017) per class: repeatedly keep the best box and decay the others by
+    exp(-IoU^2 / sigma). Returns the indices of the kept boxes and their decayed scores, best first."""
+    keep_idx, keep_s = [], []
+    for k in labels.unique():
+        idx = torch.where(labels == k)[0]
+        b, sc = boxes[idx], scores[idx].clone()
+        n = 0
+        while len(sc) and n < (per_class or 10 ** 9):
+            i = int(torch.argmax(sc))
+            keep_idx.append(idx[i])
+            keep_s.append(sc[i])
+            n += 1
+            iou = box_ops.box_iou(b[i:i + 1], b)[0]
+            sc = sc * torch.exp(-(iou * iou) / sigma)
+            sc[i] = 0
+            m = sc > score_thresh
+            idx, b, sc = idx[m], b[m], sc[m]
+    if not keep_idx:
+        return torch.zeros(0, dtype=torch.long, device=boxes.device), scores.new_zeros(0)
+    keep_idx, keep_s = torch.stack(keep_idx), torch.stack(keep_s)
+    order = keep_s.argsort(descending=True)
+    return keep_idx[order], keep_s[order]
+
+
 def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
-                        image_size=(512, 512)):
+                        image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75):
     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
     first), image_probs: [C] softmax of the image classifier (needed for fusion).
     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
             'mult'  -> score(c) = p_det(c) * p_img(c) ** gamma
             'agn'   -> score(c) = (1 - p_det(bg)) * p_img(c) ** gamma   (class-agnostic objectness x image class)
             'hard'  -> only the argmax image class, score = (1 - p_det(bg)); boxes of that class
-    Only the topk most likely image classes keep boxes when fusing. Per-class NMS, then at most `per_class`
-    boxes per class (COCO scores at most 100 per image and class) and at most `total` overall.
-    Returns boxes [K, 4], scores [K], labels [K] (1..C)."""
+    Only the topk most likely image classes keep boxes when fusing. obj_pow > 0 multiplies every score by the RPN
+    objectness of its proposal to that power (objectness: [N], sigmoid scores). nms: 'hard' (torchvision) or 'soft'
+    (Gaussian soft-NMS, soft_sigma). Then at most `per_class` boxes per class (COCO scores at most 100 per image
+    and class) and at most `total` overall. Returns boxes [K, 4], scores [K], labels [K] (1..C)."""
     p = F.softmax(class_logits.float(), dim=-1)
     n, c = boxes.shape[0], boxes.shape[1]
     boxes = box_ops.clip_boxes_to_image(boxes.reshape(-1, 4).float(), image_size).reshape(n, c, 4)
@@ -42,12 +68,21 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
             keep_cls = torch.zeros(c, dtype=torch.bool, device=scores.device)
             keep_cls[pi.topk(topk).indices] = True
             scores = scores * keep_cls[None]
+    if obj_pow and objectness is not None:
+        scores = scores * objectness.float().clamp_min(1e-12)[:, None] ** obj_pow
     labels = torch.arange(1, c + 1, device=boxes.device).expand(n, c)
     boxes, scores, labels = boxes.reshape(-1, 4), scores.reshape(-1), labels.reshape(-1)
     keep = torch.where(scores > score_thresh)[0]
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
     keep = box_ops.remove_small_boxes(boxes, min_size)
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
+    if nms == 'soft':
+        keep, new_scores = soft_nms(boxes, scores, labels, soft_sigma, score_thresh, per_class)
+        boxes, scores, labels = boxes[keep], new_scores, labels[keep]
+        keep = torch.arange(len(scores), device=scores.device)
+        if total is not None:
+            keep = keep[:total]
+        return boxes[keep], scores[keep], labels[keep]
     keep = box_ops.batched_nms(boxes, scores, labels, nms_thresh)  # sorted by score, descending
     if per_class is not None:
         # rank of each kept box within its class, in score order

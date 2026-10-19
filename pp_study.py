@@ -31,6 +31,12 @@ GRID = [
     ('hard (argmax class)', dict(score_thresh=0.001, per_class=100, total=None, fusion='hard')),
     ('agn g1 top3 nms.6', dict(score_thresh=0.001, per_class=100, total=None, fusion='agn', gamma=1.0, topk=3, nms_thresh=0.6)),
     ('agn g1 top3 nms.4', dict(score_thresh=0.001, per_class=100, total=None, fusion='agn', gamma=1.0, topk=3, nms_thresh=0.4)),
+    ('soft s.75', dict(score_thresh=0.001, per_class=100, total=100, nms='soft', soft_sigma=0.75)),
+    ('soft s.5', dict(score_thresh=0.001, per_class=100, total=100, nms='soft', soft_sigma=0.5)),
+    ('soft s1', dict(score_thresh=0.001, per_class=100, total=100, nms='soft', soft_sigma=1.0)),
+    ('soft s.75 obj^.25', dict(score_thresh=0.001, per_class=100, total=100, nms='soft', soft_sigma=0.75, obj_pow=0.25)),
+    ('soft s.75 obj^.5', dict(score_thresh=0.001, per_class=100, total=100, nms='soft', soft_sigma=0.75, obj_pow=0.5)),
+    ('hard thr.001 obj^.25', dict(score_thresh=0.001, per_class=None, total=100, obj_pow=0.25)),
 ]
 
 
@@ -54,7 +60,9 @@ def run_one(job):
     dets = []
     for i, image_id in enumerate(raw['image_ids']):
         probs = raw['cls_logits'][i].softmax(0)
-        boxes, scores, labels = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), probs, **cfg)
+        obj = raw['raw_obj'][i] if raw.get('raw_obj') else None
+        boxes, scores, labels = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), probs,
+                                                    objectness=obj, **cfg)
         xywh = to_original_xywh(boxes, raw['orig_sizes'][i]).tolist()
         dets += [{'image_id': image_id, 'category_id': int(c), 'bbox': b, 'score': float(s)}
                  for b, c, s in zip(xywh, labels.tolist(), scores.tolist())]

@@ -1,5 +1,6 @@
 """Score a run's saved raw outputs with the chosen post-processing (the one predict.py uses for the submission):
-detection score threshold 0.001 (at most 100 boxes per image) and detection-informed classification
+per-class Gaussian soft-NMS (sigma 0.75) on scores p_det(c|box) x RPN objectness^0.25, threshold 0.001, at most
+100 boxes per image; and detection-informed classification
 (argmax_c log p_img(c) + lam * log q(c), q(c) = the highest detector probability of class c, lam = 1).
 Writes metrics_pp.json next to the run's metrics.json.
 Example: python pp_eval.py --run ~/cs701_runs/E01_dino_ref"""
@@ -11,7 +12,7 @@ import torch
 
 from pp_study import DATA, cls_study, run_one
 
-FINAL = dict(score_thresh=0.001, per_class=None, total=100, fusion='none')
+FINAL = dict(score_thresh=0.001, per_class=100, total=100, fusion='none', nms='soft', soft_sigma=0.75, obj_pow=0.25)
 LAM = 1.0
 
 

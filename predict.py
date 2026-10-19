@@ -49,7 +49,8 @@ def image_class(logits, out, lam):
 
 def set_post(model, a):
     model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class,
-                                total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk)
+                                total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk, nms=a.nms,
+                                soft_sigma=a.soft_sigma, obj_pow=a.obj_pow)
 
 
 def main():
@@ -72,6 +73,9 @@ def main():
     p.add_argument('--fusion', default='none', choices=['none', 'mult', 'agn', 'hard'])
     p.add_argument('--gamma', type=float, default=1.0)
     p.add_argument('--topk', type=int, default=9)
+    p.add_argument('--nms', default='hard', choices=['hard', 'soft'])
+    p.add_argument('--soft-sigma', type=float, default=0.75)
+    p.add_argument('--obj-pow', type=float, default=0.0, help='multiply box scores by RPN objectness^obj_pow')
     p.add_argument('--cls-lambda', type=float, default=0.0,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     a = p.parse_args()

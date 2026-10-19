@@ -106,15 +106,28 @@ class SmallBoxHead(nn.Module):
         return F.relu(self.fc7(F.relu(self.fc6(x))))
 
 
+class RPNKeepScores(RegionProposalNetwork):
+    """torchvision's RPN; also keeps the objectness (sigmoid) of the proposals it returns, for re-scoring."""
+
+    last_scores = None
+
+    def filter_proposals(self, *args, **kwargs):
+        boxes, scores = super().filter_proposals(*args, **kwargs)
+        self.last_scores = scores
+        return boxes, scores
+
+
 class RoIHeadsPlus(RoIHeads):
     """torchvision RoIHeads; at eval it scores boxes with sarbench.postprocess (the default settings reproduce
     torchvision's postprocess_detections exactly) and can also return the raw per-class boxes and logits."""
 
-    post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9)
+    post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9,
+                obj_pow=0.0, nms='hard', soft_sigma=0.75)
     giou_weight = 0.0  # > 0: add a GIoU loss on the positive RoIs' decoded boxes (tighter boxes for tiny objects)
     giou_only = False  # True: the GIoU loss replaces the smooth-L1 box loss
 
-    def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False):
+    def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False,
+                objectness=None):
         if self.training and not self.giou_weight:
             return super().forward(features, proposals, image_shapes, targets)
         if self.training:
@@ -140,10 +153,14 @@ class RoIHeadsPlus(RoIHeads):
         results = []
         for i, (b, logit) in enumerate(zip(boxes_all.split(sizes), class_logits.split(sizes))):
             probs = image_probs[i] if image_probs is not None else None
-            boxes, scores, labels = detections_from_raw(b[:, 1:], logit, probs, image_size=image_shapes[i], **self.post)
+            obj = objectness[i] if objectness is not None else None
+            boxes, scores, labels = detections_from_raw(b[:, 1:], logit, probs, image_size=image_shapes[i],
+                                                        objectness=obj, **self.post)
             out = {'boxes': boxes, 'scores': scores, 'labels': labels}
             if return_raw:
                 out['raw_boxes'], out['raw_logits'] = b[:, 1:], logit
+                if obj is not None:
+                    out['raw_obj'] = obj
             results.append(out)
         return results, {}
 
@@ -173,7 +190,7 @@ class MultiTaskModel(nn.Module):
             self.neck = SimpleFeaturePyramid(dim, spatial_prior=spatial_prior)
         anchors = AnchorGenerator(tuple(tuple(s) for s in anchor_sizes), (tuple(anchor_ratios),) * len(anchor_sizes))
         n_anchors = len(anchor_sizes[0]) * len(anchor_ratios)
-        self.rpn = RegionProposalNetwork(
+        self.rpn = RPNKeepScores(
             anchors, RPNHead(256, n_anchors), fg_iou_thresh=0.7, bg_iou_thresh=0.3, batch_size_per_image=256,
             positive_fraction=0.5, pre_nms_top_n=dict(training=2000, testing=rpn_post_nms_test),
             post_nms_top_n=dict(training=2000, testing=rpn_post_nms_test), nms_thresh=0.7)
@@ -223,5 +240,6 @@ class MultiTaskModel(nn.Module):
             else:
                 image_probs = logits.float().softmax(dim=1)
                 detections, roi_losses = self.roi_heads(features, proposals, image_list.image_sizes,
-                                                        image_probs=image_probs, return_raw=return_raw)
+                                                        image_probs=image_probs, return_raw=return_raw,
+                                                        objectness=self.rpn.last_scores)
         return logits, detections, {**rpn_losses, **roi_losses}

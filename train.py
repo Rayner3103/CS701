@@ -235,7 +235,8 @@ def evaluate(model, loader, gt_json, raw=False):
     raw=True, the raw outputs (class logits, per-class boxes and logits of every proposal) for offline study."""
     model.eval()
     labels, predicted, detections, image_ids = [], [], [], []
-    dump = {'image_ids': [], 'orig_sizes': [], 'labels': [], 'cls_logits': [], 'raw_boxes': [], 'raw_logits': []}
+    dump = {'image_ids': [], 'orig_sizes': [], 'labels': [], 'cls_logits': [], 'raw_boxes': [], 'raw_logits': [],
+            'raw_obj': []}
     for images, y, targets in loader:
         with torch.autocast('cuda', dtype=torch.bfloat16):
             logits, outputs, _ = model(images.cuda(), return_raw=raw)
@@ -253,6 +254,7 @@ def evaluate(model, loader, gt_json, raw=False):
                 dump['cls_logits'].append(lg.float().cpu())
                 dump['raw_boxes'].append(out['raw_boxes'].float().cpu())
                 dump['raw_logits'].append(out['raw_logits'].half().cpu())
+                dump['raw_obj'].append(out['raw_obj'].float().cpu())
     metrics = {**classification_metrics(labels, predicted), **detection_metrics(gt_json, detections, image_ids)}
     return metrics, detections, (dump if raw else None)
 
