@@ -1,0 +1,2 @@
+-r requirements.txt  # DINO-YOLO (train_yolo.py) runs on top of the reference environment; DINOv3 comes from timm
+ultralytics==8.4.170  # sarbench/dino_yolo.py copies DetectionModel._predict_once of this version

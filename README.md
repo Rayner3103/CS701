@@ -213,11 +213,16 @@ compare_runs.py       one line per run: test macro-F1, mAP, Δm, best epoch
 predict.py            a trained run on unlabelled images -> submission.zip
 visualize.py          browse a run's predictions vs ground truth (docs/visualize_usage.md)
 make_submission.py    write_submission(): predictions -> submission.zip
+prepare_yolo_data.py  the local splits in the YOLO layout (DINO-YOLO, docs/dino_yolo.md)
+train_yolo.py         DINO-YOLO: YOLO12-s + DINOv3 ViT-S/16 features, ultralytics trainer, then scoring
+eval_yolo.py          a DINO-YOLO run on local val/test with the metrics of train.py
+predict_yolo.py       a DINO-YOLO run on unlabelled images -> submission.zip
 sarbench/             the code behind train.py
 ├── data.py           images + boxes at 512 × 512, flips; boxes back to original pixels
 ├── backbones.py      ViT (ImageNet-21k), TerraMind-1.0-base
 ├── adapters.py       LoRA, MoE-LoRA on a frozen backbone
 ├── model.py          backbone + class head + ViTDet feature pyramid + Faster R-CNN
+├── dino_yolo.py      DINO-YOLO model, trainer, image class from detections
 └── metrics.py        accuracy, macro-F1, COCO box AP
 tests/                checks of sarbench/ (python -m pytest tests)
 docs/setup.md         from nothing to a smoke test: clone, environment, data
@@ -225,6 +230,7 @@ docs/usage.md         run_all_3080.sh: commands, resuming, outputs, troubleshoot
 docs/DETAILS.md       model, training protocol, design notes, time and memory
 docs/visualize_usage.md  visualize.py: commands, options, keys
 docs/improvement.md   ideas for improving the model and research directions
+docs/dino_yolo.md     DINO-YOLO: model, protocol, commands, results
 ```
 
 More: [docs/DETAILS.md](docs/DETAILS.md).
