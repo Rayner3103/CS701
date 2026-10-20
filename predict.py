@@ -24,7 +24,10 @@ from sarbench.metrics import classification_metrics, detection_metrics
 def load_run(run_dir, weights='model.pt', device='cuda'):
     """Rebuild the run's model from its metrics.json args and load its weights. Runs saved with --save trainable
     store only the trained tensors: the frozen ones are the pretrained weights, so the model is built pretrained."""
-    saved = json.loads((run_dir / 'metrics.json').read_text())['args']
+    if (run_dir / 'metrics.json').exists():
+        saved = json.loads((run_dir / 'metrics.json').read_text())['args']
+    else:  # a run still training (e.g. one of its --save-every checkpoints): its args are log.txt's first line
+        saved = json.loads((run_dir / 'log.txt').read_text().splitlines()[0])
     required = ['--backbone', saved['backbone'], '--init', saved['init'], '--adapt', saved['adapt']]
     args = train.parse_args(required)  # defaults for options older runs did not have
     for k, v in saved.items():
