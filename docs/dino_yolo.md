@@ -73,7 +73,7 @@ python predict_yolo.py --run runs/yolo/dino_yolo12s_ep24 --images ../dataset-v2/
 
 ## YOLO26
 
-- `--yolo yolo26s` swaps YOLO12-s for YOLO26-s (9.95 M: NMS-free end-to-end head, no DFL). DINO + YOLO26-s is 31.7 M
+- `--yolo yolo26s` swaps YOLO12-s for YOLO26-s (9.95 M: NMS-free end-to-end head, no DFL). DINO + YOLO26-s is 31.9 M
   in total, all trainable. The DINO features go to layers 4, 6 and 10, the backbone outputs the YOLO26 head reads
   (`neck_inputs`; YOLO12: 4, 6, 8).
 - `--yolo yolo26s-p2` adds a P2/4 output for the 5-10 px objects (DINO also goes to layer 2). It starts from
@@ -100,6 +100,9 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 |---|---:|---:|---:|---:|---:|---:|---:|
 | dino_yolo12s_ep24 (best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 91.1 | 30.7 | 90.4 | 30.8 | +7.4 |
 | dino_yolo12s_cls_ep24 (`--cls-head`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 94.1 | 28.9 | 94.5 | 29.4 | +6.9 |
+| yolo26s_ep24 (plain YOLO26-s, `--dino none`, best.pt = epoch 24) | 24 | 9.95 M / 9.95 M | 86.6 | 28.2 | 88.2 | 28.3 | +1.4 |
+| dino_yolo26s_ep24 (best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 91.7 | 31.4 | 90.6 | 31.8 | +9.4 |
+| dino_yolo26s-p2_ep24 (best.pt = epoch 24) | 24 | 31.7 M / 31.7 M | 91.8 | 30.3 | 91.4 | 30.6 | +7.6 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
 | dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
 | terramind + MoE-LoRA (`runs/full_seed0`) | 24 | | | | 90.9 | 29.4 | +5.0 |
@@ -116,6 +119,10 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   training had not yet plateaued. DINO-YOLO keeps the higher macro-F1 on both splits.
 - Detection carries the score. mAP 30.8 is close to the full fine-tuning upper bound of the reference (31.8), but
   macro-F1 is about 2.4 points below the adapter runs.
+- YOLO26 at 24 epochs: DINO + YOLO26-s beats DINO + YOLO12-s on val and test (val Δm +9.2 vs +7.6, test mAP 31.8 vs
+  30.8, at the same F1). The DINO features add 3.2 / 3.6 val / test mAP over the plain YOLO26-s (+1.4). The P2 variant
+  is behind DINO + YOLO26-s in mAP (−1.1 / −1.2): its P2 path and Detect head start random, and it takes 1.5 h vs
+  0.9 h. Its wind turbine AP (18.8 vs 18.0) and F1 are a little higher. All three still improved at epoch 24.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
