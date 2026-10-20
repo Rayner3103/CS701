@@ -36,6 +36,10 @@ image class = the class with the highest total detection score
 - 512 px input (letterbox). Ultralytics augmentation: mosaic (off for the last 10 epochs), scale 0.5, translate 0.1,
   horizontal and vertical flips, brightness. No hue or saturation, because the images are gray. No test-time
   augmentation.
+- 90 / 180 / 270° rotations (`--rot90`, sarbench/dino_yolo.py `RandomRot90`): after the flips, with probability 0.75 a
+  uniformly chosen quarter, half or three-quarter turn, so all 8 orientations of an image are equally likely. Off by
+  default (`--rot90 0`): at 24 epochs `--rot90 0.75` lowered test mAP by 3.1 / 2.7 and Δm by 6.4 / 5.2 for DINO +
+  YOLO12-s / YOLO26-s (`*_rot90_ep24` runs). It is not saved in the checkpoint, so give it again with `--resume`.
 - best.pt is chosen on local val by the ultralytics fitness (its mAP50-95). Early stopping comes after 20 epochs
   without improvement (`--patience`).
 - The data is the same local split as train.py (`prepare_course_data.py`, seed 0: 7,512 / 940 / 940).
@@ -103,6 +107,8 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | yolo26s_ep24 (plain YOLO26-s, `--dino none`, best.pt = epoch 24) | 24 | 9.95 M / 9.95 M | 86.6 | 28.2 | 88.2 | 28.3 | +1.4 |
 | dino_yolo26s_ep24 (best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 91.7 | 31.4 | 90.6 | 31.8 | +9.4 |
 | dino_yolo26s-p2_ep24 (best.pt = epoch 24) | 24 | 31.7 M / 31.7 M | 91.8 | 30.3 | 91.4 | 30.6 | +7.6 |
+| dino_yolo12s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 90.0 | 28.0 | 89.5 | 27.8 | +1.1 |
+| dino_yolo26s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 90.4 | 29.2 | 90.7 | 29.1 | +4.3 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
 | dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
 | dino_yolo26s_ep100 (best.pt = epoch 100) | 100 | 31.9 M / 31.9 M | 93.7 | 37.2 | 93.9 | 37.1 | +21.3 |
@@ -124,6 +130,15 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   30.8, at the same F1). The DINO features add 3.2 / 3.6 val / test mAP over the plain YOLO26-s (+1.4). The P2 variant
   is behind DINO + YOLO26-s in mAP (−1.1 / −1.2): its P2 path and Detect head start random, and it takes 1.5 h vs
   0.9 h. Its wind turbine AP (18.8 vs 18.0) and F1 are a little higher. All three still improved at epoch 24.
+- 90 / 180 / 270° rotations (`--rot90 0.75`, 24 epochs) hurt both models: test mAP −3.1 / −2.7 and Δm −6.4 / −5.2
+  for DINO + YOLO12-s / YOLO26-s (val: −2.8 / −2.2 mAP). The loss is in detection: aircraft, airport, harbor and
+  wind turbine AP fall by 4-7 points. Test F1 changes by −0.9 / +0.1. The rotated runs trail by 2-3 val mAP from
+  epoch 10 on and the gap is not closing at epoch 24, so slower convergence alone does not explain it. A likely cause
+  (not tested): SAR is side-looking, so radar shadow and layover fall along a consistent image direction, which a
+  quarter turn moves to one the test images never show; flips keep it on the same axis.
+  Bridge and playground do not improve: bridge test AP 3.6 → 3.3 / 3.5 → 3.5, playground 1.2 → 0.9 / 2.2 → 1.2;
+  bridge test F1 −3.9 / −0.8, playground +0.2 / −0.6 (val F1 −5.2 / −1.9 and −3.0 / −4.3). Playground val images
+  called bridge rise from 16 to 25 / 15 to 22. Rotation is therefore off by default (`--rot90 0`).
 - DINO + YOLO26-s at 100 epochs (3.9 h): test Δm +21.3 vs +19.0 for DINO + YOLO12-s at 100 epochs (F1 +1.5, mAP
   +0.8), and level with TerraMind + MoE-LoRA at 100 epochs (+21.8; one seed each, so within noise). On val it is the
   best run (Δm +21.3 vs +20.9 and +18.8). It has the highest F1 of the 100-epoch runs (93.9); TerraMind keeps 0.9

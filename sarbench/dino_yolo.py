@@ -3,6 +3,8 @@ DINOv3 + YOLOv12 design of Sompote/DINOV3-YOLOV12, built on the official ultraly
 dino=None trains the plain YOLO (a baseline), with the same limits check and protocol.
 The image class comes from an optional classification head on the DINO features (cls_head=True), or else from the
 detections: every box of an image has the image's class (image_class)."""
+import random
+
 import numpy as np
 import timm
 import torch
@@ -133,16 +135,57 @@ def check_limits(model):
     return total, trainable
 
 
+class RandomRot90:
+    """A training transform: with probability p, rotate the image and its boxes by 90, 180 or 270 degrees
+    (counterclockwise, chosen uniformly). It runs after the ultralytics flips, so p = 0.75 makes every multiple of 90
+    degrees equally likely, and with flipud = fliplr = 0.5 all 8 orientations of the image are."""
+
+    def __init__(self, p=0.75):
+        self.p = p
+
+    def __call__(self, labels):
+        if random.random() >= self.p:
+            return labels
+        instances = labels['instances']
+        instances.convert_bbox(format='xywh')
+        for _ in range(random.randint(1, 3)):  # quarter turns, as np.rot90: (x, y) -> (y, w - x)
+            w = 1 if instances.normalized else labels['img'].shape[1]
+            labels['img'] = np.rot90(labels['img'])
+            b = instances.bboxes
+            b[:] = np.stack([b[:, 1], w - b[:, 0], b[:, 3], b[:, 2]], 1)
+            points = [instances.segments] + ([instances.keypoints] if instances.keypoints is not None else [])
+            for xy in points:
+                xy[..., :2] = np.stack([xy[..., 1], w - xy[..., 0]], -1)
+        return labels
+
+
 class DinoYOLOTrainer(DetectionTrainer):
     """DetectionTrainer that builds DinoYOLO, checks the parameter limits, and gives the DINO ViT dino_lr_mult x the
     learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4).
-    dino=None builds the plain YOLO DetectionModel instead."""
+    dino=None builds the plain YOLO DetectionModel instead. rot90 > 0 adds RandomRot90(rot90) to the training
+    augmentation."""
 
     def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=None, dino_lr_mult=0.1,
-                 cls_head=False, cls_weight=1.0, **kwargs):
+                 cls_head=False, cls_weight=1.0, rot90=0.0, **kwargs):
         # before super(): it may build the model
         self.dino, self.fuse, self.dino_lr_mult, self.cls_head, self.cls_weight = dino, fuse, dino_lr_mult, cls_head, cls_weight
+        self.rot90 = rot90
         super().__init__(*args, **kwargs)
+
+    def build_dataset(self, img_path, mode='train', batch=None):
+        dataset = super().build_dataset(img_path, mode, batch)
+        if mode != 'train' or not self.rot90:
+            return dataset
+        build_transforms = dataset.build_transforms
+
+        def with_rot90(hyp):  # close_mosaic rebuilds the transforms with this too
+            transforms = build_transforms(hyp)
+            transforms.insert(-1, RandomRot90(self.rot90))  # after the flips, before Format
+            return transforms
+
+        dataset.build_transforms = with_rot90
+        dataset.transforms.insert(-1, RandomRot90(self.rot90))
+        return dataset
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         # On resume cfg is the checkpoint's yaml: its 'dino' (None for a plain YOLO) wins over the trainer's

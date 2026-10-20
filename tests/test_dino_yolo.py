@@ -1,14 +1,18 @@
 """sarbench/dino_yolo.py: the parameter limits, the zero-initialised DINO fusion (training starts from the plain YOLO12
 or YOLO26), the DINO learning-rate groups, the classification head, the plain-YOLO trainer and the image class. No data,
 no downloads (random DINO weights); runs on the CPU."""
+import random
+
 import numpy as np
 import pytest
 import torch
 from ultralytics.cfg import get_cfg
 from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 
-from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, image_class, neck_inputs,
-                                parameter_counts)
+from ultralytics.utils.instance import Instances
+
+from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, RandomRot90, image_class,
+                                neck_inputs, parameter_counts)
 
 YOLOS = ['yolo12s.yaml', 'yolo26s.yaml']
 
@@ -107,3 +111,27 @@ def test_without_dino_the_trainer_builds_the_plain_yolo_also_on_resume():
     assert type(model) is DetectionModel and model.yaml['dino'] is None
     trainer.dino = 'vit_small_patch16_dinov3.lvd1689m'  # the default of train_yolo.py on --resume
     assert type(trainer.get_model(model.yaml, verbose=False)) is DetectionModel  # the checkpoint's yaml wins
+
+
+@pytest.mark.parametrize('normalized', [False, True])
+def test_rot90_turns_the_boxes_with_the_image(normalized):
+    """A white box on a black, non-square image: after every rotation the box still covers exactly the white pixels."""
+    h, w = 40, 60
+    seen = set()
+    for seed in range(20):
+        img = np.zeros((h, w, 3), np.uint8)
+        img[5:15, 10:30] = 255  # x 10..30, y 5..15
+        box = np.array([[20., 10., 20., 10.]])  # xywh
+        if normalized:
+            box /= [w, h, w, h]
+        labels = {'img': img, 'instances': Instances(box.copy(), normalized=normalized, bbox_format='xywh')}
+        random.seed(seed)
+        out = RandomRot90(p=1.0)(labels)
+        img, inst = out['img'], out['instances']
+        oh, ow = img.shape[:2]
+        seen.add((oh, ow))
+        cx, cy, bw, bh = inst.bboxes[0] * ([ow, oh, ow, oh] if normalized else 1)
+        x1, y1, x2, y2 = (round(v) for v in (cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2))
+        ys, xs = np.nonzero(img[..., 0])
+        assert (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1) == (x1, y1, x2, y2)
+    assert seen == {(h, w), (w, h)}  # 180 and 90 / 270 degrees all came up
