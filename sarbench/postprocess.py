@@ -37,7 +37,7 @@ def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100
 def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
                         image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75,
-                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None):
+                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None, min_keep=0):
     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
     first), image_probs: [C] softmax of the image classifier (needed for fusion).
     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
@@ -86,6 +86,9 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
     labels = torch.arange(1, c + 1, device=boxes.device).expand(n, c)
     boxes, scores, labels = boxes.reshape(-1, 4), scores.reshape(-1), labels.reshape(-1)
     keep = torch.where(scores > score_thresh)[0]
+    if len(keep) < min_keep:  # every image has objects: keep its min_keep best boxes even when all score low
+        keep = scores.topk(min(min_keep, len(scores))).indices
+        score_thresh = 0.0  # (only this image) soft-NMS must not drop them again
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]
     keep = box_ops.remove_small_boxes(boxes, min_size)
     boxes, scores, labels = boxes[keep], scores[keep], labels[keep]

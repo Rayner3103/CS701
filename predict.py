@@ -19,15 +19,21 @@ from make_submission import write_submission
 from pp_eval import FINAL, LAM
 from sarbench.data import SARImages, SARMultiTask, collate
 from sarbench.metrics import classification_metrics, detection_metrics
+from sarbench.postprocess import detections_from_raw
+
+
+def saved_args(run_dir):
+    """A run's train.py args: metrics.json's, or for a run still training (one of its --save-every checkpoints)
+    log.txt's first line."""
+    if (run_dir / 'metrics.json').exists():
+        return json.loads((run_dir / 'metrics.json').read_text())['args']
+    return json.loads((run_dir / 'log.txt').read_text().splitlines()[0])
 
 
 def load_run(run_dir, weights='model.pt', device='cuda'):
     """Rebuild the run's model from its metrics.json args and load its weights. Runs saved with --save trainable
     store only the trained tensors: the frozen ones are the pretrained weights, so the model is built pretrained."""
-    if (run_dir / 'metrics.json').exists():
-        saved = json.loads((run_dir / 'metrics.json').read_text())['args']
-    else:  # a run still training (e.g. one of its --save-every checkpoints): its args are log.txt's first line
-        saved = json.loads((run_dir / 'log.txt').read_text().splitlines()[0])
+    saved = saved_args(run_dir)
     required = ['--backbone', saved['backbone'], '--init', saved['init'], '--adapt', saved['adapt']]
     args = train.parse_args(required)  # defaults for options older runs did not have
     for k, v in saved.items():
@@ -58,7 +64,26 @@ def set_post(model, a):
     model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class or None,
                                 total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk, nms=a.nms,
                                 soft_sigma=a.soft_sigma, obj_pow=a.obj_pow, shift=a.shift, quality_pow=a.quality_pow,
-                                stage_box=a.stage_box)
+                                stage_box=a.stage_box, min_keep=a.min_keep)
+
+
+def from_raw(a):
+    """The submission from raw outputs saved by --raw-out: post-processing only, no model."""
+    records = torch.load(a.from_raw)
+    post = dict(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class or None, total=a.total,
+                fusion=a.fusion, gamma=a.gamma, topk=a.topk, nms=a.nms, soft_sigma=a.soft_sigma, obj_pow=a.obj_pow,
+                shift=a.shift, quality_pow=a.quality_pow, stage_box=a.stage_box, min_keep=a.min_keep)
+    images = json.loads((a.images / a.images_json).read_text())['images']
+    assert [r['image_id'] for r in records] == [im['id'] for im in images], 'raw outputs of another image list'
+    preds = {}
+    for im, r in zip(images, records):
+        boxes, scores, labels = detections_from_raw(
+            r['raw_boxes'], r['raw_logits'].float(), r['cls_logits'].softmax(0), objectness=r.get('raw_obj'),
+            quality=r.get('raw_iou'), stage_inputs=r.get('raw_stage'), **post)
+        preds[im['file_name']] = (image_class(r['cls_logits'], r, a.cls_lambda), boxes.tolist(), (labels - 1).tolist(),
+                                  scores.tolist())
+    write_submission(images, preds, out=str(a.out))
+    print(f'wrote {a.out} from {a.from_raw}: {len(preds)} images, {sum(len(v[1]) for v in preds.values())} boxes')
 
 
 def main():
@@ -93,7 +118,15 @@ def main():
     p.add_argument('--cls-lambda', type=float, default=LAM,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     p.add_argument('--device', default='cuda', help="'cpu' runs without a GPU (fp32), e.g. while both GPUs train")
+    p.add_argument('--min-keep', type=int, default=FINAL.get('min_keep', 0),
+                   help='keep at least this many boxes per image (every image has objects)')
+    p.add_argument('--raw-out', type=Path, help='also save every image\'s raw outputs here (re-score later with --from-raw)')
+    p.add_argument('--from-raw', type=Path, help='no model: re-score the raw outputs saved by --raw-out')
     a = p.parse_args()
+    if a.from_raw:
+        if a.shift is None:
+            a.shift = 0.0 if saved_args(a.run).get('flip_bias') else FINAL['shift']
+        return from_raw(a)
 
     model, args = load_run(a.run, a.weights, device=a.device)
     if a.shift is None:  # a model trained on bias-consistent flips already predicts the annotation convention
@@ -113,11 +146,11 @@ def main():
     images = json.loads((a.images / a.images_json).read_text())['images']
     loader = DataLoader(SARImages(a.images, images), a.batch_size, num_workers=a.workers,
                         collate_fn=lambda b: (torch.stack([x for x, _ in b]), [i for _, i in b]))
-    preds, n_img, t0 = {}, 0, time.time()
+    preds, n_img, t0, records = {}, 0, time.time(), []
     with torch.no_grad():
         for batch, infos in loader:
             with torch.autocast('cuda', dtype=torch.bfloat16, enabled=a.device == 'cuda'):
-                logits, outputs, _ = model(batch.to(a.device), return_raw=a.cls_lambda > 0)
+                logits, outputs, _ = model(batch.to(a.device), return_raw=a.cls_lambda > 0 or a.raw_out is not None)
             for info, lg, out in zip(infos, logits, outputs):
                 name = images[n_img]['file_name']
                 assert images[n_img]['id'] == info['image_id']
@@ -125,8 +158,13 @@ def main():
                 preds[name] = (label, out['boxes'].float().tolist(),
                                (out['labels'] - 1).tolist(),  # detector labels 1..9; write_submission adds 1
                                out['scores'].float().tolist())
+                if a.raw_out:
+                    records.append({'image_id': info['image_id'], 'cls_logits': lg.float().cpu(),
+                                    **{k: v.float().cpu() for k, v in out.items() if k.startswith('raw_')}})
                 n_img += 1
     seconds = time.time() - t0
+    if a.raw_out:
+        torch.save(records, a.raw_out)
     write_submission(images, preds, out=str(a.out))
     n_boxes = sum(len(v[1]) for v in preds.values())
     print(f'wrote {a.out}: {len(preds)} images, {n_boxes} boxes, {1000 * seconds / len(preds):.1f} ms per image')
