@@ -118,6 +118,10 @@ def box_loss(box_regression, labels, regression_targets, beta):
     return loss / max(labels.numel(), 1)
 
 
+# size-aware IoU thresholds per cascade stage: (max box side at the 512 input, (stage-1, stage-2, stage-3 thresholds))
+SIZE_IOU = ((8, (0.40, 0.45, 0.50)), (16, (0.45, 0.50, 0.55)), (32, (0.50, 0.55, 0.65)), (float('inf'), (0.5, 0.6, 0.7)))
+
+
 class CascadeRoIHeads(RoIHeads):
     """Cascade R-CNN (Cai & Vasconcelos, CVPR 2018) with the eval interface of the repo's RoIHeadsPlus
     (image_probs fusion, return_raw, self.post). Stages: IoU 0.5 / 0.6 / 0.7, box-coder weights (10,10,5,5) /
@@ -126,11 +130,15 @@ class CascadeRoIHeads(RoIHeads):
     Params with LightBoxHead(reduced=64): 3 x 4.28 M = 12.8 M (the reference TwoMLPHead alone is 13.9 M)."""
 
     post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9,
-                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0)
+                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0, quality_pow=0.0)
 
     def __init__(self, box_roi_pool, num_classes=10, reduced=64, representation=1024, ious=(0.5, 0.6, 0.7),
                  coder_weights=((10., 10., 5., 5.), (20., 20., 10., 10.), (30., 30., 15., 15.)),
-                 stage_weights=(1.0, 0.5, 0.25), beta=1 / 9, batch_size_per_image=512, positive_fraction=0.25):
+                 stage_weights=(1.0, 0.5, 0.25), beta=1 / 9, batch_size_per_image=512, positive_fraction=0.25,
+                 size_iou=False, iou_weight=0.0):
+        """size_iou: per-GT IoU thresholds by box size (SIZE_IOU) so tiny objects get positives at every stage.
+        iou_weight > 0: an IoU-quality branch on the last stage (BCE to the IoU of the decoded box with its GT); at test
+        time its prediction can re-score boxes (post['quality_pow'])."""
         heads = nn.ModuleList(LightBoxHead(256, reduced, 7, representation) for _ in ious)
         preds = nn.ModuleList(AgnosticPredictor(representation, num_classes) for _ in ious)
         super().__init__(box_roi_pool, heads[0], preds[0], fg_iou_thresh=ious[0], bg_iou_thresh=ious[0],
@@ -142,6 +150,36 @@ class CascadeRoIHeads(RoIHeads):
         self.coders = [det_utils.BoxCoder(w) for w in coder_weights]
         self.stage_weights, self.beta = stage_weights, beta
         self.post = dict(CascadeRoIHeads.post)
+        self.size_iou, self.iou_weight, self._t = size_iou, iou_weight, 0
+        if iou_weight:
+            self.iou_head = nn.Linear(representation, 1)
+            nn.init.normal_(self.iou_head.weight, std=0.01)
+            nn.init.zeros_(self.iou_head.bias)
+
+    def assign_targets_to_proposals(self, proposals, gt_boxes, gt_labels):
+        if not self.size_iou:
+            return super().assign_targets_to_proposals(proposals, gt_boxes, gt_labels)
+        matched_idxs, labels = [], []
+        base = self.proposal_matcher.high_threshold
+        for props, gtb, gtl in zip(proposals, gt_boxes, gt_labels):
+            if gtb.numel() == 0:
+                matched = torch.zeros((props.shape[0],), dtype=torch.int64, device=props.device)
+                lab = torch.zeros((props.shape[0],), dtype=torch.int64, device=props.device)
+            else:
+                iou = box_ops.box_iou(gtb, props)
+                side = ((gtb[:, 2] - gtb[:, 0]).clamp_min(0) * (gtb[:, 3] - gtb[:, 1]).clamp_min(0)).sqrt()
+                thr = torch.empty_like(side)
+                for limit, ts in reversed(SIZE_IOU):
+                    thr[side < limit] = ts[self._t]
+                quality = (iou * (base / thr)[:, None]).clamp(max=1.0)  # a GT of size s passes at IoU >= thr(s)
+                m = self.proposal_matcher(quality)
+                matched = m.clamp(min=0)
+                lab = gtl[matched].to(dtype=torch.int64)
+                lab[m == self.proposal_matcher.BELOW_LOW_THRESHOLD] = 0
+                lab[m == self.proposal_matcher.BETWEEN_THRESHOLDS] = -1
+            matched_idxs.append(matched)
+            labels.append(lab)
+        return matched_idxs, labels
 
     def add_gt_proposals(self, proposals, gt_boxes):  # rows >= _n_props are the appended GT boxes
         self._n_props = [len(p) for p in proposals]
@@ -153,20 +191,37 @@ class CascadeRoIHeads(RoIHeads):
 
     def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False,
                 objectness=None):
-        losses, probs = {}, []
+        losses, probs, quality = {}, [], None
+        last = len(self.stage_heads) - 1
         for t, (head, pred) in enumerate(zip(self.stage_heads, self.stage_preds)):
             self.proposal_matcher, self.box_coder = self.matchers[t], self.coders[t]  # used by select_training_samples
+            self._t = t
             if self.training:
                 proposals, _, labels, reg_targets = self.select_training_samples(proposals, targets)
                 is_gt = [smp >= n for smp, n in zip(self._sampled, self._n_props)]  # mmdet's pos_is_gt
-            cls, reg = pred(head(self.box_roi_pool(features, proposals, image_shapes)))
+            feat = head(self.box_roi_pool(features, proposals, image_shapes))
+            cls, reg = pred(feat)
             if self.training:
                 labels, reg_targets = torch.cat(labels), torch.cat(reg_targets)
                 w = self.stage_weights[t]
                 losses[f'loss_classifier_s{t}'] = w * F.cross_entropy(cls, labels)
                 losses[f'loss_box_reg_s{t}'] = w * box_loss(reg, labels, reg_targets, self.beta)
+                if self.iou_weight and t == last:  # IoU-quality branch: predict the IoU of the decoded box with its GT
+                    pos = torch.where(labels > 0)[0]
+                    props = torch.cat(proposals)[pos]
+                    pred_b = self.box_coder.decode_single(reg[pos, :4].detach().float(), props)
+                    gt_b = self.box_coder.decode_single(reg_targets[pos].float(), props)
+                    lt, rb = torch.max(pred_b[:, :2], gt_b[:, :2]), torch.min(pred_b[:, 2:], gt_b[:, 2:])
+                    inter = (rb - lt).clamp(min=0).prod(1)
+                    area = lambda b: (b[:, 2:] - b[:, :2]).clamp(min=0).prod(1)
+                    iou_t = (inter / (area(pred_b) + area(gt_b) - inter).clamp_min(1e-6)).clamp(0, 1)
+                    logit = self.iou_head(feat[pos]).squeeze(1).float()
+                    losses['loss_iou'] = self.iou_weight * (F.binary_cross_entropy_with_logits(logit, iou_t)
+                                                            if len(pos) else logit.sum() * 0)
             else:
                 probs.append(F.softmax(cls.float(), -1))
+                if self.iou_weight and t == last:
+                    quality = torch.sigmoid(self.iou_head(feat).squeeze(1).float())
             if t < len(self.stage_heads) - 1:  # refine the boxes for the next stage, without gradient
                 n = [len(p) for p in proposals]
                 new = self.box_coder.decode(reg[:, :4].detach(), proposals)[:, 0]
@@ -181,13 +236,16 @@ class CascadeRoIHeads(RoIHeads):
         for i, (b, lg) in enumerate(zip(boxes_all.split([len(p) for p in proposals]), logits.split([len(p) for p in proposals]))):
             pi = image_probs[i] if image_probs is not None else None
             obj = objectness[i] if objectness is not None else None
+            q = quality.split([len(p) for p in proposals])[i] if quality is not None else None
             boxes, scores, labels = detections_from_raw(b[:, 1:], lg, pi, image_size=image_shapes[i], objectness=obj,
-                                                        **self.post)
+                                                        quality=q, **self.post)
             out = {'boxes': boxes, 'scores': scores, 'labels': labels}
             if return_raw:
                 out['raw_boxes'], out['raw_logits'] = b[:, 1:], lg
                 if obj is not None:
                     out['raw_obj'] = obj
+                if q is not None:
+                    out['raw_iou'] = q
             results.append(out)
         return results, {}
 

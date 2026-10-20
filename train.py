@@ -55,6 +55,8 @@ def parse_args(argv=None):
     p.add_argument('--cascade', action='store_true', help='3-stage Cascade R-CNN with light class-agnostic heads')
     p.add_argument('--cascade-rep', type=int, default=1024, help='FC width of each cascade stage head')
     p.add_argument('--cascade-beta', type=float, default=0.0, help='smooth-L1 beta of the cascade box loss (0: L1)')
+    p.add_argument('--cascade-size-iou', action='store_true', help='size-aware IoU thresholds for the cascade stages')
+    p.add_argument('--iou-branch', type=float, default=0.0, help='loss weight of an IoU-quality branch on the last cascade stage (0: off)')
     p.add_argument('--rpn-nwd', type=float, default=0.0, help='RPN anchor matching by max(IoU, NWD) with this C (0: IoU)')
     p.add_argument('--anchor-offset', type=float, default=0.0, help='anchor centres at (i + offset) * stride')
     p.add_argument('--aligned-roi', action='store_true', help='RoIAlign with aligned=True')
@@ -190,7 +192,9 @@ def build_model(args):
     if getattr(args, 'cascade', False):
         assert not args.giou, '--giou is not implemented for --cascade'
         model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
-                                          beta=args.cascade_beta, batch_size_per_image=args.roi_batch)
+                                          beta=args.cascade_beta, batch_size_per_image=args.roi_batch,
+                                          size_iou=getattr(args, 'cascade_size_iou', False),
+                                          iou_weight=getattr(args, 'iou_branch', 0.0))
     if getattr(args, 'pretrained_prior', False):
         assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
         model.neck.prior = PretrainedPrior()
@@ -291,7 +295,7 @@ def evaluate(model, loader, gt_json, raw=False):
     model.eval()
     labels, predicted, detections, image_ids = [], [], [], []
     dump = {'image_ids': [], 'orig_sizes': [], 'labels': [], 'cls_logits': [], 'raw_boxes': [], 'raw_logits': [],
-            'raw_obj': []}
+            'raw_obj': [], 'raw_iou': []}
     for images, y, targets in loader:
         with torch.autocast('cuda', dtype=torch.bfloat16):
             logits, outputs, _ = model(images.cuda(), return_raw=raw)
@@ -310,6 +314,8 @@ def evaluate(model, loader, gt_json, raw=False):
                 dump['raw_boxes'].append(out['raw_boxes'].float().cpu())
                 dump['raw_logits'].append(out['raw_logits'].half().cpu())
                 dump['raw_obj'].append(out['raw_obj'].float().cpu())
+                if 'raw_iou' in out:
+                    dump['raw_iou'].append(out['raw_iou'].float().cpu())
     metrics = {**classification_metrics(labels, predicted), **detection_metrics(gt_json, detections, image_ids)}
     return metrics, detections, (dump if raw else None)
 

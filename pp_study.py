@@ -63,8 +63,9 @@ def run_one(job):
     for i, image_id in enumerate(raw['image_ids']):
         probs = raw['cls_logits'][i].softmax(0)
         obj = raw['raw_obj'][i] if raw.get('raw_obj') else None
+        q = raw['raw_iou'][i] if raw.get('raw_iou') else None
         boxes, scores, labels = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), probs,
-                                                    objectness=obj, **cfg)
+                                                    objectness=obj, quality=q, **cfg)
         xywh = to_original_xywh(boxes, raw['orig_sizes'][i]).tolist()
         dets += [{'image_id': image_id, 'category_id': int(c), 'bbox': b, 'score': float(s)}
                  for b, c, s in zip(xywh, labels.tolist(), scores.tolist())]

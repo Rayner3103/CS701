@@ -37,7 +37,7 @@ def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100
 def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
                         image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75,
-                        shift=0.0):
+                        shift=0.0, quality=None, quality_pow=0.0):
     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
     first), image_probs: [C] softmax of the image classifier (needed for fusion).
     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
@@ -74,6 +74,8 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
             scores = scores * keep_cls[None]
     if obj_pow and objectness is not None:
         scores = scores * objectness.float().clamp_min(1e-12)[:, None] ** obj_pow
+    if quality_pow and quality is not None:  # predicted localisation quality (IoU branch)
+        scores = scores * quality.float().clamp_min(1e-6)[:, None] ** quality_pow
     labels = torch.arange(1, c + 1, device=boxes.device).expand(n, c)
     boxes, scores, labels = boxes.reshape(-1, 4), scores.reshape(-1), labels.reshape(-1)
     keep = torch.where(scores > score_thresh)[0]
