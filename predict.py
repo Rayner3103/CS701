@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 import train
 from make_submission import write_submission
 from pp_eval import FINAL, LAM
+from pp_study import DATA
 from sarbench.data import SARImages, SARMultiTask, collate
 from sarbench.metrics import classification_metrics, detection_metrics
 from sarbench.postprocess import detections_from_raw
@@ -90,7 +91,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--run', type=Path, required=True)
     p.add_argument('--weights', default='model.pt')
-    p.add_argument('--data', type=Path, default=Path.home() / 'cs701_data' / 'dataset' / 'SARFact-Course-20K')
+    p.add_argument('--data', type=Path, default=DATA, help='the converted local splits (prepare_course_data.py)')
     p.add_argument('--split', help='a labelled local split to score (val, test)')
     p.add_argument('--dump-raw', action='store_true')
     p.add_argument('--images', type=Path, help='a released split folder holding images.json (Codabench val/test)')

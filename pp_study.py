@@ -16,7 +16,10 @@ from pycocotools.cocoeval import COCOeval
 from sarbench.data import to_original_xywh
 from sarbench.postprocess import detections_from_raw
 
-DATA = Path.home() / 'cs701_data' / 'dataset' / 'SARFact-Course-20K'
+# the converted local splits: next to the repo (setup.md layout), else this machine's copy
+DATA = next((d for d in (Path(__file__).resolve().parents[1] / 'dataset' / 'SARFact-Course-20K',
+                         Path.home() / 'cs701_data' / 'dataset' / 'SARFact-Course-20K') if d.exists()),
+            Path(__file__).resolve().parents[1] / 'dataset' / 'SARFact-Course-20K')
 
 GRID = [
     ('reference (thr .05, top100)', dict(score_thresh=0.05, per_class=None, total=100, fusion='none')),
