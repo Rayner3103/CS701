@@ -79,6 +79,7 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | run | epochs | params (total / trainable) | val F1 | val mAP | test F1 | test mAP | test Δm |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | dino_yolo12s_ep24 (best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 91.1 | 30.7 | 90.4 | 30.8 | +7.4 |
+| dino_yolo12s_cls_ep24 (`--cls-head`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 94.1 | 28.9 | 94.5 | 29.4 | +6.9 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
 | dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
 | terramind + MoE-LoRA (`runs/full_seed0`) | 24 | | | | 90.9 | 29.4 | +5.0 |
@@ -101,7 +102,8 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 
 ## Next steps
 
-- Classification head (`--cls-head`, implemented and unit-tested, not yet benchmarked): LayerNorm + Linear on the
+- Classification head (`--cls-head`; 24 epochs: F1 +3.0 / +4.1 on val / test, but mAP −1.9 / −1.4, so val Δm
+  +5.6 vs +7.6 without it): LayerNorm + Linear on the
   DINO CLS token and mean patch token, trained with the detector by a multi-label BCE loss (mosaic mixes classes).
   The image class then comes from the head, not from the detections. It targets the bridge / oil tank / playground
   confusions, where the vote from weak detections fails.
