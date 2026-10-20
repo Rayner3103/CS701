@@ -4,12 +4,15 @@ Every option beyond the reference is opt-in; the defaults reproduce the referenc
 import argparse
 import json
 import math
+import os
 import time
 from pathlib import Path
 
 import torch
+import torch.distributed as dist
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch.nn.parallel import DistributedDataParallel
+from torch.utils.data import DataLoader, DistributedSampler
 
 from sarbench.adapters import add_adapters, add_lora, add_mona, unfreeze
 from sarbench.backbones import BACKBONES, build_backbone
@@ -102,18 +105,25 @@ def parse_args(argv=None):
 
 
 def log(message, file):
-    """Print to the console and to the run's log.txt."""
+    """Print to the console and to the run's log.txt (only the main process logs: file is None elsewhere)."""
+    if file is None:
+        return
     print(message, flush=True)
     print(message, file=file, flush=True)
 
 
-def make_loader(args, split, train):
-    """Batches of `split`; only the training set is shuffled and augmented (copy-paste uses training images only)."""
+def make_loader(args, split, train, world=1, rank=0):
+    """Batches of `split`; only the training set is shuffled and augmented (copy-paste uses training images only).
+    With world > 1 (DDP) the training set is split over the processes, each taking batch_size / world images."""
     dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
                            zoom_max=args.zoom_max)
     if train and args.copy_paste:
         dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
                                      source=args.cp_source, seed=args.seed)
+    if train and world > 1:
+        sampler = DistributedSampler(dataset, num_replicas=world, rank=rank, shuffle=True, seed=args.seed)
+        return DataLoader(dataset, args.batch_size // world, sampler=sampler, num_workers=args.workers,
+                          collate_fn=collate, persistent_workers=args.workers > 0, drop_last=False)
     return DataLoader(dataset, args.batch_size, shuffle=train, num_workers=args.workers, collate_fn=collate,
                       persistent_workers=train and args.workers > 0, drop_last=False)
 
@@ -310,15 +320,24 @@ def headline(metrics):
 
 def main():
     args = parse_args()
+    # multi-GPU (torchrun): one process per GPU, the global batch stays --batch-size
+    world = int(os.environ.get('WORLD_SIZE', '1'))
+    rank = int(os.environ.get('RANK', '0'))
+    if world > 1:
+        dist.init_process_group('nccl')
+        torch.cuda.set_device(int(os.environ['LOCAL_RANK']))
+    main_proc = rank == 0
     torch.manual_seed(args.seed)
     torch.backends.cudnn.benchmark = True
     run_dir = args.out / (args.name or f'{args.backbone}_{args.init}_{args.adapt}')
     run_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(run_dir / 'log.txt', 'w')
+    log_file = open(run_dir / 'log.txt', 'w') if main_proc else None
     log(json.dumps(vars(args), default=str), log_file)
+    if world > 1:
+        log(f'DDP: {world} processes, {args.batch_size // world} images per GPU per step', log_file)
 
     # Data
-    train_loader = make_loader(args, args.train_split, train=True)
+    train_loader = make_loader(args, args.train_split, train=True, world=world, rank=rank)
     eval_splits = [s for s in args.eval_splits.split(',') if s]
     eval_loaders = {s: make_loader(args, s, train=False) for s in eval_splits}
 
@@ -338,6 +357,8 @@ def main():
 
     # Optimizer and schedule: trainable backbone parameters at --backbone-lr, all new modules at --lr
     optimizer = torch.optim.AdamW(param_groups(model, args), lr=args.lr, weight_decay=args.weight_decay)
+    # training steps go through train_model (DDP-wrapped with several GPUs); evaluation, EMA and checkpoints use model
+    train_model = DistributedDataParallel(model, device_ids=[torch.cuda.current_device()]) if world > 1 else model
     warmup, total = len(train_loader), args.epochs * len(train_loader)  # one epoch of warmup
     schedule = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: lr_factor(step, warmup, total))
     ema = EMA(model, args.ema) if args.ema else None
@@ -345,7 +366,15 @@ def main():
     # Train, validating every --eval-every epochs on the first eval split; the reported model is the last-epoch model
     history, start, step = [], time.time(), 0
     for epoch in range(1, args.epochs + 1):
-        step = train_one_epoch(model, train_loader, optimizer, schedule, epoch, log_file, args, ema, step)
+        if world > 1:
+            train_loader.sampler.set_epoch(epoch)
+        step = train_one_epoch(train_model, train_loader, optimizer, schedule, epoch, log_file, args, ema, step)
+        periodic = (args.save_every and epoch % args.save_every == 0) or \
+            (eval_splits and epoch % args.eval_every == 0)
+        if not main_proc:  # the other processes wait while the main one evaluates / saves
+            if periodic and epoch != args.epochs:
+                dist.barrier()
+            continue
         if args.save_every and epoch % args.save_every == 0 and epoch != args.epochs:
             keep = {n for n, q in model.named_parameters() if q.requires_grad} | {n for n, _ in model.named_buffers()}
             ckpt = {k.replace('._orig_mod', ''): v for k, v in model.state_dict().items() if k in keep}
@@ -360,7 +389,12 @@ def main():
                 ema.swap()
             history.append({'epoch': epoch, **scores[eval_splits[0]], 'all': scores})
             log(f'epoch {epoch} ' + ' || '.join(f'{s}: {headline(m)}' for s, m in scores.items()), log_file)
+        if world > 1 and periodic and epoch != args.epochs:
+            dist.barrier()
     train_hours = (time.time() - start) / 3600
+    if world > 1 and not main_proc:
+        dist.destroy_process_group()
+        return
     if ema:  # evaluate the last-iterate weights too (paired comparison with the EMA weights, same run)
         last = {}
         for s in eval_splits:
