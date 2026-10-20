@@ -27,13 +27,14 @@ def main():
     out = {}
     saved = json.loads((a.run / 'metrics.json').read_text()).get('args', {}) if (a.run / 'metrics.json').exists() else {}
     data = Path(saved.get('data') or DATA)  # fold runs keep their ground truth under their own --data root
+    post = {**FINAL, 'shift': 0.0} if saved.get('flip_bias') else FINAL  # trained on bias-consistent flips
     for split in a.splits.split(','):
         raw = a.run / f'raw_{split}.pt'
-        _, m, ap50, per_class, _ = run_one((raw, data / 'detection' / f'instances_{split}.json', 'final', FINAL))
+        _, m, ap50, per_class, _ = run_one((raw, data / 'detection' / f'instances_{split}.json', 'final', post))
         f1 = cls_study(raw, lambdas=(LAM,))[LAM]
         out[split] = {'macro_f1': f1, 'mAP': m, 'AP50': ap50, 'per_class_AP': per_class}
         print(f'RESULT pp {split}: macro_f1 {f1:.4f} mAP {m:.4f} AP50 {ap50:.4f}')
-    (a.run / 'metrics_pp.json').write_text(json.dumps({'post': {**FINAL, 'cls_lambda': LAM}, **out}, indent=1))
+    (a.run / 'metrics_pp.json').write_text(json.dumps({'post': {**post, 'cls_lambda': LAM}, **out}, indent=1))
 
 
 if __name__ == '__main__':

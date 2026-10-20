@@ -81,13 +81,16 @@ def main():
     p.add_argument('--nms', default=FINAL['nms'], choices=['hard', 'soft'])
     p.add_argument('--soft-sigma', type=float, default=FINAL['soft_sigma'])
     p.add_argument('--obj-pow', type=float, default=FINAL['obj_pow'], help='multiply box scores by RPN objectness^obj_pow')
-    p.add_argument('--shift', type=float, default=FINAL['shift'], help='translate boxes by this many px on the 512 input')
+    p.add_argument('--shift', type=float, default=None,
+                   help='translate boxes by this many px on the 512 input (default: FINAL, or 0 for --flip-bias runs)')
     p.add_argument('--quality-pow', type=float, default=FINAL.get('quality_pow', 0.0), help='re-score boxes by the IoU branch^pow')
     p.add_argument('--cls-lambda', type=float, default=LAM,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     a = p.parse_args()
 
     model, args = load_run(a.run, a.weights)
+    if a.shift is None:  # a model trained on bias-consistent flips already predicts the annotation convention
+        a.shift = 0.0 if getattr(args, 'flip_bias', 0.0) else FINAL['shift']
     set_post(model, a)
     print(f'parameters: {sum(q.numel() for q in model.parameters()):,} total')
     if a.split:

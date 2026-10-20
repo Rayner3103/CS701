@@ -77,6 +77,8 @@ def parse_args(argv=None):
     p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the classification loss')
     p.add_argument('--ema', type=float, default=0.0, help='EMA decay of the trainable weights (0: off); EMA weights are evaluated and saved')
     p.add_argument('--aug', default='flip', choices=['flip', 'd4'])
+    p.add_argument('--flip-bias', type=float, default=0.0,
+                   help="annotation position bias in original px (e.g. -0.3): flipped boxes are moved by twice it")
     p.add_argument('--copy-paste', type=float, default=0.0, help='probability of same-class copy-paste of small objects')
     p.add_argument('--cp-source', default='mixed', choices=['mixed', 'same_class', 'same_image'])
     p.add_argument('--cp-max-n', type=int, default=6)
@@ -118,7 +120,7 @@ def make_loader(args, split, train, world=1, rank=0):
     """Batches of `split`; only the training set is shuffled and augmented (copy-paste uses training images only).
     With world > 1 (DDP) the training set is split over the processes, each taking batch_size / world images."""
     dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
-                           zoom_max=args.zoom_max)
+                           zoom_max=args.zoom_max, flip_bias=getattr(args, 'flip_bias', 0.0))
     if train and args.copy_paste:
         dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
                                      source=args.cp_source, seed=args.seed)

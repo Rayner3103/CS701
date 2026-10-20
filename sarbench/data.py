@@ -35,9 +35,12 @@ class SARMultiTask(Dataset):
     split may join several splits with '+', e.g. 'train+val+test' (the final model trains on all labelled data).
     aug (training only): 'flip' (reference: horizontal and vertical flips), 'd4' (flips and 90-degree rotations:
     the 8 symmetries of the square, exact for boxes). zoom_p > 0 adds a random zoom-in (crop of 1/s of the image,
-    s ~ U(1, zoom_max), resized back to size; boxes cut by less than half are kept, clipped)."""
+    s ~ U(1, zoom_max), resized back to size; boxes cut by less than half are kept, clipped).
+    flip_bias (original px, 'flip' only): the annotations' measured position bias b (box = true extent + b); a flip
+    turns it into -b, so flipped boxes are moved by 2b to keep every target on the same convention."""
 
-    def __init__(self, root, split, train=False, size=512, limit=None, aug='flip', zoom_p=0.0, zoom_max=1.5):
+    def __init__(self, root, split, train=False, size=512, limit=None, aug='flip', zoom_p=0.0, zoom_max=1.5,
+                 flip_bias=0.0):
         self.root = Path(root)
         self.rows, self.coco_images, self.annotations = [], {}, defaultdict(list)
         for part in split.split('+'):
@@ -50,7 +53,10 @@ class SARMultiTask(Dataset):
         self.rows = self.rows[:limit]
         self.size, self.train, self.aug = size, train, aug if train else 'none'
         self.zoom_p, self.zoom_max = (zoom_p, zoom_max) if train else (0.0, 1.0)
+        self.flip_bias = flip_bias if train and aug == 'flip' else 0.0
         flips = [v2.RandomHorizontalFlip(), v2.RandomVerticalFlip()] if train and aug in ('flip', 'd4') else []
+        if self.flip_bias:
+            flips = []  # done in __getitem__ with the bias correction
         self.transform = v2.Compose([
             v2.ToImage(),
             v2.ConvertBoundingBoxFormat('XYXY'),  # COCO [x, y, w, h] -> [x1, y1, x2, y2]
@@ -93,6 +99,14 @@ class SARMultiTask(Dataset):
         image, boxes = self.transform(image, boxes)
         labels = torch.tensor([a['category_id'] for a in anns])
         boxes = boxes.as_subclass(torch.Tensor)
+        if self.flip_bias:
+            for axis, extent in ((0, orig_size[1]), (1, orig_size[0])):  # x (width), y (height)
+                if random.random() < 0.5:
+                    image = image.flip(-1 if axis == 0 else -2)
+                    off = 2 * self.flip_bias * self.size / extent
+                    lo, hi = boxes[:, axis].clone(), boxes[:, axis + 2].clone()
+                    boxes[:, axis] = (self.size - hi + off).clamp(0, self.size)
+                    boxes[:, axis + 2] = (self.size - lo + off).clamp(0, self.size)
         if self.aug == 'd4':
             k = random.randrange(4)
             if k:

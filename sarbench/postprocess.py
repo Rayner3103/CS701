@@ -51,8 +51,10 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
     p = F.softmax(class_logits.float(), dim=-1)
     n, c = boxes.shape[0], boxes.shape[1]
     boxes = boxes.reshape(-1, 4).float()
-    if shift:  # constant translation (px on the network input) correcting a systematic box-position bias
-        boxes = boxes + shift
+    if shift is not None and torch.as_tensor(shift).abs().sum() > 0:
+        # constant translation (px on the network input) correcting a systematic box-position bias; a float moves
+        # all four coordinates, a 4-tuple (dx1, dy1, dx2, dy2) moves each one separately
+        boxes = boxes + boxes.new_tensor(shift)
     boxes = box_ops.clip_boxes_to_image(boxes, image_size).reshape(n, c, 4)
     if fusion == 'none':
         scores = p[:, 1:]
