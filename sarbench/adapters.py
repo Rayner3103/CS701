@@ -76,11 +76,18 @@ def add_lora(backbone, targets=('attn.qkv', 'attn.proj'), rank=16, alpha=32, ski
 def unfreeze(backbone, norms=False, biases=False, patch_embed=False, layer_scale=False, last_blocks=0, pos_embed=False):
     """Make more of a frozen backbone trainable: LayerNorm weights, all biases, the patch embedding, layer-scale
     gammas, and/or every weight of the last `last_blocks` blocks."""
+    norm_types = (nn.LayerNorm, nn.GroupNorm)
+    norm_params = set()
+    for m in backbone.modules():
+        if isinstance(m, norm_types) or type(m).__name__ in ('LayerNorm2d', 'RmsNorm', 'RmsNorm2d'):
+            norm_params |= {id(q) for q in m.parameters(recurse=False)}
     for name, p in backbone.named_parameters():
         leaf = name.rsplit('.', 1)[-1]
-        if norms and ('norm' in name.lower()) and leaf in ('weight', 'bias'):
+        if norms and id(p) in norm_params:
             p.requires_grad_(True)
-        if biases and leaf == 'bias':
+        # a norm's bias trains only together with its weight: a LayerNorm whose bias needs a gradient but whose weight
+        # and input do not crashes PyTorch's fused backward ('invalid gradient at index 2')
+        if biases and leaf == 'bias' and id(p) not in norm_params:
             p.requires_grad_(True)
         if patch_embed and ('patch_embed' in name or 'stem' in name):
             p.requires_grad_(True)

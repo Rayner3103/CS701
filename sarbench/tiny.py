@@ -21,7 +21,9 @@ def nwd(boxes1, boxes2, C=8.0):
     """Normalized Gaussian Wasserstein distance (Wang et al. 2021), XYXY [N,4] x [M,4] -> [N,M] in (0, 1]."""
     c1, c2 = (boxes1[:, :2] + boxes1[:, 2:]) / 2, (boxes2[:, :2] + boxes2[:, 2:]) / 2
     h1, h2 = (boxes1[:, 2:] - boxes1[:, :2]) / 2, (boxes2[:, 2:] - boxes2[:, :2]) / 2
-    return torch.exp(-torch.cdist(torch.cat([c1, h1], 1), torch.cat([c2, h2], 1)) / C)
+    a, b = torch.cat([c1, h1], 1).float(), torch.cat([c2, h2], 1).float()
+    d = torch.cdist(a, b, compute_mode='donot_use_mm_for_euclid_dist')  # exact; the matmul path is TF32 on GPUs
+    return torch.exp(-d / C)
 
 
 def iou_nwd_similarity(C=8.0):

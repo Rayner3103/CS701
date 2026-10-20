@@ -2,7 +2,9 @@
 post-processing study), or predict the released Codabench val/test images and write submission.zip.
 Examples:
   python predict.py --run ~/cs701_runs/E01 --split val --dump-raw
-  python predict.py --run ~/cs701_runs/FINAL --images ../cs701-sar-course-data/val --out submission.zip --fusion mult
+  python predict.py --run ~/cs701_runs/FINAL --images ~/cs701_data/cs701-sar-course-data/val --out submission.zip
+(the defaults apply the final post-processing: soft-NMS 0.75, objectness^0.25, threshold 0.001, 100 boxes per image,
+detection-informed classification lambda 1)
 Each image goes through the model once, at 512 x 512, with no test-time augmentation."""
 import argparse
 import json
@@ -29,6 +31,7 @@ def load_run(run_dir, weights='model.pt'):
             setattr(args, k, v)
     model = train.build_model(args)
     state = torch.load(run_dir / weights, map_location='cpu')
+    state = {k.replace('._orig_mod', ''): v for k, v in state.items()}  # runs trained with --compile
     missing, unexpected = model.load_state_dict(state, strict=False)
     trainable = {n for n, p in model.named_parameters() if p.requires_grad}
     assert not unexpected, unexpected
@@ -48,7 +51,7 @@ def image_class(logits, out, lam):
 
 
 def set_post(model, a):
-    model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class,
+    model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class or None,
                                 total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk, nms=a.nms,
                                 soft_sigma=a.soft_sigma, obj_pow=a.obj_pow)
 
@@ -65,18 +68,19 @@ def main():
     p.add_argument('--out', type=Path, default=Path('submission.zip'))
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--workers', type=int, default=8)
-    # post-processing (defaults: the reference)
-    p.add_argument('--score-thresh', type=float, default=0.05)
+    # post-processing (defaults: the final settings, = pp_eval.FINAL + cls lambda 1; the reference is
+    # --score-thresh 0.05 --per-class 0 --nms hard --obj-pow 0 --cls-lambda 0)
+    p.add_argument('--score-thresh', type=float, default=0.001)
     p.add_argument('--nms-thresh', type=float, default=0.5)
-    p.add_argument('--per-class', type=int, default=None)
+    p.add_argument('--per-class', type=int, default=100)
     p.add_argument('--total', type=int, default=100)
     p.add_argument('--fusion', default='none', choices=['none', 'mult', 'agn', 'hard'])
     p.add_argument('--gamma', type=float, default=1.0)
     p.add_argument('--topk', type=int, default=9)
-    p.add_argument('--nms', default='hard', choices=['hard', 'soft'])
+    p.add_argument('--nms', default='soft', choices=['hard', 'soft'])
     p.add_argument('--soft-sigma', type=float, default=0.75)
-    p.add_argument('--obj-pow', type=float, default=0.0, help='multiply box scores by RPN objectness^obj_pow')
-    p.add_argument('--cls-lambda', type=float, default=0.0,
+    p.add_argument('--obj-pow', type=float, default=0.25, help='multiply box scores by RPN objectness^obj_pow')
+    p.add_argument('--cls-lambda', type=float, default=1.0,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     a = p.parse_args()
 

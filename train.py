@@ -379,6 +379,7 @@ def main():
         if args.save == 'trainable':
             keep = {n for n, p in model.named_parameters() if p.requires_grad} | {n for n, _ in model.named_buffers()}
             state = {k: v for k, v in state.items() if k in keep}
+        state = {k.replace('._orig_mod', ''): v for k, v in state.items()}  # compiled blocks: plain module names
         torch.save(state, run_dir / 'model.pt')
     log('RESULT ' + json.dumps({s: {k: round(results[s][k], 4) for k in ('macro_f1', 'mAP', 'AP50')} for s in eval_splits}), log_file)
 
