@@ -122,7 +122,7 @@ class RoIHeadsPlus(RoIHeads):
     torchvision's postprocess_detections exactly) and can also return the raw per-class boxes and logits."""
 
     post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9,
-                obj_pow=0.0, nms='hard', soft_sigma=0.75)
+                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0)
     giou_weight = 0.0  # > 0: add a GIoU loss on the positive RoIs' decoded boxes (tighter boxes for tiny objects)
     giou_only = False  # True: the GIoU loss replaces the smooth-L1 box loss
 

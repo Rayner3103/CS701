@@ -126,7 +126,7 @@ class CascadeRoIHeads(RoIHeads):
     Params with LightBoxHead(reduced=64): 3 x 4.28 M = 12.8 M (the reference TwoMLPHead alone is 13.9 M)."""
 
     post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9,
-                obj_pow=0.0, nms='hard', soft_sigma=0.75)
+                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0)
 
     def __init__(self, box_roi_pool, num_classes=10, reduced=64, representation=1024, ious=(0.5, 0.6, 0.7),
                  coder_weights=((10., 10., 5., 5.), (20., 20., 10., 10.), (30., 30., 15., 15.)),

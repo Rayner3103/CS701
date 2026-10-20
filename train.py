@@ -82,6 +82,7 @@ def parse_args(argv=None):
     p.add_argument('--train-split', default='train', help="e.g. 'train+val+test' for the final model")
     p.add_argument('--eval-splits', default='val,test', help="comma-separated; '' for none")
     p.add_argument('--eval-every', type=int, default=4, help='validate every N epochs, and after the last one')
+    p.add_argument('--save-every', type=int, default=0, help='save a checkpoint (trained tensors) every N epochs (0: off)')
     p.add_argument('--score-thresh', type=float, default=0.05, help='detection score threshold at evaluation')
     p.add_argument('--dump-raw', action='store_true', help='save raw per-class boxes and logits of the eval splits')
     p.add_argument('--save', default='trainable', choices=['full', 'trainable', 'none'])
@@ -345,17 +346,30 @@ def main():
     history, start, step = [], time.time(), 0
     for epoch in range(1, args.epochs + 1):
         step = train_one_epoch(model, train_loader, optimizer, schedule, epoch, log_file, args, ema, step)
+        if args.save_every and epoch % args.save_every == 0 and epoch != args.epochs:
+            keep = {n for n, q in model.named_parameters() if q.requires_grad} | {n for n, _ in model.named_buffers()}
+            ckpt = {k.replace('._orig_mod', ''): v for k, v in model.state_dict().items() if k in keep}
+            torch.save(ckpt, run_dir / f'ckpt_e{epoch}.pt')
         if eval_splits and (epoch % args.eval_every == 0 or epoch == args.epochs) and epoch != args.epochs:
-            s = eval_splits[0]
             if ema:
                 ema.swap()
-            val, _, _ = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json')
+            scores = {}
+            for s in eval_splits:  # every eval split, so the growth curve is measured on the whole holdout
+                scores[s], _, _ = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json')
             if ema:
                 ema.swap()
-            history.append({'epoch': epoch, **val})
-            log(f'epoch {epoch} {s}: {headline(val)}', log_file)
+            history.append({'epoch': epoch, **scores[eval_splits[0]], 'all': scores})
+            log(f'epoch {epoch} ' + ' || '.join(f'{s}: {headline(m)}' for s, m in scores.items()), log_file)
     train_hours = (time.time() - start) / 3600
-    if ema:
+    if ema:  # evaluate the last-iterate weights too (paired comparison with the EMA weights, same run)
+        last = {}
+        for s in eval_splits:
+            m, _, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
+            last[s] = m
+            log(f'{s} (last-iterate weights): {headline(m)}', log_file)
+            if raw is not None:
+                torch.save(raw, run_dir / f'raw_{s}_last.pt')
+        (run_dir / 'metrics_last.json').write_text(json.dumps(last, indent=2, default=str))
         ema.swap()  # from here on the model holds the EMA weights
 
     # Final evaluation of the last-epoch model on every eval split

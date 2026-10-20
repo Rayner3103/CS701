@@ -36,7 +36,8 @@ def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100
 
 def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
-                        image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75):
+                        image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75,
+                        shift=0.0):
     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
     first), image_probs: [C] softmax of the image classifier (needed for fusion).
     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
@@ -49,7 +50,10 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
     and class) and at most `total` overall. Returns boxes [K, 4], scores [K], labels [K] (1..C)."""
     p = F.softmax(class_logits.float(), dim=-1)
     n, c = boxes.shape[0], boxes.shape[1]
-    boxes = box_ops.clip_boxes_to_image(boxes.reshape(-1, 4).float(), image_size).reshape(n, c, 4)
+    boxes = boxes.reshape(-1, 4).float()
+    if shift:  # constant translation (px on the network input) correcting a systematic box-position bias
+        boxes = boxes + shift
+    boxes = box_ops.clip_boxes_to_image(boxes, image_size).reshape(n, c, 4)
     if fusion == 'none':
         scores = p[:, 1:]
     else:
