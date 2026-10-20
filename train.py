@@ -147,7 +147,10 @@ def build_model(args):
         if targets == ('attn.qkv', 'attn.proj') and args.lora_rank == 16 and args.lora_alpha == 32 and not skip:
             add_adapters(backbone, 'lora')  # the reference, unchanged
         else:
-            add_lora(backbone, targets, args.lora_rank, args.lora_alpha, skip_blocks=skip)
+            wrapped = add_lora(backbone, targets, args.lora_rank, args.lora_alpha, skip_blocks=skip)
+            expected = (n - len(skip)) * len(targets)
+            if wrapped != expected and not hasattr(backbone, 'body'):  # ConvNeXt blocks have no attn layers
+                raise SystemExit(f'--lora-targets wrapped {wrapped} layers, expected {expected}: check the layer names')
     if getattr(args, 'mona', 0):
         add_mona(backbone, args.mona)  # trainable (created after the backbone was frozen)
     if args.adapt != 'full':
@@ -325,8 +328,10 @@ def main():
         compile_blocks(model.backbone)
     parameters = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    log(f'parameters: {parameters:,} total, {trainable:,} trainable', log_file)
-    if (parameters > MAX_TOTAL or trainable > MAX_TRAINABLE) and not args.allow_over_budget:
+    buffers = sum(b.numel() for b in model.buffers() if b.is_floating_point())
+    log(f'parameters: {parameters:,} total, {trainable:,} trainable (+ {buffers:,} floating-point buffer values)', log_file)
+    parameters_and_buffers = parameters + buffers
+    if (parameters_and_buffers > MAX_TOTAL or trainable > MAX_TRAINABLE) and not args.allow_over_budget:
         raise SystemExit(f'over the Codabench budget: {parameters:,} total (max {MAX_TOTAL:,}), '
                          f'{trainable:,} trainable (max {MAX_TRAINABLE:,})')
 
@@ -368,7 +373,7 @@ def main():
     log(f'training {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
 
     # Save
-    summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable,
+    summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable, 'buffer_values': buffers,
                'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb, 'val_history': history,
                **{s: results[s] for s in eval_splits}}
     if 'val' in results:

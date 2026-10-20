@@ -143,6 +143,14 @@ class CascadeRoIHeads(RoIHeads):
         self.stage_weights, self.beta = stage_weights, beta
         self.post = dict(CascadeRoIHeads.post)
 
+    def add_gt_proposals(self, proposals, gt_boxes):  # rows >= _n_props are the appended GT boxes
+        self._n_props = [len(p) for p in proposals]
+        return super().add_gt_proposals(proposals, gt_boxes)
+
+    def subsample(self, labels):  # sorted indices of the sampled rows, per image
+        self._sampled = super().subsample(labels)
+        return self._sampled
+
     def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False,
                 objectness=None):
         losses, probs = {}, []
@@ -150,6 +158,7 @@ class CascadeRoIHeads(RoIHeads):
             self.proposal_matcher, self.box_coder = self.matchers[t], self.coders[t]  # used by select_training_samples
             if self.training:
                 proposals, _, labels, reg_targets = self.select_training_samples(proposals, targets)
+                is_gt = [smp >= n for smp, n in zip(self._sampled, self._n_props)]  # mmdet's pos_is_gt
             cls, reg = pred(head(self.box_roi_pool(features, proposals, image_shapes)))
             if self.training:
                 labels, reg_targets = torch.cat(labels), torch.cat(reg_targets)
@@ -162,6 +171,8 @@ class CascadeRoIHeads(RoIHeads):
                 n = [len(p) for p in proposals]
                 new = self.box_coder.decode(reg[:, :4].detach(), proposals)[:, 0]
                 proposals = [box_ops.clip_boxes_to_image(b, s) for b, s in zip(new.split(n), image_shapes)]
+                if self.training:  # drop the GT boxes appended at this stage: the next stage appends them again
+                    proposals = [pr[~g] for pr, g in zip(proposals, is_gt)]
         if self.training:
             return [], losses
         logits = torch.stack(probs).mean(0).clamp_min(1e-12).log()  # softmax(log p) = p downstream
@@ -183,6 +194,22 @@ class CascadeRoIHeads(RoIHeads):
 
 
 # ----------------------------------------------------------------------------------------------- copy-paste
+def _keep_mask(boxes, j, x1, y1, x2, y2):
+    """[y2-y1, x2-x1] bool: False on window pixels outside boxes[j] that another GT box touches (so a pasted patch
+    carries no unlabelled fragment of a neighbouring object)."""
+    ys = torch.arange(y1, y2, dtype=torch.float32)[:, None]
+    xs = torch.arange(x1, x2, dtype=torch.float32)[None, :]
+
+    def touch(b):
+        return (xs + 1 > b[0]) & (xs < b[2]) & (ys + 1 > b[1]) & (ys < b[3])
+
+    other = torch.zeros(y2 - y1, x2 - x1, dtype=torch.bool)
+    for k, o in enumerate(boxes):
+        if k != j:
+            other |= touch(o)
+    return ~(other & ~touch(boxes[j]))
+
+
 class SameClassCopyPaste(Dataset):
     """Wraps the repo's SARMultiTask (train=True). With probability p, pastes n ~ U{1..max_n} small objects
     (side <= max_side px at the 512 input) cut from OTHER training images of the SAME class into the image, at random
@@ -208,7 +235,7 @@ class SameClassCopyPaste(Dataset):
         rng.shuffle(order)
         for i in order:
             img, label, tgt = base[i]
-            for b in tgt['boxes']:
+            for j, b in enumerate(tgt['boxes']):
                 w, h = float(b[2] - b[0]), float(b[3] - b[1])
                 if max(w, h) > max_side or min(w, h) < 2:
                     continue
@@ -219,7 +246,7 @@ class SameClassCopyPaste(Dataset):
                 x2, y2 = int(min(b[2] + margin + 1, img.shape[-1])), int(min(b[3] + margin + 1, img.shape[-2]))
                 patch = img[:, y1:y2, x1:x2].clone()
                 inner = torch.tensor([b[0] - x1, b[1] - y1, b[2] - x1, b[3] - y1])  # box inside the patch
-                lst.append((i, patch, inner))
+                lst.append((i, patch, inner, _keep_mask(tgt['boxes'], j, x1, y1, x2, y2)))
         base.aug, base.zoom_p, base.transform.transforms = aug, zoom, flips
 
     def __len__(self):
@@ -232,12 +259,13 @@ class SameClassCopyPaste(Dataset):
         own = []  # this image's own small objects (for 'same_image' / 'mixed')
         if self.source != 'same_class':
             m = self.margin
-            for b in boxes:
+            for j, b in enumerate(boxes):
                 w, h = float(b[2] - b[0]), float(b[3] - b[1])
                 if max(w, h) <= self.max_side and min(w, h) >= 2:
                     x1, y1 = int(max(b[0] - m, 0)), int(max(b[1] - m, 0))
                     x2, y2 = int(min(b[2] + m + 1, W)), int(min(b[3] + m + 1, H))
-                    own.append((-1, img[:, y1:y2, x1:x2].clone(), torch.tensor([b[0] - x1, b[1] - y1, b[2] - x1, b[3] - y1])))
+                    own.append((-1, img[:, y1:y2, x1:x2].clone(), torch.tensor([b[0] - x1, b[1] - y1, b[2] - x1, b[3] - y1]),
+                                _keep_mask(boxes, j, x1, y1, x2, y2)))
         if random.random() >= self.p or not (self.bank.get(label) or own):
             return img, label, tgt
         img = img.clone()
@@ -247,7 +275,7 @@ class SameClassCopyPaste(Dataset):
                                (self.source == 'mixed' and random.random() < 0.5))
             if not use_own and not self.bank.get(label):
                 break
-            src, patch, inner = random.choice(own) if use_own else random.choice(self.bank[label])
+            src, patch, inner, keep = random.choice(own) if use_own else random.choice(self.bank[label])
             if src == i:
                 continue
             k = random.randrange(4)  # random quarter turn of the patch (exact)
@@ -255,6 +283,7 @@ class SameClassCopyPaste(Dataset):
                 ph, pw = patch.shape[-2:]
                 inner = torch.stack([inner[1], pw - inner[2], inner[3], pw - inner[0]])
                 patch = torch.rot90(patch, 1, dims=(-2, -1))
+                keep = torch.rot90(keep, 1, dims=(-2, -1))
             ph, pw = patch.shape[-2:]
             for _try in range(10):
                 x0, y0 = random.randint(0, W - pw), random.randint(0, H - ph)
@@ -266,7 +295,7 @@ class SameClassCopyPaste(Dataset):
                 yy = torch.arange(ph, dtype=torch.float32)[:, None]
                 xx = torch.arange(pw, dtype=torch.float32)[None, :]
                 d = torch.minimum(torch.minimum(yy + 1, ph - yy), torch.minimum(xx + 1, pw - xx))
-                alpha = (d / (self.margin + 1)).clamp(max=1.0)  # 0 at the patch border -> 1 inside the margin
+                alpha = (d / (self.margin + 1)).clamp(max=1.0) * keep  # feathered border; neighbours masked out
                 img[:, y0:y0 + ph, x0:x0 + pw] = alpha * patch + (1 - alpha) * img[:, y0:y0 + ph, x0:x0 + pw]
                 new_boxes.append(cand.float())
                 break

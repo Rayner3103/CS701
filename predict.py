@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader
 
 import train
 from make_submission import write_submission
+from pp_eval import FINAL, LAM
 from sarbench.data import SARImages, SARMultiTask, collate
 from sarbench.metrics import classification_metrics, detection_metrics
 
@@ -70,17 +71,17 @@ def main():
     p.add_argument('--workers', type=int, default=8)
     # post-processing (defaults: the final settings, = pp_eval.FINAL + cls lambda 1; the reference is
     # --score-thresh 0.05 --per-class 0 --nms hard --obj-pow 0 --cls-lambda 0)
-    p.add_argument('--score-thresh', type=float, default=0.001)
+    p.add_argument('--score-thresh', type=float, default=FINAL['score_thresh'])
     p.add_argument('--nms-thresh', type=float, default=0.5)
-    p.add_argument('--per-class', type=int, default=100)
-    p.add_argument('--total', type=int, default=100)
+    p.add_argument('--per-class', type=int, default=FINAL['per_class'])
+    p.add_argument('--total', type=int, default=FINAL['total'])
     p.add_argument('--fusion', default='none', choices=['none', 'mult', 'agn', 'hard'])
     p.add_argument('--gamma', type=float, default=1.0)
     p.add_argument('--topk', type=int, default=9)
-    p.add_argument('--nms', default='soft', choices=['hard', 'soft'])
-    p.add_argument('--soft-sigma', type=float, default=0.75)
-    p.add_argument('--obj-pow', type=float, default=0.25, help='multiply box scores by RPN objectness^obj_pow')
-    p.add_argument('--cls-lambda', type=float, default=1.0,
+    p.add_argument('--nms', default=FINAL['nms'], choices=['hard', 'soft'])
+    p.add_argument('--soft-sigma', type=float, default=FINAL['soft_sigma'])
+    p.add_argument('--obj-pow', type=float, default=FINAL['obj_pow'], help='multiply box scores by RPN objectness^obj_pow')
+    p.add_argument('--cls-lambda', type=float, default=LAM,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     a = p.parse_args()
 

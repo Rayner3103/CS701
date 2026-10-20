@@ -57,6 +57,8 @@ def coco_map(gt_json, dets, image_ids):
 def run_one(job):
     raw_path, gt_json, name, cfg = job
     raw = torch.load(raw_path)
+    if cfg.get('obj_pow') and not raw.get('raw_obj'):
+        print(f'WARNING: {raw_path} has no RPN objectness; obj_pow ignored for {name}', flush=True)
     dets = []
     for i, image_id in enumerate(raw['image_ids']):
         probs = raw['cls_logits'][i].softmax(0)
