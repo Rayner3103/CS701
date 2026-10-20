@@ -105,6 +105,7 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | dino_yolo26s-p2_ep24 (best.pt = epoch 24) | 24 | 31.7 M / 31.7 M | 91.8 | 30.3 | 91.4 | 30.6 | +7.6 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
 | dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
+| dino_yolo26s_ep100 (best.pt = epoch 100) | 100 | 31.9 M / 31.9 M | 93.7 | 37.2 | 93.9 | 37.1 | +21.3 |
 | terramind + MoE-LoRA (`runs/full_seed0`) | 24 | | | | 90.9 | 29.4 | +5.0 |
 | vit + MoE-LoRA + spatial prior (`runs/full_seed0`) | 24 | | | | 92.8 | 28.6 | +4.5 |
 | terramind + MoE-LoRA (`runs/single_seed0`) | 50 | | 90.2 | 33.6 | 91.8 | 35.2 | +16.5 |
@@ -123,6 +124,11 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   30.8, at the same F1). The DINO features add 3.2 / 3.6 val / test mAP over the plain YOLO26-s (+1.4). The P2 variant
   is behind DINO + YOLO26-s in mAP (−1.1 / −1.2): its P2 path and Detect head start random, and it takes 1.5 h vs
   0.9 h. Its wind turbine AP (18.8 vs 18.0) and F1 are a little higher. All three still improved at epoch 24.
+- DINO + YOLO26-s at 100 epochs (3.9 h): test Δm +21.3 vs +19.0 for DINO + YOLO12-s at 100 epochs (F1 +1.5, mAP
+  +0.8), and level with TerraMind + MoE-LoRA at 100 epochs (+21.8; one seed each, so within noise). On val it is the
+  best run (Δm +21.3 vs +20.9 and +18.8). It has the highest F1 of the 100-epoch runs (93.9); TerraMind keeps 0.9
+  more test mAP. With the leaderboard test reference it is at about +23.0. Val mAP was flat over the last 5 epochs
+  (37.8-37.9 fitness), so longer training would gain little.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
