@@ -23,9 +23,11 @@ def main():
     a = p.parse_args()
     torch.set_num_threads(4)
     out = {}
+    saved = json.loads((a.run / 'metrics.json').read_text()).get('args', {}) if (a.run / 'metrics.json').exists() else {}
+    data = Path(saved.get('data') or DATA)  # fold runs keep their ground truth under their own --data root
     for split in a.splits.split(','):
         raw = a.run / f'raw_{split}.pt'
-        _, m, ap50, per_class, _ = run_one((raw, DATA / 'detection' / f'instances_{split}.json', 'final', FINAL))
+        _, m, ap50, per_class, _ = run_one((raw, data / 'detection' / f'instances_{split}.json', 'final', FINAL))
         f1 = cls_study(raw, lambdas=(LAM,))[LAM]
         out[split] = {'macro_f1': f1, 'mAP': m, 'AP50': ap50, 'per_class_AP': per_class}
         print(f'RESULT pp {split}: macro_f1 {f1:.4f} mAP {m:.4f} AP50 {ap50:.4f}')
