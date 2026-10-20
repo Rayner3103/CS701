@@ -86,9 +86,10 @@ def main():
     p.add_argument('--quality-pow', type=float, default=FINAL.get('quality_pow', 0.0), help='re-score boxes by the IoU branch^pow')
     p.add_argument('--cls-lambda', type=float, default=LAM,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
+    p.add_argument('--device', default='cuda', help="'cpu' runs without a GPU (fp32), e.g. while both GPUs train")
     a = p.parse_args()
 
-    model, args = load_run(a.run, a.weights)
+    model, args = load_run(a.run, a.weights, device=a.device)
     if a.shift is None:  # a model trained on bias-consistent flips already predicts the annotation convention
         a.shift = 0.0 if getattr(args, 'flip_bias', 0.0) else FINAL['shift']
     set_post(model, a)
@@ -109,8 +110,8 @@ def main():
     preds, n_img, t0 = {}, 0, time.time()
     with torch.no_grad():
         for batch, infos in loader:
-            with torch.autocast('cuda', dtype=torch.bfloat16):
-                logits, outputs, _ = model(batch.cuda(), return_raw=a.cls_lambda > 0)
+            with torch.autocast('cuda', dtype=torch.bfloat16, enabled=a.device == 'cuda'):
+                logits, outputs, _ = model(batch.to(a.device), return_raw=a.cls_lambda > 0)
             for info, lg, out in zip(infos, logits, outputs):
                 name = images[n_img]['file_name']
                 assert images[n_img]['id'] == info['image_id']
