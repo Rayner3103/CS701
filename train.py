@@ -16,6 +16,8 @@ from sarbench.backbones import BACKBONES, build_backbone
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
 from sarbench.model import REFERENCE_ANCHORS, MultiTaskModel
+from sarbench.tiny import (AlignedMultiScaleRoIAlign, CascadeRoIHeads, OffsetAnchorGenerator, PretrainedPrior,
+                           SameClassCopyPaste, iou_nwd_similarity)
 
 MAX_TOTAL, MAX_TRAINABLE = 130_000_000, 40_000_000  # Codabench Terms
 
@@ -47,6 +49,13 @@ def parse_args(argv=None):
     p.add_argument('--box-head', default='mlp', choices=['mlp', 'small'])
     p.add_argument('--cls-pool', default='mean', choices=['mean', 'clsmean', 'attn'])
     p.add_argument('--roi-batch', type=int, default=512)
+    p.add_argument('--cascade', action='store_true', help='3-stage Cascade R-CNN with light class-agnostic heads')
+    p.add_argument('--cascade-rep', type=int, default=1024, help='FC width of each cascade stage head')
+    p.add_argument('--cascade-beta', type=float, default=0.0, help='smooth-L1 beta of the cascade box loss (0: L1)')
+    p.add_argument('--rpn-nwd', type=float, default=0.0, help='RPN anchor matching by max(IoU, NWD) with this C (0: IoU)')
+    p.add_argument('--anchor-offset', type=float, default=0.0, help='anchor centres at (i + offset) * stride')
+    p.add_argument('--aligned-roi', action='store_true', help='RoIAlign with aligned=True')
+    p.add_argument('--pretrained-prior', action='store_true', help='ImageNet ResNet-18 stem as the spatial prior (needs --spatial-prior 64)')
     p.add_argument('--giou', type=float, default=0.0, help='weight of a GIoU loss on the RoI boxes (0: off)')
     p.add_argument('--giou-only', action='store_true', help='the GIoU loss replaces the smooth-L1 RoI box loss')
     # optimisation
@@ -57,10 +66,16 @@ def parse_args(argv=None):
     p.add_argument('--weight-decay', type=float, default=0.05)
     p.add_argument('--wd-hygiene', action='store_true', help='no weight decay on 1-D parameters (norms, biases, gammas) and embeddings')
     p.add_argument('--loraplus', type=float, default=1.0, help='LoRA+: learning-rate multiplier for the LoRA B (up) matrices')
+    p.add_argument('--full-lr', type=float, help='LR of full-rank pretrained backbone weights that train (default: --backbone-lr)')
+    p.add_argument('--cheap-lr', type=float, help='LR of 1-D pretrained backbone parameters: norms, biases, gammas (default: --backbone-lr)')
     p.add_argument('--label-smoothing', type=float, default=0.0)
     p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the classification loss')
     p.add_argument('--ema', type=float, default=0.0, help='EMA decay of the trainable weights (0: off); EMA weights are evaluated and saved')
     p.add_argument('--aug', default='flip', choices=['flip', 'd4'])
+    p.add_argument('--copy-paste', type=float, default=0.0, help='probability of same-class copy-paste of small objects')
+    p.add_argument('--cp-source', default='mixed', choices=['mixed', 'same_class', 'same_image'])
+    p.add_argument('--cp-max-n', type=int, default=6)
+    p.add_argument('--cp-max-side', type=int, default=40)
     p.add_argument('--zoom-p', type=float, default=0.0)
     p.add_argument('--zoom-max', type=float, default=1.5)
     # data, evaluation, output
@@ -92,9 +107,12 @@ def log(message, file):
 
 
 def make_loader(args, split, train):
-    """Batches of `split`; only the training set is shuffled and augmented."""
+    """Batches of `split`; only the training set is shuffled and augmented (copy-paste uses training images only)."""
     dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
                            zoom_max=args.zoom_max)
+    if train and args.copy_paste:
+        dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
+                                     source=args.cp_source, seed=args.seed)
     return DataLoader(dataset, args.batch_size, shuffle=train, num_workers=args.workers, collate_fn=collate,
                       persistent_workers=train and args.workers > 0, drop_last=False)
 
@@ -146,6 +164,22 @@ def build_model(args):
                            roi_batch=args.roi_batch)
     model.roi_heads.giou_weight = getattr(args, 'giou', 0.0)
     model.roi_heads.giou_only = getattr(args, 'giou_only', False)
+    # tiny-object options (sarbench/tiny.py)
+    if getattr(args, 'anchor_offset', 0.0):
+        model.rpn.anchor_generator = OffsetAnchorGenerator(anchors, (ratios,) * len(anchors), offset=args.anchor_offset)
+    if getattr(args, 'rpn_nwd', 0.0):
+        model.rpn.box_similarity = iou_nwd_similarity(args.rpn_nwd)
+    pool = model.roi_heads.box_roi_pool
+    if getattr(args, 'aligned_roi', False):
+        pool = AlignedMultiScaleRoIAlign(pool.featmap_names, output_size=pool.output_size, sampling_ratio=pool.sampling_ratio)
+        model.roi_heads.box_roi_pool = pool
+    if getattr(args, 'cascade', False):
+        assert not args.giou, '--giou is not implemented for --cascade'
+        model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
+                                          beta=args.cascade_beta, batch_size_per_image=args.roi_batch)
+    if getattr(args, 'pretrained_prior', False):
+        assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
+        model.neck.prior = PretrainedPrior()
     return model
 
 
@@ -154,12 +188,19 @@ def param_groups(model, args):
     parameter with --weight-decay). --loraplus multiplies the LR of LoRA B matrices; --wd-hygiene removes weight decay
     from 1-D parameters and embeddings. The head group stays last (the log prints its LR)."""
     hygiene, lp = getattr(args, 'wd_hygiene', False), getattr(args, 'loraplus', 1.0)
+    full_lr, cheap_lr = getattr(args, 'full_lr', None), getattr(args, 'cheap_lr', None)
     groups = {}
     for name, p in model.named_parameters():
         if not p.requires_grad:
             continue
         backbone = name.startswith('backbone.')
         lr = args.backbone_lr if backbone else args.lr
+        adapter = '.mona' in name or '.routers.' in name or name.endswith(('.down.weight', '.up.weight'))
+        if backbone and not adapter:  # pretrained weights that train: full-rank (patch embed, blocks) or 1-D
+            if p.ndim >= 2 and full_lr is not None:
+                lr = full_lr
+            if p.ndim <= 1 and cheap_lr is not None:
+                lr = cheap_lr
         if backbone and lp != 1.0 and name.endswith('.up.weight'):
             lr = lr * lp
         no_wd = hygiene and (p.ndim <= 1 or name.rsplit('.', 1)[-1] in ('pos_embed', 'cls_token', 'reg_token', 'pool_query'))
