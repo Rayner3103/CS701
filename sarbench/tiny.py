@@ -191,7 +191,7 @@ class CascadeRoIHeads(RoIHeads):
 
     def forward(self, features, proposals, image_shapes, targets=None, image_probs=None, return_raw=False,
                 objectness=None):
-        losses, probs, quality = {}, [], None
+        losses, probs, quality, stage_boxes = {}, [], None, []
         last = len(self.stage_heads) - 1
         for t, (head, pred) in enumerate(zip(self.stage_heads, self.stage_preds)):
             self.proposal_matcher, self.box_coder = self.matchers[t], self.coders[t]  # used by select_training_samples
@@ -222,6 +222,8 @@ class CascadeRoIHeads(RoIHeads):
                 probs.append(F.softmax(cls.float(), -1))
                 if self.iou_weight and t == last:
                     quality = torch.sigmoid(self.iou_head(feat).squeeze(1).float())
+            if not self.training and return_raw:
+                stage_boxes.append(proposals)  # the input boxes of stage t (RPN proposals for t = 0)
             if t < len(self.stage_heads) - 1:  # refine the boxes for the next stage, without gradient
                 n = [len(p) for p in proposals]
                 new = self.box_coder.decode(reg[:, :4].detach(), proposals)[:, 0]
@@ -246,6 +248,7 @@ class CascadeRoIHeads(RoIHeads):
                     out['raw_obj'] = obj
                 if q is not None:
                     out['raw_iou'] = q
+                out['raw_stage'] = torch.stack([sb[i] for sb in stage_boxes])  # [stages, N, 4] stage input boxes
             results.append(out)
         return results, {}
 

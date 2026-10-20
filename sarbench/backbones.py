@@ -63,6 +63,17 @@ class TimmViT(nn.Module):
         return tokens[:, n:]
 
 
+def set_token_stride(backbone, stride):
+    """Overlapping patch embedding: the pretrained p x p patch kernel slides with this stride (padded by (p - stride) / 2),
+    so a 512 px image gives (512 / stride)^2 tokens, each still seeing a p x p window of the image (dense ViT
+    descriptors, Amir et al. 2021). DINOv3's RoPE adapts to the larger token grid; no parameter changes."""
+    proj = backbone.vit.patch_embed.proj
+    p = proj.kernel_size[0]
+    assert (p - stride) % 2 == 0 and stride <= p
+    proj.stride, proj.padding = (stride, stride), ((p - stride) // 2, (p - stride) // 2)
+    backbone.token_stride = stride
+
+
 class TimmConvNeXt(nn.Module):
     """A timm ConvNeXt as a feature extractor: four maps at strides 4, 8, 16, 32 (hierarchical: no neck upsampling
     needed for small objects)."""

@@ -21,7 +21,7 @@ from sarbench.data import SARImages, SARMultiTask, collate
 from sarbench.metrics import classification_metrics, detection_metrics
 
 
-def load_run(run_dir, weights='model.pt'):
+def load_run(run_dir, weights='model.pt', device='cuda'):
     """Rebuild the run's model from its metrics.json args and load its weights. Runs saved with --save trainable
     store only the trained tensors: the frozen ones are the pretrained weights, so the model is built pretrained."""
     saved = json.loads((run_dir / 'metrics.json').read_text())['args']
@@ -39,7 +39,7 @@ def load_run(run_dir, weights='model.pt'):
     assert not (set(missing) & trainable), f'trained weights missing from the checkpoint: {sorted(set(missing) & trainable)[:5]}'
     if missing and args.init != 'pretrained':
         raise SystemExit('checkpoint lacks frozen weights of a scratch model')
-    return model.cuda().eval(), args
+    return model.to(device).eval(), args
 
 
 def image_class(logits, out, lam):

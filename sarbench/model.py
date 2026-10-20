@@ -46,28 +46,34 @@ class SimpleFeaturePyramid(nn.Module):
     With spatial_prior, SpatialPrior features are added (through zero-initialised 1x1 convs) to the upsampled maps at
     strides 4 and 8, so training starts from exactly the plain neck."""
 
-    def __init__(self, dim=768, channels=256, spatial_prior=0):
+    def __init__(self, dim=768, channels=256, spatial_prior=0, input_stride=16):
         super().__init__()
         self.prior = None
+        if input_stride == 8:  # a stride-8 token map (overlapping patch embedding): one upsampling, two poolings
+            rescale = [nn.ConvTranspose2d(dim, dim // 2, 2, stride=2), nn.Identity(), nn.MaxPool2d(2), nn.MaxPool2d(4)]
+            in_ch = (dim // 2, dim, dim, dim)
+        else:
+            rescale = [
+                nn.Sequential(nn.ConvTranspose2d(dim, dim // 2, 2, stride=2), nn.GroupNorm(32, dim // 2), nn.GELU(),
+                              nn.ConvTranspose2d(dim // 2, dim // 4, 2, stride=2)),  # stride 4
+                nn.ConvTranspose2d(dim, dim // 2, 2, stride=2),  # stride 8
+                nn.Identity(),  # stride 16
+                nn.MaxPool2d(2),  # stride 32
+            ]
+            in_ch = (dim // 4, dim // 2, dim, dim)
         if spatial_prior:
             with torch.random.fork_rng(devices=[]):  # same init of everything else with and without the prior
                 self.prior = SpatialPrior(spatial_prior)
-                self.lateral = nn.ModuleList([nn.Conv2d(self.prior.channels[0], dim // 4, 1),
-                                              nn.Conv2d(self.prior.channels[1], dim // 2, 1)])
+                self.lateral = nn.ModuleList([nn.Conv2d(self.prior.channels[0], in_ch[0], 1),
+                                              nn.Conv2d(self.prior.channels[1], in_ch[1], 1)])
             for conv in self.lateral:
                 nn.init.zeros_(conv.weight)
                 nn.init.zeros_(conv.bias)
-        self.rescale = nn.ModuleList([
-            nn.Sequential(nn.ConvTranspose2d(dim, dim // 2, 2, stride=2), nn.GroupNorm(32, dim // 2), nn.GELU(),
-                          nn.ConvTranspose2d(dim // 2, dim // 4, 2, stride=2)),  # stride 4
-            nn.ConvTranspose2d(dim, dim // 2, 2, stride=2),  # stride 8
-            nn.Identity(),  # stride 16
-            nn.MaxPool2d(2),  # stride 32
-        ])
+        self.rescale = nn.ModuleList(rescale)
         self.project = nn.ModuleList(
             nn.Sequential(nn.Conv2d(c, channels, 1, bias=False), nn.GroupNorm(32, channels),
                           nn.Conv2d(channels, channels, 3, padding=1, bias=False), nn.GroupNorm(32, channels))
-            for c in (dim // 4, dim // 2, dim, dim))
+            for c in in_ch)
 
     def forward(self, x, images=None, maps=None):
         """x: the last block's map [B, dim, H/16, W/16]; maps: optionally one map per level (multi-level neck:
@@ -187,7 +193,8 @@ class MultiTaskModel(nn.Module):
         if self.hierarchical:
             self.neck = HierarchicalNeck(backbone.channels)
         else:
-            self.neck = SimpleFeaturePyramid(dim, spatial_prior=spatial_prior)
+            self.neck = SimpleFeaturePyramid(dim, spatial_prior=spatial_prior,
+                                             input_stride=getattr(backbone, 'token_stride', 16))
         anchors = AnchorGenerator(tuple(tuple(s) for s in anchor_sizes), (tuple(anchor_ratios),) * len(anchor_sizes))
         n_anchors = len(anchor_sizes[0]) * len(anchor_ratios)
         self.rpn = RPNKeepScores(
@@ -225,8 +232,8 @@ class MultiTaskModel(nn.Module):
             if self.task_routing:
                 set_task(self.backbone, 1)
                 out = self.backbone(images)
-            p = self.backbone.patch_size
-            h, w = images.shape[-2] // p, images.shape[-1] // p  # one token per p x p patch
+            p = getattr(self.backbone, 'token_stride', self.backbone.patch_size)
+            h, w = images.shape[-2] // p, images.shape[-1] // p  # one token per p px step (patch, or patch stride)
             maps = getattr(self.backbone, 'intermediates', None) if getattr(self.backbone, 'ml_indices', None) else None
             features = self.neck(out.transpose(1, 2).unflatten(2, (h, w)), images, maps)
         # Precision rule: the box coder casts anchors to the dtype of the regression output, so in bf16 every

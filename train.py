@@ -15,7 +15,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 
 from sarbench.adapters import add_adapters, add_lora, add_mona, unfreeze
-from sarbench.backbones import BACKBONES, build_backbone
+from sarbench.backbones import BACKBONES, build_backbone, set_token_stride
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
 from sarbench.model import REFERENCE_ANCHORS, MultiTaskModel
@@ -56,6 +56,8 @@ def parse_args(argv=None):
     p.add_argument('--cascade-rep', type=int, default=1024, help='FC width of each cascade stage head')
     p.add_argument('--cascade-beta', type=float, default=0.0, help='smooth-L1 beta of the cascade box loss (0: L1)')
     p.add_argument('--cascade-size-iou', action='store_true', help='size-aware IoU thresholds for the cascade stages')
+    p.add_argument('--token-stride', type=int, default=0, help='timm ViTs: patch-embedding stride (8: overlapping patches, 4x tokens)')
+    p.add_argument('--grad-ckpt', action='store_true', help='gradient checkpointing of the ViT blocks (saves memory)')
     p.add_argument('--iou-branch', type=float, default=0.0, help='loss weight of an IoU-quality branch on the last cascade stage (0: off)')
     p.add_argument('--rpn-nwd', type=float, default=0.0, help='RPN anchor matching by max(IoU, NWD) with this C (0: IoU)')
     p.add_argument('--anchor-offset', type=float, default=0.0, help='anchor centres at (i + offset) * stride')
@@ -142,6 +144,10 @@ def lr_factor(step, warmup, total):
 def build_model(args):
     """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
     backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained', drop_path=getattr(args, 'drop_path', 0.0))
+    if getattr(args, 'token_stride', 0):
+        set_token_stride(backbone, args.token_stride)
+    if getattr(args, 'grad_ckpt', False):
+        backbone.vit.set_grad_checkpointing(True)
     if getattr(args, 'ml_levels', ''):
         backbone.ml_indices = [int(i) for i in args.ml_levels.split(',')]
         assert len(backbone.ml_indices) == 4, '--ml-levels needs 4 block indices'
@@ -297,10 +303,10 @@ def evaluate(model, loader, gt_json, raw=False):
     model.eval()
     labels, predicted, detections, image_ids = [], [], [], []
     dump = {'image_ids': [], 'orig_sizes': [], 'labels': [], 'cls_logits': [], 'raw_boxes': [], 'raw_logits': [],
-            'raw_obj': [], 'raw_iou': []}
+            'raw_obj': [], 'raw_iou': [], 'raw_stage': []}
     for images, y, targets in loader:
         with torch.autocast('cuda', dtype=torch.bfloat16):
-            logits, outputs, _ = model(images.cuda(), return_raw=raw)
+            logits, outputs, _ = model(images.to(next(model.parameters()).device), return_raw=raw)
         labels += y.tolist()
         predicted += logits.argmax(dim=1).tolist()
         for target, out, lg, yy in zip(targets, outputs, logits, y.tolist()):
@@ -318,6 +324,8 @@ def evaluate(model, loader, gt_json, raw=False):
                 dump['raw_obj'].append(out['raw_obj'].float().cpu())
                 if 'raw_iou' in out:
                     dump['raw_iou'].append(out['raw_iou'].float().cpu())
+                if 'raw_stage' in out:
+                    dump['raw_stage'].append(out['raw_stage'].float().cpu())
     metrics = {**classification_metrics(labels, predicted), **detection_metrics(gt_json, detections, image_ids)}
     return metrics, detections, (dump if raw else None)
 
