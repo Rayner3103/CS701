@@ -1,26 +1,39 @@
-"""sarbench/dino_yolo.py: the parameter limits, the zero-initialised DINO fusion (training starts from the plain YOLO12),
-the DINO learning-rate groups, the classification head and the image class. No data, no downloads (random DINO weights);
-runs on the CPU."""
+"""sarbench/dino_yolo.py: the parameter limits, the zero-initialised DINO fusion (training starts from the plain YOLO12
+or YOLO26), the DINO learning-rate groups, the classification head, the plain-YOLO trainer and the image class. No data,
+no downloads (random DINO weights); runs on the CPU."""
 import numpy as np
+import pytest
 import torch
 from ultralytics.cfg import get_cfg
-from ultralytics.nn.tasks import DetectionModel
+from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 
-from sarbench.dino_yolo import MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, image_class, parameter_counts
+from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, image_class, neck_inputs,
+                                parameter_counts)
+
+YOLOS = ['yolo12s.yaml', 'yolo26s.yaml']
 
 
-def build():
-    return DinoYOLO('yolo12s.yaml', nc=9, verbose=False, pretrained_dino=False)
+def build(cfg='yolo12s.yaml'):
+    return DinoYOLO(cfg, nc=9, verbose=False, pretrained_dino=False)
 
 
-def test_within_the_parameter_limits():
-    total, trainable = parameter_counts(build())
+def test_the_dino_features_go_to_the_backbone_layers_the_head_reads():
+    assert neck_inputs(yaml_model_load('yolo12s.yaml')) == [4, 6, 8]
+    assert neck_inputs(yaml_model_load('yolo26s.yaml')) == [4, 6, 10]  # 10: C2PSA after SPPF, the P5/32 output
+    assert neck_inputs(yaml_model_load('yolo26s-p2.yaml')) == [2, 4, 6, 10]
+    assert set(build('yolo26s.yaml').dino_proj) == {'4', '6', '10'}
+
+
+@pytest.mark.parametrize('cfg', YOLOS)
+def test_within_the_parameter_limits(cfg):
+    total, trainable = parameter_counts(build(cfg))
     assert total <= MAX_TOTAL and trainable <= MAX_TRAINABLE
-    assert 30e6 < total < 33e6  # DINOv3 ViT-S/16 21.6 M + YOLO12-s 9.3 M + the 1x1 projections
+    assert 30e6 < total < 33e6  # DINOv3 ViT-S/16 21.6 M + YOLO12-s 9.3 M / YOLO26-s 10.0 M + the 1x1 projections
 
 
-def test_fusion_starts_as_the_plain_yolo12_and_then_uses_the_dino_features():
-    model = build().eval()
+@pytest.mark.parametrize('cfg', YOLOS)
+def test_fusion_starts_as_the_plain_yolo_and_then_uses_the_dino_features(cfg):
+    model = build(cfg).eval()
     x = torch.rand(1, 3, 256, 256)
     with torch.no_grad():
         plain = DetectionModel._predict_once(model, x)[0]
@@ -59,11 +72,12 @@ def batch_of_two():
             'bboxes': torch.tensor([[.5, .5, .3, .3], [.3, .3, .2, .2], [.7, .7, .2, .2]])}
 
 
-def test_classification_head_adds_an_image_loss_that_trains_the_head():
-    model = DinoYOLO('yolo12s.yaml', nc=9, verbose=False, pretrained_dino=False, cls_head=True)
+@pytest.mark.parametrize('cfg', YOLOS)
+def test_classification_head_adds_an_image_loss_that_trains_the_head(cfg):
+    model = DinoYOLO(cfg, nc=9, verbose=False, pretrained_dino=False, cls_head=True)
     model.args = get_cfg()  # the loss hyperparameters, as the trainer sets them
-    loss, items = model.loss(batch_of_two())
-    assert set(items) == {'box_loss', 'cls_loss', 'dfl_loss', 'img_loss'} and loss.ndim == 0
+    loss, items = model.loss(batch_of_two())  # YOLO26: the end-to-end loss (one-to-many + one-to-one)
+    assert {'box_loss', 'cls_loss', 'img_loss'} <= set(items) and loss.ndim == 0
     loss.backward()
     assert model.cls_head[1].weight.grad.abs().sum() > 0
     assert 'cls_logits' not in model.__dict__  # the graph is not kept on the module
@@ -83,3 +97,13 @@ def test_models_saved_before_the_classification_head_still_run():
     with torch.no_grad():
         model(torch.rand(1, 3, 64, 64))
     assert not hasattr(model, 'cls_logits')
+
+
+def test_without_dino_the_trainer_builds_the_plain_yolo_also_on_resume():
+    trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)  # only get_model is used: no data, no run folder
+    trainer.args, trainer.data = get_cfg(), {'channels': 3, 'nc': 9, 'names': {i: str(i) for i in range(9)}}
+    trainer.dino, trainer.fuse, trainer.cls_head, trainer.cls_weight = None, None, False, 1.0
+    model = trainer.get_model('yolo26s.yaml', verbose=False)
+    assert type(model) is DetectionModel and model.yaml['dino'] is None
+    trainer.dino = 'vit_small_patch16_dinov3.lvd1689m'  # the default of train_yolo.py on --resume
+    assert type(trainer.get_model(model.yaml, verbose=False)) is DetectionModel  # the checkpoint's yaml wins

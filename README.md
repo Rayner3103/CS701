@@ -214,7 +214,7 @@ predict.py            a trained run on unlabelled images -> submission.zip
 visualize.py          browse a run's predictions vs ground truth (docs/visualize_usage.md)
 make_submission.py    write_submission(): predictions -> submission.zip
 prepare_yolo_data.py  the local splits in the YOLO layout (DINO-YOLO, docs/dino_yolo.md)
-train_yolo.py         DINO-YOLO: YOLO12-s + DINOv3 ViT-S/16 features, ultralytics trainer, then scoring
+train_yolo.py         DINO-YOLO: YOLO12 / YOLO26 + DINOv3 ViT-S/16 features (or the plain YOLO), then scoring
 eval_yolo.py          a DINO-YOLO run on local val/test with the metrics of train.py
 predict_yolo.py       a DINO-YOLO run on unlabelled images -> submission.zip
 sarbench/             the code behind train.py
@@ -222,7 +222,7 @@ sarbench/             the code behind train.py
 ├── backbones.py      ViT (ImageNet-21k), TerraMind-1.0-base
 ├── adapters.py       LoRA, MoE-LoRA on a frozen backbone
 ├── model.py          backbone + class head + ViTDet feature pyramid + Faster R-CNN
-├── dino_yolo.py      DINO-YOLO model, trainer, image class from detections
+├── dino_yolo.py      DINO-YOLO model (YOLO12 / YOLO26), trainer, image class from detections
 └── metrics.py        accuracy, macro-F1, COCO box AP
 tests/                checks of sarbench/ (python -m pytest tests)
 docs/setup.md         from nothing to a smoke test: clone, environment, data

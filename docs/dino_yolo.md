@@ -68,8 +68,28 @@ python predict_yolo.py --run runs/yolo/dino_yolo12s_ep24 --images ../dataset-v2/
   table.
 - Final submission: train with `--data ../dataset/SARFact-YOLO/data_full.yaml` (all of train), using the epoch count
   chosen on the local split. Its val scores are then on training images and only show that training works.
-- `yolo12s.pt` (COCO weights) and `weights/yolo26n.pt` (the ultralytics AMP check) are downloaded into the working
-  folder and ignored by git.
+- `yolo12s.pt`, `yolo26s.pt` (COCO weights) and `weights/yolo26n.pt` (the ultralytics AMP check) are downloaded into
+  the working folder and ignored by git.
+
+## YOLO26
+
+- `--yolo yolo26s` swaps YOLO12-s for YOLO26-s (9.95 M: NMS-free end-to-end head, no DFL). DINO + YOLO26-s is 31.7 M
+  in total, all trainable. The DINO features go to layers 4, 6 and 10, the backbone outputs the YOLO26 head reads
+  (`neck_inputs`; YOLO12: 4, 6, 8).
+- `--yolo yolo26s-p2` adds a P2/4 output for the 5-10 px objects (DINO also goes to layer 2). It starts from
+  `yolo26s.pt` (`--pretrained`), but only 6.1 of its 9.7 M YOLO parameters load: the backbone and the top-down neck.
+  The P2 path and the Detect head start random.
+- `--dino none` trains the plain YOLO with the same protocol: the baseline for the DINO fusion.
+- The protocol is the YOLO12 one (AdamW, not YOLO26's default MuSGD), so the rows compare. The end-to-end head gives
+  at most 100 boxes per image without NMS (`iou` has no effect).
+- Not done: a frozen DINO, which would let DINO + YOLO26-m (43.5 M) under the 40 M trainable limit. The ultralytics
+  trainer turns gradients back on for every parameter outside `model.N.`, so it needs a trainer change.
+
+```bash
+python train_yolo.py --yolo yolo26s --dino none --epochs 24 --name yolo26s_ep24      # plain YOLO26-s
+python train_yolo.py --yolo yolo26s --epochs 24 --name dino_yolo26s_ep24             # DINO + YOLO26-s
+python train_yolo.py --yolo yolo26s-p2 --epochs 24 --name dino_yolo26s-p2_ep24       # DINO + YOLO26-s-p2
+```
 
 ## Results
 

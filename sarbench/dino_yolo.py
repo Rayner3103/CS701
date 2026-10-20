@@ -1,5 +1,6 @@
-"""DINO-YOLO: YOLO12 whose backbone also gets the features of a DINOv3 ViT run on the same image, after the
-DINOv3 + YOLOv12 design of Sompote/DINOV3-YOLOV12, built on the official ultralytics package.
+"""DINO-YOLO: YOLO12 or YOLO26 whose backbone also gets the features of a DINOv3 ViT run on the same image, after the
+DINOv3 + YOLOv12 design of Sompote/DINOV3-YOLOV12, built on the official ultralytics package. DinoYOLOTrainer with
+dino=None trains the plain YOLO (a baseline), with the same limits check and protocol.
 The image class comes from an optional classification head on the DINO features (cls_head=True), or else from the
 detections: every box of an image has the image's class (image_class)."""
 import numpy as np
@@ -16,19 +17,27 @@ from ultralytics.utils.torch_utils import unwrap_model
 MAX_TOTAL, MAX_TRAINABLE = 130e6, 40e6
 
 
+def neck_inputs(cfg):
+    """The backbone layers whose outputs the head reads: the last one and those it concatenates. YOLO12: 4, 6, 8
+    (P3/8, P4/16, P5/32); YOLO26: 4, 6, 10; YOLO26-p2: 2, 4, 6, 10 (P2/4 too)."""
+    n = len(cfg['backbone'])
+    read = {j for f, *_ in cfg['head'] for j in ([f] if isinstance(f, int) else f) if 0 <= j < n}
+    return sorted(read | {n - 1})
+
+
 class DinoYOLO(DetectionModel):
-    """YOLO12 + a DINOv3 ViT. The ViT's stride-16 map is resized to the outputs of the backbone layers `fuse`
-    (YOLO12: 4 = P3/8, 6 = P4/16, 8 = P5/32), projected by 1x1 convs and added to them. The convs start at zero, so
-    training starts from exactly the plain (COCO-pretrained) YOLO12.
+    """YOLO12 / YOLO26 + a DINOv3 ViT. The ViT's stride-16 map is resized to the outputs of the backbone layers `fuse`
+    (default: the ones the head reads, neck_inputs), projected by 1x1 convs and added to them. The convs start at
+    zero, so training starts from exactly the plain (COCO-pretrained) YOLO.
     cls_head=True adds an image classifier: LayerNorm + Linear on the ViT's CLS token and mean patch token (the DINOv2
     linear probe), trained with a multi-label loss of weight cls_weight (loss)."""
 
     def __init__(self, cfg='yolo12s.yaml', ch=3, nc=None, verbose=True, dino='vit_small_patch16_dinov3.lvd1689m',
-                 fuse=(4, 6, 8), pretrained_dino=True, cls_head=False, cls_weight=1.0):
+                 fuse=None, pretrained_dino=True, cls_head=False, cls_weight=1.0):
         super().__init__(cfg, ch=ch, nc=nc, verbose=False)
         # A checkpoint stores self.yaml, and resume and predict rebuild the model from it: it carries the DINO settings
         dino = self.yaml.setdefault('dino', dino)
-        fuse = self.yaml.setdefault('dino_fuse', list(fuse))
+        fuse = self.yaml.setdefault('dino_fuse', list(fuse) if fuse else neck_inputs(self.yaml))
         cls_head = self.yaml.setdefault('dino_cls_head', cls_head)
         self.yaml.setdefault('dino_cls_weight', cls_weight)
         channels = self._output_channels(fuse, ch)
@@ -46,7 +55,7 @@ class DinoYOLO(DetectionModel):
             self.info()
 
     def _output_channels(self, layers, ch):
-        """{layer index: its output channels}, from one forward pass of the plain YOLO12."""
+        """{layer index: its output channels}, from one forward pass of the plain YOLO."""
         channels, hooks = {}, []
         for i in layers:
             hooks.append(self.model[i].register_forward_hook(lambda m, _, out, i=i: channels.__setitem__(i, out.shape[1])))
@@ -70,7 +79,7 @@ class DinoYOLO(DetectionModel):
     def _predict_once(self, x, profile=False, embed=None):
         """DetectionModel._predict_once (ultralytics 8.4.170) with the DINO features added after the `fuse` layers.
         With the classification head, its logits [B, nc] are left in self.cls_logits for loss() and predict()."""
-        dino = None  # stays None while __init__ builds the YOLO12
+        dino = None  # stays None while __init__ builds the YOLO
         if hasattr(self, 'dino_proj'):
             dino, cls_token = self.dino_features(x)
             if getattr(self, 'cls_head', None) is not None:  # getattr: models saved before the head have no attribute
@@ -126,18 +135,26 @@ def check_limits(model):
 
 class DinoYOLOTrainer(DetectionTrainer):
     """DetectionTrainer that builds DinoYOLO, checks the parameter limits, and gives the DINO ViT dino_lr_mult x the
-    learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4)."""
+    learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4).
+    dino=None builds the plain YOLO DetectionModel instead."""
 
-    def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=(4, 6, 8), dino_lr_mult=0.1,
+    def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=None, dino_lr_mult=0.1,
                  cls_head=False, cls_weight=1.0, **kwargs):
         # before super(): it may build the model
         self.dino, self.fuse, self.dino_lr_mult, self.cls_head, self.cls_weight = dino, fuse, dino_lr_mult, cls_head, cls_weight
         super().__init__(*args, **kwargs)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = self.set_model_names_for_load(DinoYOLO(cfg, ch=self.data['channels'], nc=self.data['nc'],
-                                                       verbose=verbose and RANK == -1, dino=self.dino, fuse=self.fuse,
-                                                       cls_head=self.cls_head, cls_weight=self.cls_weight))
+        # On resume cfg is the checkpoint's yaml: its 'dino' (None for a plain YOLO) wins over the trainer's
+        dino = cfg.get('dino', self.dino) if isinstance(cfg, dict) else self.dino
+        verbose = verbose and RANK == -1
+        if dino is None:
+            model = DetectionModel(cfg, ch=self.data['channels'], nc=self.data['nc'], verbose=verbose)
+            model.yaml['dino'] = None
+        else:
+            model = DinoYOLO(cfg, ch=self.data['channels'], nc=self.data['nc'], verbose=verbose, dino=dino,
+                             fuse=self.fuse, cls_head=self.cls_head, cls_weight=self.cls_weight)
+        model = self.set_model_names_for_load(model)
         if weights:
             model.load(weights)  # COCO-pretrained YOLO12 (all but the class outputs), or a checkpoint to resume
         check_limits(model)
@@ -145,6 +162,8 @@ class DinoYOLOTrainer(DetectionTrainer):
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         optimizer = super().build_optimizer(model, name, lr, momentum, decay, iterations)
+        if not hasattr(unwrap_model(model), 'dino'):  # a plain YOLO
+            return optimizer
         dino = {id(p) for p in unwrap_model(model).dino.parameters()}
         for group in list(optimizer.param_groups):
             moved = [p for p in group['params'] if id(p) in dino]
