@@ -120,6 +120,9 @@ def box_loss(box_regression, labels, regression_targets, beta):
 
 # size-aware IoU thresholds per cascade stage: (max box side at the 512 input, (stage-1, stage-2, stage-3 thresholds))
 SIZE_IOU = ((8, (0.40, 0.45, 0.50)), (16, (0.45, 0.50, 0.55)), (32, (0.50, 0.55, 0.65)), (float('inf'), (0.5, 0.6, 0.7)))
+# 'small16': relax only below 16 px (A4 gained on <16 px but lost ~2 AP on 32-96 px objects)
+SIZE_IOU_TABLES = {'a4': SIZE_IOU,
+                   'small16': ((8, (0.40, 0.45, 0.50)), (16, (0.45, 0.50, 0.60)), (float('inf'), (0.5, 0.6, 0.7)))}
 
 
 class CascadeRoIHeads(RoIHeads):
@@ -151,6 +154,7 @@ class CascadeRoIHeads(RoIHeads):
         self.stage_weights, self.beta = stage_weights, beta
         self.post = dict(CascadeRoIHeads.post)
         self.size_iou, self.iou_weight, self._t = size_iou, iou_weight, 0
+        self.size_table = SIZE_IOU_TABLES[size_iou if isinstance(size_iou, str) else 'a4'] if size_iou else None
         if iou_weight:
             self.iou_head = nn.Linear(representation, 1)
             nn.init.normal_(self.iou_head.weight, std=0.01)
@@ -169,7 +173,7 @@ class CascadeRoIHeads(RoIHeads):
                 iou = box_ops.box_iou(gtb, props)
                 side = ((gtb[:, 2] - gtb[:, 0]).clamp_min(0) * (gtb[:, 3] - gtb[:, 1]).clamp_min(0)).sqrt()
                 thr = torch.empty_like(side)
-                for limit, ts in reversed(SIZE_IOU):
+                for limit, ts in reversed(self.size_table):
                     thr[side < limit] = ts[self._t]
                 quality = (iou * (base / thr)[:, None]).clamp(max=1.0)  # a GT of size s passes at IoU >= thr(s)
                 m = self.proposal_matcher(quality)

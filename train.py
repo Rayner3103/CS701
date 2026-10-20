@@ -56,6 +56,8 @@ def parse_args(argv=None):
     p.add_argument('--cascade-rep', type=int, default=1024, help='FC width of each cascade stage head')
     p.add_argument('--cascade-beta', type=float, default=0.0, help='smooth-L1 beta of the cascade box loss (0: L1)')
     p.add_argument('--cascade-size-iou', action='store_true', help='size-aware IoU thresholds for the cascade stages')
+    p.add_argument('--size-iou-table', default='a4', choices=['a4', 'small16'],
+                   help="with --cascade-size-iou: 'a4' (relaxed up to 32 px) or 'small16' (relaxed below 16 px only)")
     p.add_argument('--token-stride', type=int, default=0, help='timm ViTs: patch-embedding stride (8: overlapping patches, 4x tokens)')
     p.add_argument('--grad-ckpt', action='store_true', help='gradient checkpointing of the ViT blocks (saves memory)')
     p.add_argument('--iou-branch', type=float, default=0.0, help='loss weight of an IoU-quality branch on the last cascade stage (0: off)')
@@ -201,7 +203,7 @@ def build_model(args):
         assert not args.giou, '--giou is not implemented for --cascade'
         model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
                                           beta=args.cascade_beta, batch_size_per_image=args.roi_batch,
-                                          size_iou=getattr(args, 'cascade_size_iou', False),
+                                          size_iou=(getattr(args, 'size_iou_table', 'a4') if getattr(args, 'cascade_size_iou', False) else False),
                                           iou_weight=getattr(args, 'iou_branch', 0.0))
     if getattr(args, 'pretrained_prior', False):
         assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
