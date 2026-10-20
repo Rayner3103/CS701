@@ -14,7 +14,8 @@ import torch
 from pp_study import DATA, cls_study, run_one
 
 FINAL = dict(score_thresh=0.001, per_class=100, total=100, fusion='none', nms='soft', soft_sigma=0.75, obj_pow=0.25,
-             shift=-0.4)  # -0.4 px: measured box-position bias (3 models, both holdouts, +0.4..0.7 mAP)
+             shift=-0.4,  # -0.4 px: measured box-position bias (3 models, both holdouts, +0.4..0.7 mAP)
+             stage_box='mean')  # Cascade: mean of the three stages' boxes (C48: +0.53 / +0.54 mAP on val / test)
 LAM = 1.0
 
 

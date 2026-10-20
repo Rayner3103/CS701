@@ -59,13 +59,16 @@ def run_one(job):
     raw = torch.load(raw_path)
     if cfg.get('obj_pow') and not raw.get('raw_obj'):
         print(f'WARNING: {raw_path} has no RPN objectness; obj_pow ignored for {name}', flush=True)
+    if cfg.get('stage_box') == 'mean' and not raw.get('raw_stage'):
+        print(f'WARNING: {raw_path} has no per-stage boxes (older run / not a cascade); stage_box=mean ignored', flush=True)
     dets = []
     for i, image_id in enumerate(raw['image_ids']):
         probs = raw['cls_logits'][i].softmax(0)
         obj = raw['raw_obj'][i] if raw.get('raw_obj') else None
         q = raw['raw_iou'][i] if raw.get('raw_iou') else None
+        st = raw['raw_stage'][i] if raw.get('raw_stage') else None
         boxes, scores, labels = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), probs,
-                                                    objectness=obj, quality=q, **cfg)
+                                                    objectness=obj, quality=q, stage_inputs=st, **cfg)
         xywh = to_original_xywh(boxes, raw['orig_sizes'][i]).tolist()
         dets += [{'image_id': image_id, 'category_id': int(c), 'bbox': b, 'score': float(s)}
                  for b, c, s in zip(xywh, labels.tolist(), scores.tolist())]

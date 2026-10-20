@@ -19,7 +19,8 @@ def run(run_dir, split):
     dets = []
     for i, iid in enumerate(raw['image_ids']):
         obj = raw['raw_obj'][i] if raw.get('raw_obj') else None
-        b, s, l = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), raw['cls_logits'][i].softmax(0), objectness=obj, **FINAL)
+        st = raw['raw_stage'][i] if raw.get('raw_stage') else None
+        b, s, l = detections_from_raw(raw['raw_boxes'][i], raw['raw_logits'][i].float(), raw['cls_logits'][i].softmax(0), objectness=obj, stage_inputs=st, **FINAL)
         dets += [{'image_id': iid, 'category_id': int(c), 'bbox': bb, 'score': float(sc)} for bb, c, sc in zip(to_original_xywh(b, raw['orig_sizes'][i]).tolist(), l.tolist(), s.tolist())]
     gt_json = DATA / 'detection' / f'instances_{split}.json'
     with contextlib.redirect_stdout(io.StringIO()):

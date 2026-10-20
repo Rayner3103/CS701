@@ -54,7 +54,8 @@ def image_class(logits, out, lam):
 def set_post(model, a):
     model.roi_heads.post.update(score_thresh=a.score_thresh, nms_thresh=a.nms_thresh, per_class=a.per_class or None,
                                 total=a.total, fusion=a.fusion, gamma=a.gamma, topk=a.topk, nms=a.nms,
-                                soft_sigma=a.soft_sigma, obj_pow=a.obj_pow, shift=a.shift, quality_pow=a.quality_pow)
+                                soft_sigma=a.soft_sigma, obj_pow=a.obj_pow, shift=a.shift, quality_pow=a.quality_pow,
+                                stage_box=a.stage_box)
 
 
 def main():
@@ -84,6 +85,8 @@ def main():
     p.add_argument('--shift', type=float, default=None,
                    help='translate boxes by this many px on the 512 input (default: FINAL, or 0 for --flip-bias runs)')
     p.add_argument('--quality-pow', type=float, default=FINAL.get('quality_pow', 0.0), help='re-score boxes by the IoU branch^pow')
+    p.add_argument('--stage-box', default=FINAL['stage_box'], choices=['mean', 'last'],
+                   help='Cascade: mean of the stages\' boxes, or the last stage\'s')
     p.add_argument('--cls-lambda', type=float, default=LAM,
                    help='detection-informed classification: argmax log p_img(c) + lambda * log max_box p_det(c) (0: off)')
     p.add_argument('--device', default='cuda', help="'cpu' runs without a GPU (fp32), e.g. while both GPUs train")

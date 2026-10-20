@@ -130,7 +130,7 @@ class CascadeRoIHeads(RoIHeads):
     Params with LightBoxHead(reduced=64): 3 x 4.28 M = 12.8 M (the reference TwoMLPHead alone is 13.9 M)."""
 
     post = dict(score_thresh=0.05, nms_thresh=0.5, per_class=None, total=100, fusion='none', gamma=1.0, topk=9,
-                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0, quality_pow=0.0)
+                obj_pow=0.0, nms='hard', soft_sigma=0.75, shift=0.0, quality_pow=0.0, stage_box='last')
 
     def __init__(self, box_roi_pool, num_classes=10, reduced=64, representation=1024, ious=(0.5, 0.6, 0.7),
                  coder_weights=((10., 10., 5., 5.), (20., 20., 10., 10.), (30., 30., 15., 15.)),
@@ -222,7 +222,7 @@ class CascadeRoIHeads(RoIHeads):
                 probs.append(F.softmax(cls.float(), -1))
                 if self.iou_weight and t == last:
                     quality = torch.sigmoid(self.iou_head(feat).squeeze(1).float())
-            if not self.training and return_raw:
+            if not self.training:
                 stage_boxes.append(proposals)  # the input boxes of stage t (RPN proposals for t = 0)
             if t < len(self.stage_heads) - 1:  # refine the boxes for the next stage, without gradient
                 n = [len(p) for p in proposals]
@@ -239,8 +239,9 @@ class CascadeRoIHeads(RoIHeads):
             pi = image_probs[i] if image_probs is not None else None
             obj = objectness[i] if objectness is not None else None
             q = quality.split([len(p) for p in proposals])[i] if quality is not None else None
+            stages = torch.stack([sb[i] for sb in stage_boxes])  # [stages, N, 4] stage input boxes
             boxes, scores, labels = detections_from_raw(b[:, 1:], lg, pi, image_size=image_shapes[i], objectness=obj,
-                                                        quality=q, **self.post)
+                                                        quality=q, stage_inputs=stages, **self.post)
             out = {'boxes': boxes, 'scores': scores, 'labels': labels}
             if return_raw:
                 out['raw_boxes'], out['raw_logits'] = b[:, 1:], lg
@@ -248,7 +249,7 @@ class CascadeRoIHeads(RoIHeads):
                     out['raw_obj'] = obj
                 if q is not None:
                     out['raw_iou'] = q
-                out['raw_stage'] = torch.stack([sb[i] for sb in stage_boxes])  # [stages, N, 4] stage input boxes
+                out['raw_stage'] = stages
             results.append(out)
         return results, {}
 
