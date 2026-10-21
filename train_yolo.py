@@ -2,7 +2,9 @@
 the data of prepare_yolo_data.py with the ultralytics trainer, then score its best epoch on the local val and test
 splits (eval_yolo.py).
 Example: python train_yolo.py --epochs 50 --batch-size 16 --name dino_yolo12s
-         python train_yolo.py --yolo yolo26s --epochs 24 --name dino_yolo26s_ep24"""
+         python train_yolo.py --yolo yolo26s --epochs 24 --name dino_yolo26s_ep24
+         python train_yolo.py --yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --epochs 24 \
+             --name dinob_lora_yolo26s_ep24   (a frozen ViT-B/16 + LoRA: 86 M frozen, about 12 M trainable)"""
 import argparse
 import re
 from pathlib import Path
@@ -27,7 +29,15 @@ def parse_args():
     p.add_argument('--epochs', type=int, default=50)
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--lr', type=float, default=1e-3, help='AdamW, cosine decay to lr x 0.01')
-    p.add_argument('--dino-lr-mult', type=float, default=0.1, help='the DINO ViT trains at lr x this')
+    p.add_argument('--dino-lr-mult', type=float, default=0.1,
+                   help='the DINO ViT (with --dino-adapt lora: its LoRA weights) trains at lr x this')
+    p.add_argument('--dino-adapt', choices=['full', 'frozen', 'lora'], default='full',
+                   help='fine-tune the DINO ViT, freeze it, or freeze it and train LoRA adapters in its blocks')
+    p.add_argument('--lora-rank', type=int, default=16, help='LoRA rank (alpha = 2 x rank), with --dino-adapt lora')
+    p.add_argument('--lora-targets', nargs='+', default=['attn.qkv', 'attn.proj'],
+                   help='the block layers that get LoRA; add mlp.fc1 mlp.fc2 to adapt the MLPs too')
+    p.add_argument('--dino-grad-ckpt', action='store_true',
+                   help='gradient checkpointing in the DINO ViT: less GPU memory, slower (LoRA on a ViT-B, 10 GB)')
     p.add_argument('--cls-head', action='store_true',
                    help='classify the image with a head on the DINO features, not from the detections')
     p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the image-class loss (with --cls-head)')
@@ -51,6 +61,8 @@ def parse_args():
         args.dino = None
         if args.cls_head:
             p.error('--cls-head needs the DINO features')
+        if args.dino_adapt != 'full':
+            p.error('--dino-adapt needs a DINO ViT')
     if args.pretrained is None:  # the P2 / P6 variants have no COCO weights of their own: the shared layers load
         args.pretrained = re.sub(r'-p[26]$', '', args.yolo) + '.pt'
     return args
@@ -70,7 +82,9 @@ def main():
             # Augmentation: overhead images have no "up", so vertical flips too; gray images: no hue or saturation
             flipud=0.5, hsv_h=0.0, hsv_s=0.0)
     trainer = DinoYOLOTrainer(overrides=overrides, dino=args.dino, fuse=args.fuse, dino_lr_mult=args.dino_lr_mult,
-                              cls_head=args.cls_head, cls_weight=args.cls_weight, rot90=args.rot90)
+                              cls_head=args.cls_head, cls_weight=args.cls_weight, rot90=args.rot90,
+                              dino_adapt=args.dino_adapt, lora_rank=args.lora_rank, lora_targets=args.lora_targets,
+                              grad_ckpt=args.dino_grad_ckpt)
     print(f'rot90 augmentation: p = {args.rot90}')
     trainer.train()
     total, trainable = parameter_counts(trainer.model)

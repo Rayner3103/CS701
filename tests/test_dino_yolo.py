@@ -1,6 +1,6 @@
 """sarbench/dino_yolo.py: the parameter limits, the zero-initialised DINO fusion (training starts from the plain YOLO12
-or YOLO26), the DINO learning-rate groups, the classification head, the plain-YOLO trainer and the image class. No data,
-no downloads (random DINO weights); runs on the CPU."""
+or YOLO26), the DINO learning-rate groups, the classification head, the frozen / LoRA DINO, the plain-YOLO trainer and
+the image class. No data, no downloads (random DINO weights); runs on the CPU."""
 import random
 
 import numpy as np
@@ -11,10 +11,12 @@ from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 
 from ultralytics.utils.instance import Instances
 
+from sarbench.adapters import LoRA
 from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, RandomRot90, image_class,
                                 neck_inputs, parameter_counts)
 
 YOLOS = ['yolo12s.yaml', 'yolo26s.yaml']
+VIT_B = 'vit_base_patch16_dinov3.lvd1689m'
 
 
 def build(cfg='yolo12s.yaml'):
@@ -63,7 +65,73 @@ def test_dino_parameters_get_their_own_lower_learning_rate():
         assert len(in_dino) <= 1  # no group mixes DINO and YOLO parameters
         if in_dino == {True}:
             assert group['lr'] == 1e-4 and group['param_group'].startswith('dino_')
-    assert sum(len(g['params']) for g in optimizer.param_groups) == len(list(model.parameters()))
+    # every trainable parameter (not the fixed DFL conv of YOLO12)
+    assert sum(len(g['params']) for g in optimizer.param_groups) == len([p for p in model.parameters() if p.requires_grad])
+
+
+def build_vit_b(adapt, **kwargs):
+    return DinoYOLO('yolo26s.yaml', nc=9, verbose=False, pretrained_dino=False, dino=VIT_B, dino_adapt=adapt, **kwargs)
+
+
+@pytest.mark.parametrize('adapt, targets, lora', [('frozen', ('attn.qkv', 'attn.proj'), 0),
+                                                  # 12 blocks x rank 16 x ((768 + 2304) + (768 + 768)), as train.py
+                                                  ('lora', ('attn.qkv', 'attn.proj'), 884_736),
+                                                  # + 12 x 16 x 2 x (768 + 3072) for mlp.fc1, mlp.fc2
+                                                  ('lora', ('attn.qkv', 'attn.proj', 'mlp.fc1', 'mlp.fc2'), 2_359_296)])
+def test_a_frozen_vit_b_counts_towards_the_total_but_only_lora_trains(adapt, targets, lora):
+    model = build_vit_b(adapt, lora_targets=targets)
+    total, trainable = parameter_counts(model)
+    vit = sum(p.numel() for p in model.dino.parameters())
+    assert total <= MAX_TOTAL and trainable <= MAX_TRAINABLE
+    assert 85e6 < vit - lora < 86e6 and total > vit + 10e6  # ViT-B/16 + YOLO26-s 10 M
+    assert sum(p.numel() for p in model.dino.parameters() if p.requires_grad) == lora
+    assert trainable == total - vit + lora  # all of the YOLO and the fusion convs train
+    assert all(n.endswith(('.down.weight', '.up.weight')) for n, p in model.dino.named_parameters() if p.requires_grad)
+
+
+def test_lora_starts_as_the_frozen_vit():
+    torch.manual_seed(0)
+    frozen = build_vit_b('frozen').eval()
+    torch.manual_seed(0)  # the same YOLO and ViT weights: the LoRA layers are drawn after them
+    lora = build_vit_b('lora').eval()
+    x = torch.rand(1, 3, 64, 64)
+    with torch.no_grad():
+        assert torch.allclose(frozen.dino_features(x)[0], lora.dino_features(x)[0], atol=1e-5)
+
+
+def test_a_frozen_vit_keeps_no_graph_and_lora_gets_gradients():
+    x = torch.rand(1, 3, 64, 64)
+    assert not build_vit_b('frozen').dino_features(x)[0].requires_grad
+    model = build_vit_b('lora')
+    for m in model.dino.modules():
+        if isinstance(m, LoRA):
+            torch.nn.init.normal_(m.up.weight, std=0.01)
+    model.dino_features(x)[0].sum().backward()
+    assert model.dino.blocks[0].attn.qkv.down.weight.grad.abs().sum() > 0
+    assert model.dino.blocks[0].attn.qkv.base.weight.grad is None
+
+
+def test_lora_settings_travel_with_the_model_yaml():
+    model = build_vit_b('lora', lora_rank=8, lora_targets=('mlp.fc1',))
+    rebuilt = DinoYOLO(model.yaml, nc=9, verbose=False, pretrained_dino=False)  # as on resume and predict
+    assert isinstance(rebuilt.dino.blocks[0].mlp.fc1, LoRA) and rebuilt.dino.blocks[0].mlp.fc1.down.out_features == 8
+    assert not isinstance(rebuilt.dino.blocks[0].attn.qkv, LoRA)
+    assert parameter_counts(rebuilt) == parameter_counts(model)
+
+
+def test_the_trainer_freezes_the_vit_again_and_leaves_it_out_of_the_optimizer():
+    model = build_vit_b('lora')
+    model.requires_grad_(True)  # as ultralytics _setup_train does before building the optimizer
+    trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)
+    trainer.dino_lr_mult, trainer.args, trainer.data = 0.1, type('Args', (), {'lr0': 1e-3})(), {'nc': 9}
+    optimizer = trainer.build_optimizer(model, 'AdamW', lr=1e-3)
+    in_optimizer = {id(p) for g in optimizer.param_groups for p in g['params']}
+    assert in_optimizer == {id(p) for p in model.parameters() if p.requires_grad}
+    assert sum(p.numel() for p in model.parameters() if p.requires_grad) < MAX_TRAINABLE
+    lora = {id(p) for m in model.dino.modules() if isinstance(m, LoRA) for p in m.parameters() if p.requires_grad}
+    for group in optimizer.param_groups:
+        if any(id(p) in lora for p in group['params']):
+            assert group['lr'] == 1e-4 and group['param_group'].startswith('dino_')
 
 
 def test_image_class_is_the_class_with_the_highest_total_score():
@@ -107,6 +175,7 @@ def test_without_dino_the_trainer_builds_the_plain_yolo_also_on_resume():
     trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)  # only get_model is used: no data, no run folder
     trainer.args, trainer.data = get_cfg(), {'channels': 3, 'nc': 9, 'names': {i: str(i) for i in range(9)}}
     trainer.dino, trainer.fuse, trainer.cls_head, trainer.cls_weight = None, None, False, 1.0
+    trainer.dino_adapt, trainer.lora_rank, trainer.lora_targets, trainer.grad_ckpt = 'full', 16, ('attn.qkv', 'attn.proj'), False
     model = trainer.get_model('yolo26s.yaml', verbose=False)
     assert type(model) is DetectionModel and model.yaml['dino'] is None
     trainer.dino = 'vit_small_patch16_dinov3.lvd1689m'  # the default of train_yolo.py on --resume

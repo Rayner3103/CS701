@@ -12,8 +12,10 @@ import torch.nn.functional as F
 from torch import nn
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import RANK
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
+
+from sarbench.adapters import LoRA, add_adapters
 
 # Assignment limits (README 1.2): frozen parameters count towards the total
 MAX_TOTAL, MAX_TRAINABLE = 130e6, 40e6
@@ -32,21 +34,36 @@ class DinoYOLO(DetectionModel):
     (default: the ones the head reads, neck_inputs), projected by 1x1 convs and added to them. The convs start at
     zero, so training starts from exactly the plain (COCO-pretrained) YOLO.
     cls_head=True adds an image classifier: LayerNorm + Linear on the ViT's CLS token and mean patch token (the DINOv2
-    linear probe), trained with a multi-label loss of weight cls_weight (loss)."""
+    linear probe), trained with a multi-label loss of weight cls_weight (loss).
+    dino_adapt: 'full' fine-tunes the ViT; 'frozen' freezes it (run without gradients); 'lora' freezes it and adds LoRA
+    of rank lora_rank (alpha 2 x rank, as train.py) to the block layers lora_targets. Frozen weights still count
+    towards the total (check_limits), so a ViT-B/16 (86 M) fits next to a YOLO-s only frozen or with LoRA.
+    grad_ckpt=True recomputes the ViT blocks in the backward pass (less memory, slower; for LoRA on 10 GB GPUs)."""
 
     def __init__(self, cfg='yolo12s.yaml', ch=3, nc=None, verbose=True, dino='vit_small_patch16_dinov3.lvd1689m',
-                 fuse=None, pretrained_dino=True, cls_head=False, cls_weight=1.0):
+                 fuse=None, pretrained_dino=True, cls_head=False, cls_weight=1.0, dino_adapt='full', lora_rank=16,
+                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False):
         super().__init__(cfg, ch=ch, nc=nc, verbose=False)
         # A checkpoint stores self.yaml, and resume and predict rebuild the model from it: it carries the DINO settings
         dino = self.yaml.setdefault('dino', dino)
         fuse = self.yaml.setdefault('dino_fuse', list(fuse) if fuse else neck_inputs(self.yaml))
         cls_head = self.yaml.setdefault('dino_cls_head', cls_head)
         self.yaml.setdefault('dino_cls_weight', cls_weight)
+        adapt = self.yaml.setdefault('dino_adapt', dino_adapt)
+        lora_rank = self.yaml.setdefault('dino_lora_rank', lora_rank)
+        lora_targets = self.yaml.setdefault('dino_lora_targets', list(lora_targets))
+        grad_ckpt = self.yaml.setdefault('dino_grad_ckpt', grad_ckpt)
         channels = self._output_channels(fuse, ch)
         self.dino = timm.create_model(dino, pretrained=pretrained_dino, num_classes=0, dynamic_img_size=True)
         mean, std = self.dino.pretrained_cfg['mean'], self.dino.pretrained_cfg['std']
         self.register_buffer('dino_mean', torch.tensor(mean).view(1, 3, 1, 1), persistent=False)
         self.register_buffer('dino_std', torch.tensor(std).view(1, 3, 1, 1), persistent=False)
+        if adapt == 'lora':
+            add_adapters(self.dino, 'lora', lora_targets, rank=lora_rank, alpha=2 * lora_rank)
+        elif adapt != 'full' and adapt != 'frozen':
+            raise ValueError(f"dino_adapt: 'full', 'frozen' or 'lora', not {adapt!r}")
+        self.freeze_dino()
+        self.dino.set_grad_checkpointing(grad_ckpt)
         self.dino_proj = nn.ModuleDict({str(i): nn.Conv2d(self.dino.embed_dim, c, 1) for i, c in channels.items()})
         for conv in self.dino_proj.values():
             nn.init.zeros_(conv.weight)
@@ -55,6 +72,16 @@ class DinoYOLO(DetectionModel):
         self.cls_head = nn.Sequential(nn.LayerNorm(2 * d), nn.Linear(2 * d, self.yaml['nc'])) if cls_head else None
         if verbose:
             self.info()
+
+    def freeze_dino(self):
+        """Set requires_grad on the ViT as dino_adapt says: all of it ('full'), none ('frozen'), only the LoRA A and B
+        ('lora'). The ultralytics trainer turns gradients on for every parameter, so the trainer calls this again."""
+        adapt = self.yaml.get('dino_adapt', 'full')  # .get: models saved before dino_adapt fine-tuned the ViT
+        self.dino.requires_grad_(adapt == 'full')
+        for m in self.dino.modules():
+            if isinstance(m, LoRA):
+                m.down.requires_grad_(True)
+                m.up.requires_grad_(True)
 
     def _output_channels(self, layers, ch):
         """{layer index: its output channels}, from one forward pass of the plain YOLO."""
@@ -74,8 +101,10 @@ class DinoYOLO(DetectionModel):
         """images [B, 3, H, W] in [0, 1] (H, W multiples of 16) -> the last ViT block: patch tokens as a map
         [B, embed_dim, H/16, W/16] and the CLS token [B, embed_dim]."""
         x = (x - self.dino_mean) / self.dino_std
-        tokens, prefix = self.dino.forward_intermediates(x, indices=1, norm=True, output_fmt='NCHW',
-                                                         intermediates_only=True, return_prefix_tokens=True)[0]
+        # a frozen ViT needs no activations kept for the backward pass
+        with torch.set_grad_enabled(torch.is_grad_enabled() and self.yaml.get('dino_adapt', 'full') != 'frozen'):
+            tokens, prefix = self.dino.forward_intermediates(x, indices=1, norm=True, output_fmt='NCHW',
+                                                             intermediates_only=True, return_prefix_tokens=True)[0]
         return tokens, prefix[:, 0]
 
     def _predict_once(self, x, profile=False, embed=None):
@@ -161,15 +190,19 @@ class RandomRot90:
 
 class DinoYOLOTrainer(DetectionTrainer):
     """DetectionTrainer that builds DinoYOLO, checks the parameter limits, and gives the DINO ViT dino_lr_mult x the
-    learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4).
+    learning rate: a pretrained ViT is fine-tuned gently (the reference full fine-tuning uses 2e-5 vs 1e-4), and LoRA
+    trains at about the reference LoRA rate (1e-4). A frozen or LoRA ViT (dino_adapt) is frozen again after the
+    ultralytics trainer unfreezes everything, and its frozen weights are left out of the optimizer.
     dino=None builds the plain YOLO DetectionModel instead. rot90 > 0 adds RandomRot90(rot90) to the training
     augmentation."""
 
     def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=None, dino_lr_mult=0.1,
-                 cls_head=False, cls_weight=1.0, rot90=0.0, **kwargs):
+                 cls_head=False, cls_weight=1.0, rot90=0.0, dino_adapt='full', lora_rank=16,
+                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False, **kwargs):
         # before super(): it may build the model
         self.dino, self.fuse, self.dino_lr_mult, self.cls_head, self.cls_weight = dino, fuse, dino_lr_mult, cls_head, cls_weight
         self.rot90 = rot90
+        self.dino_adapt, self.lora_rank, self.lora_targets, self.grad_ckpt = dino_adapt, lora_rank, lora_targets, grad_ckpt
         super().__init__(*args, **kwargs)
 
     def build_dataset(self, img_path, mode='train', batch=None):
@@ -187,6 +220,17 @@ class DinoYOLOTrainer(DetectionTrainer):
         dataset.transforms.insert(-1, RandomRot90(self.rot90))
         return dataset
 
+    def _setup_train(self):
+        # build_optimizer freezes the ViT again: drop the trainer's warning for each of its weights it unfreezes
+        def quiet(record):
+            return "for frozen layer 'dino." not in record.getMessage()
+
+        LOGGER.addFilter(quiet)
+        try:
+            super()._setup_train()
+        finally:
+            LOGGER.removeFilter(quiet)
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         # On resume cfg is the checkpoint's yaml: its 'dino' (None for a plain YOLO) wins over the trainer's
         dino = cfg.get('dino', self.dino) if isinstance(cfg, dict) else self.dino
@@ -196,7 +240,9 @@ class DinoYOLOTrainer(DetectionTrainer):
             model.yaml['dino'] = None
         else:
             model = DinoYOLO(cfg, ch=self.data['channels'], nc=self.data['nc'], verbose=verbose, dino=dino,
-                             fuse=self.fuse, cls_head=self.cls_head, cls_weight=self.cls_weight)
+                             fuse=self.fuse, cls_head=self.cls_head, cls_weight=self.cls_weight,
+                             dino_adapt=self.dino_adapt, lora_rank=self.lora_rank, lora_targets=self.lora_targets,
+                             grad_ckpt=self.grad_ckpt)
         model = self.set_model_names_for_load(model)
         if weights:
             model.load(weights)  # COCO-pretrained YOLO12 (all but the class outputs), or a checkpoint to resume
@@ -204,7 +250,15 @@ class DinoYOLOTrainer(DetectionTrainer):
         return model
 
     def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+        # _setup_train has just turned gradients on for every parameter: freeze the ViT again before the optimizer
+        if hasattr(unwrap_model(model), 'freeze_dino'):
+            unwrap_model(model).freeze_dino()
+        check_limits(unwrap_model(model))
         optimizer = super().build_optimizer(model, name, lr, momentum, decay, iterations)
+        for group in optimizer.param_groups:  # frozen weights: no updates, no weight decay, no optimizer state
+            group['params'] = [p for p in group['params'] if p.requires_grad]
+        total, trainable = parameter_counts(unwrap_model(model))
+        LOGGER.info(f'optimizer: {trainable / 1e6:.2f} M of {total / 1e6:.2f} M parameters train (the rest are frozen)')
         if not hasattr(unwrap_model(model), 'dino'):  # a plain YOLO
             return optimizer
         dino = {id(p) for p in unwrap_model(model).dino.parameters()}

@@ -86,13 +86,49 @@ python predict_yolo.py --run runs/yolo/dino_yolo12s_ep24 --images ../dataset-v2/
 - `--dino none` trains the plain YOLO with the same protocol: the baseline for the DINO fusion.
 - The protocol is the YOLO12 one (AdamW, not YOLO26's default MuSGD), so the rows compare. The end-to-end head gives
   at most 100 boxes per image without NMS (`iou` has no effect).
-- Not done: a frozen DINO, which would let DINO + YOLO26-m (43.5 M) under the 40 M trainable limit. The ultralytics
-  trainer turns gradients back on for every parameter outside `model.N.`, so it needs a trainer change.
+- A frozen DINO (and DINO + YOLO26-m, 43.5 M, under the 40 M trainable limit): see Frozen DINO + LoRA.
 
 ```bash
 python train_yolo.py --yolo yolo26s --dino none --epochs 24 --name yolo26s_ep24      # plain YOLO26-s
 python train_yolo.py --yolo yolo26s --epochs 24 --name dino_yolo26s_ep24             # DINO + YOLO26-s
 python train_yolo.py --yolo yolo26s-p2 --epochs 24 --name dino_yolo26s-p2_ep24       # DINO + YOLO26-s-p2
+```
+
+## Frozen DINO + LoRA
+
+`--dino-adapt frozen | lora` freezes the DINO ViT, so a bigger one fits: frozen weights count towards the 130 M total,
+not towards the 40 M trainable. DINOv3 ViT-B/16 (`--dino vit_base_patch16_dinov3.lvd1689m`, 85.6 M) is the biggest
+that fits next to YOLO26-s; ViT-L/16 (303 M) does not.
+
+| `--dino-adapt` (ViT-B/16 + YOLO26-s) | total | trainable | peak memory, batch 16 | time per step (RTX 3080) |
+|---|---:|---:|---:|---:|
+| `full` with ViT-S/16 (as above) | 31.9 M | 31.9 M | 6.1 GB | 211 ms |
+| `frozen` | 96.4 M | 10.7 M | 3.1 GB | 188 ms |
+| `lora` (qkv, proj; rank 16) | 97.3 M | 11.6 M | 7.8 GB (8.7 GB in training) | 372 ms |
+| `lora --dino-grad-ckpt` | 97.3 M | 11.6 M | 3.7 GB | 472 ms |
+| `lora --dino-grad-ckpt --lora-targets attn.qkv attn.proj mlp.fc1 mlp.fc2` | 98.7 M | 13.1 M | 3.8 GB | 532 ms |
+
+Forward and backward of the model alone, fp16; the training run adds the EMA copy and the data loader.
+
+- `frozen`: the ViT runs without gradients and keeps no activations, so it is cheaper than the fine-tuned ViT-S.
+  The YOLO and the 1x1 fusion convs train.
+- `lora`: LoRA (sarbench/adapters.py, alpha = 2 x rank as train.py) on `--lora-targets` of every block (default
+  `attn.qkv attn.proj`, the reference's 0.88 M; `mlp.fc1 mlp.fc2` add 1.47 M at rank 16), `--lora-rank` 16. The LoRA
+  weights are in the DINO learning-rate group: lr x `--dino-lr-mult` = 1e-4, the reference LoRA rate. B starts at 0,
+  so training starts from the frozen ViT. Without `--dino-grad-ckpt` a 10 GB GPU is nearly full at batch 16.
+- Use the `lvd1689m` ViTs without `_qkvb`: their attention calls `qkv` as a layer, which LoRA wraps; the `_qkvb` ones
+  apply its weight directly.
+- The ultralytics trainer turns gradients on for every parameter before it builds the optimizer.
+  `DinoYOLOTrainer.build_optimizer` freezes the ViT again (`DinoYOLO.freeze_dino`), leaves its frozen weights out of
+  the optimizer, and checks the limits again (`tests/test_dino_yolo.py`).
+- The settings are in the model yaml, so `--resume`, eval_yolo.py and predict_yolo.py rebuild the same model.
+
+```bash
+B="--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --epochs 24"
+python train_yolo.py $B --dino-adapt frozen --name dinob_frozen_yolo26s_ep24
+python train_yolo.py $B --dino-adapt lora --dino-grad-ckpt --name dinob_lora_yolo26s_ep24
+python train_yolo.py $B --dino-adapt lora --dino-grad-ckpt --lora-targets attn.qkv attn.proj mlp.fc1 mlp.fc2 \
+    --name dinob_loramlp_yolo26s_ep24
 ```
 
 ## Results
@@ -107,6 +143,9 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | yolo26s_ep24 (plain YOLO26-s, `--dino none`, best.pt = epoch 24) | 24 | 9.95 M / 9.95 M | 86.6 | 28.2 | 88.2 | 28.3 | +1.4 |
 | dino_yolo26s_ep24 (best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 91.7 | 31.4 | 90.6 | 31.8 | +9.4 |
 | dino_yolo26s-p2_ep24 (best.pt = epoch 24) | 24 | 31.7 M / 31.7 M | 91.8 | 30.3 | 91.4 | 30.6 | +7.6 |
+| dinob_frozen_yolo26s_ep24 (frozen ViT-B/16, `--dino-adapt frozen`, best.pt = epoch 24) | 24 | 96.4 M / 10.7 M | 90.3 | 28.4 | 88.6 | 28.5 | +2.1 |
+| dinob_lora_yolo26s_ep24 (ViT-B/16 + LoRA r16 qkv, proj, best.pt = epoch 24) | 24 | 97.3 M / 11.6 M | 91.0 | 31.1 | 90.3 | 31.5 | +8.7 |
+| dinob_loramlp_yolo26s_ep24 (ViT-B/16 + LoRA r16 qkv, proj, fc1, fc2, best.pt = epoch 24) | 24 | 98.7 M / 13.1 M | 91.4 | 31.1 | 90.7 | 31.2 | +8.3 |
 | dino_yolo12s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 90.0 | 28.0 | 89.5 | 27.8 | +1.1 |
 | dino_yolo26s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 90.4 | 29.2 | 90.7 | 29.1 | +4.3 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
@@ -144,6 +183,11 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   best run (Δm +21.3 vs +20.9 and +18.8). It has the highest F1 of the 100-epoch runs (93.9); TerraMind keeps 0.9
   more test mAP. With the leaderboard test reference it is at about +23.0. Val mAP was flat over the last 5 epochs
   (37.8-37.9 fitness), so longer training would gain little.
+- Frozen DINOv3 ViT-B/16 + YOLO26-s at 24 epochs (Frozen DINO + LoRA): frozen alone is at test Δm +2.1, barely above
+  the plain YOLO26-s (+1.4): the ViT-B features are not used well without adapting them. LoRA on qkv and proj
+  (0.88 M) brings it to +8.7, level with the fine-tuned ViT-S (+9.4, within seed noise) with 11.6 M instead of
+  31.9 M trainable, at 2.0 h vs 0.9 h (`--dino-grad-ckpt`). LoRA on the MLPs too (+1.47 M) changes nothing
+  (+8.3; val +8.5 vs +8.3). All three still improved at epoch 24; the 100-epoch runs gained about 12 Δm over 24.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
@@ -156,6 +200,6 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   The image class then comes from the head, not from the detections. It targets the bridge / oil tank / playground
   confusions, where the vote from weak detections fails.
 - Bigger DINO: ViT-S+/16 (29 M; `--dino vit_small_plus_patch16_dinov3.lvd1689m`) still fits the limits.
-  ViT-B/16 (86 M) needs a frozen or LoRA DINO.
+  ViT-B/16 (86 M): frozen or with LoRA (Frozen DINO + LoRA).
 - 90° rotations and copy-paste of small objects (docs/improvement.md 4); smaller anchor-free strides (a P2 head) for
   objects of 5-10 px.

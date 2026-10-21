@@ -41,13 +41,15 @@ class MoELoRA(nn.Module):
         return self.base(x) + self.scale * self.up(self.down(x) * gates)
 
 
-def add_adapters(backbone, kind):
-    """Freeze the backbone, then wrap attn.qkv and attn.proj of every block (kind: 'lora' or 'moelora')."""
+def add_adapters(backbone, kind, targets=('attn.qkv', 'attn.proj'), **kwargs):
+    """Freeze the backbone, then wrap the linear layers `targets` of every block (kind: 'lora' or 'moelora'; kwargs:
+    the adapter's, e.g. rank and alpha). Default: attn.qkv and attn.proj; 'mlp.fc1', 'mlp.fc2' adapt the MLP too."""
     adapter = {'lora': LoRA, 'moelora': MoELoRA}[kind]
     backbone.requires_grad_(False)
     for blk in backbone.blocks:
-        blk.attn.qkv = adapter(blk.attn.qkv)
-        blk.attn.proj = adapter(blk.attn.proj)
+        for target in targets:
+            parent, name = blk.get_submodule(target.rpartition('.')[0]), target.rpartition('.')[2]
+            setattr(parent, name, adapter(getattr(parent, name), **kwargs))
 
 
 def set_task(module, task):
