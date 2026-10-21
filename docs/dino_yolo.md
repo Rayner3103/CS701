@@ -146,6 +146,8 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | dinob_frozen_yolo26s_ep24 (frozen ViT-B/16, `--dino-adapt frozen`, best.pt = epoch 24) | 24 | 96.4 M / 10.7 M | 90.3 | 28.4 | 88.6 | 28.5 | +2.1 |
 | dinob_lora_yolo26s_ep24 (ViT-B/16 + LoRA r16 qkv, proj, best.pt = epoch 24) | 24 | 97.3 M / 11.6 M | 91.0 | 31.1 | 90.3 | 31.5 | +8.7 |
 | dinob_loramlp_yolo26s_ep24 (ViT-B/16 + LoRA r16 qkv, proj, fc1, fc2, best.pt = epoch 24) | 24 | 98.7 M / 13.1 M | 91.4 | 31.1 | 90.7 | 31.2 | +8.3 |
+| dinob_lora64_yolo26s_ep24 (ViT-B/16 + LoRA r64 qkv, proj, best.pt = epoch 24) | 24 | 99.9 M / 14.3 M | 91.2 | 31.0 | 91.5 | 30.7 | +7.8 |
+| dinob_lora256_yolo26s_ep24 (ViT-B/16 + LoRA r256 qkv, proj, best.pt = epoch 24) | 24 | 110.5 M / 24.9 M | 91.6 | 31.5 | 91.5 | 31.9 | +10.0 |
 | dino_yolo12s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 90.0 | 28.0 | 89.5 | 27.8 | +1.1 |
 | dino_yolo26s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 90.4 | 29.2 | 90.7 | 29.1 | +4.3 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
@@ -188,6 +190,10 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   (0.88 M) brings it to +8.7, level with the fine-tuned ViT-S (+9.4, within seed noise) with 11.6 M instead of
   31.9 M trainable, at 2.0 h vs 0.9 h (`--dino-grad-ckpt`). LoRA on the MLPs too (+1.47 M) changes nothing
   (+8.3; val +8.5 vs +8.3). All three still improved at epoch 24; the 100-epoch runs gained about 12 Δm over 24.
+- LoRA rank (ViT-B/16, qkv + proj, 24 epochs, `--dino-grad-ckpt`): test Δm +8.7 / +7.8 / +10.0 at rank 16 / 64 / 256
+  (val +8.3 / +8.1 / +9.5). Rank 64 is no better than 16; rank 256 (24.9 M trainable, 110.5 M in total) is 1.3 Δm
+  above rank 16, just under the 1.5 that one seed can show, and level with the fine-tuned ViT-S (+9.4). Rank 16 to 64
+  moves nothing, so the gain at 256 is not a clear trend: it needs a second seed.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
