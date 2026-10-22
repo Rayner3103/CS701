@@ -12,8 +12,8 @@ from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 from ultralytics.utils.instance import Instances
 
 from sarbench.adapters import LoRA
-from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, RandomRot90, image_class,
-                                neck_inputs, parameter_counts)
+from sarbench.dino_yolo import (MAX_TOTAL, MAX_TRAINABLE, DinoYOLO, DinoYOLOTrainer, RandomRot90, check_limits,
+                                image_class, neck_inputs, parameter_counts)
 
 YOLOS = ['yolo12s.yaml', 'yolo26s.yaml']
 VIT_B = 'vit_base_patch16_dinov3.lvd1689m'
@@ -58,6 +58,7 @@ def test_dino_parameters_get_their_own_lower_learning_rate():
     model = build()
     trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)  # only build_optimizer is used: no data, no run folder
     trainer.dino_lr_mult, trainer.args, trainer.data = 0.1, type('Args', (), {'lr0': 1e-3})(), {'nc': 9}
+    trainer.unfreeze_lr_mult = 0.02
     optimizer = trainer.build_optimizer(model, 'AdamW', lr=1e-3)
     dino = {id(p) for p in model.dino.parameters()}
     for group in optimizer.param_groups:
@@ -124,6 +125,7 @@ def test_the_trainer_freezes_the_vit_again_and_leaves_it_out_of_the_optimizer():
     model.requires_grad_(True)  # as ultralytics _setup_train does before building the optimizer
     trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)
     trainer.dino_lr_mult, trainer.args, trainer.data = 0.1, type('Args', (), {'lr0': 1e-3})(), {'nc': 9}
+    trainer.unfreeze_lr_mult = 0.02
     optimizer = trainer.build_optimizer(model, 'AdamW', lr=1e-3)
     in_optimizer = {id(p) for g in optimizer.param_groups for p in g['params']}
     assert in_optimizer == {id(p) for p in model.parameters() if p.requires_grad}
@@ -132,6 +134,79 @@ def test_the_trainer_freezes_the_vit_again_and_leaves_it_out_of_the_optimizer():
     for group in optimizer.param_groups:
         if any(id(p) in lora for p in group['params']):
             assert group['lr'] == 1e-4 and group['param_group'].startswith('dino_')
+
+
+BLOCK = 7_087_104  # one ViT-B/16 block
+NORM = 1_536
+
+
+def test_frozen_vit_with_unfrozen_last_blocks_trains_them_and_the_norm():
+    frozen = build_vit_b('frozen')
+    model = build_vit_b('frozen', unfreeze=2)
+    extra = parameter_counts(model)[1] - parameter_counts(frozen)[1]
+    assert extra == 2 * BLOCK + NORM
+    assert parameter_counts(model)[0] == parameter_counts(frozen)[0]
+    assert all(p.requires_grad for p in model.dino.blocks[-1].parameters())
+    assert not any(p.requires_grad for p in model.dino.blocks[-3].parameters())
+    assert model.dino.norm.weight.requires_grad
+
+
+def test_unfrozen_blocks_get_gradients_and_the_frozen_prefix_none():
+    model = build_vit_b('frozen', unfreeze=2)
+    model.dino_features(torch.rand(1, 3, 64, 64))[0].sum().backward()
+    assert model.dino.blocks[-1].attn.qkv.weight.grad.abs().sum() > 0
+    assert model.dino.blocks[-2].mlp.fc1.weight.grad.abs().sum() > 0
+    assert model.dino.blocks[0].attn.qkv.weight.grad is None  # frozen prefix: no graph
+
+
+def test_lora_goes_only_on_the_blocks_before_the_unfrozen_ones():
+    model = build_vit_b('lora', unfreeze=2)
+    for i, blk in enumerate(model.dino.blocks):
+        assert isinstance(blk.attn.qkv, LoRA) == (i < 10) and isinstance(blk.attn.proj, LoRA) == (i < 10)
+    lora = sum(p.numel() for m in model.dino.modules() if isinstance(m, LoRA) for p in m.parameters() if p.requires_grad)
+    assert lora == 884_736 * 10 // 12
+    assert sum(p.numel() for p in model.dino.parameters() if p.requires_grad) == lora + 2 * BLOCK + NORM
+    assert all(p.requires_grad for p in model.dino.blocks[-1].attn.qkv.parameters())
+
+
+def test_unfreeze_over_the_trainable_limit_or_with_full_adapt_is_refused():
+    with pytest.raises(ValueError, match='over the limits'):
+        check_limits(build_vit_b('frozen', unfreeze=5))  # 10.7 M + 5 x 7.1 M > 40 M
+    check_limits(build_vit_b('frozen', unfreeze=4))
+    with pytest.raises(ValueError, match='dino_unfreeze'):
+        build_vit_b('full', unfreeze=1)
+    with pytest.raises(ValueError, match='dino_unfreeze'):
+        build_vit_b('frozen', unfreeze=13)
+
+
+def test_unfreeze_settings_travel_with_the_model_yaml():
+    model = build_vit_b('lora', unfreeze=3)
+    rebuilt = DinoYOLO(model.yaml, nc=9, verbose=False, pretrained_dino=False)  # as on resume and predict
+    assert rebuilt.yaml['dino_unfreeze'] == 3 and parameter_counts(rebuilt) == parameter_counts(model)
+    del model.yaml['dino_unfreeze']  # a model saved before dino_unfreeze
+    old = DinoYOLO(model.yaml, nc=9, verbose=False, pretrained_dino=False)
+    assert old.yaml['dino_unfreeze'] == 0 and old.unfrozen_parameters() == []
+
+
+def test_unfrozen_blocks_train_at_their_own_learning_rate_and_lora_at_the_other():
+    model = build_vit_b('lora', unfreeze=2)
+    model.requires_grad_(True)
+    trainer = DinoYOLOTrainer.__new__(DinoYOLOTrainer)
+    trainer.dino_lr_mult, trainer.unfreeze_lr_mult = 0.1, 0.02
+    trainer.args, trainer.data = type('Args', (), {'lr0': 1e-3})(), {'nc': 9}
+    optimizer = trainer.build_optimizer(model, 'AdamW', lr=1e-3)
+    unfrozen = {id(p) for p in model.unfrozen_parameters()}
+    lora = {id(p) for m in model.dino.modules() if isinstance(m, LoRA) for p in m.parameters()}
+    seen = []
+    for group in optimizer.param_groups:
+        ids = {id(p) for p in group['params']}
+        seen += [id(p) for p in group['params']]
+        if ids & unfrozen:
+            assert ids <= unfrozen and group['lr'] == pytest.approx(2e-5) and group['param_group'].startswith('dino_unf')
+        if ids & lora:
+            assert ids <= lora and group['lr'] == pytest.approx(1e-4)
+    assert len(seen) == len(set(seen)) == len([p for p in model.parameters() if p.requires_grad])
+    assert unfrozen <= set(seen)
 
 
 def test_image_class_is_the_class_with_the_highest_total_score():
@@ -176,6 +251,7 @@ def test_without_dino_the_trainer_builds_the_plain_yolo_also_on_resume():
     trainer.args, trainer.data = get_cfg(), {'channels': 3, 'nc': 9, 'names': {i: str(i) for i in range(9)}}
     trainer.dino, trainer.fuse, trainer.cls_head, trainer.cls_weight = None, None, False, 1.0
     trainer.dino_adapt, trainer.lora_rank, trainer.lora_targets, trainer.grad_ckpt = 'full', 16, ('attn.qkv', 'attn.proj'), False
+    trainer.unfreeze = 0
     model = trainer.get_model('yolo26s.yaml', verbose=False)
     assert type(model) is DetectionModel and model.yaml['dino'] is None
     trainer.dino = 'vit_small_patch16_dinov3.lvd1689m'  # the default of train_yolo.py on --resume

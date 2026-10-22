@@ -38,11 +38,13 @@ class DinoYOLO(DetectionModel):
     dino_adapt: 'full' fine-tunes the ViT; 'frozen' freezes it (run without gradients); 'lora' freezes it and adds LoRA
     of rank lora_rank (alpha 2 x rank, as train.py) to the block layers lora_targets. Frozen weights still count
     towards the total (check_limits), so a ViT-B/16 (86 M) fits next to a YOLO-s only frozen or with LoRA.
+    unfreeze=K (with 'frozen' or 'lora') trains the last K ViT blocks and the final norm in full; with 'lora' only the
+    blocks before them get LoRA.
     grad_ckpt=True recomputes the ViT blocks in the backward pass (less memory, slower; for LoRA on 10 GB GPUs)."""
 
     def __init__(self, cfg='yolo12s.yaml', ch=3, nc=None, verbose=True, dino='vit_small_patch16_dinov3.lvd1689m',
                  fuse=None, pretrained_dino=True, cls_head=False, cls_weight=1.0, dino_adapt='full', lora_rank=16,
-                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False):
+                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False, unfreeze=0):
         super().__init__(cfg, ch=ch, nc=nc, verbose=False)
         # A checkpoint stores self.yaml, and resume and predict rebuild the model from it: it carries the DINO settings
         dino = self.yaml.setdefault('dino', dino)
@@ -53,13 +55,20 @@ class DinoYOLO(DetectionModel):
         lora_rank = self.yaml.setdefault('dino_lora_rank', lora_rank)
         lora_targets = self.yaml.setdefault('dino_lora_targets', list(lora_targets))
         grad_ckpt = self.yaml.setdefault('dino_grad_ckpt', grad_ckpt)
+        unfreeze = self.yaml.setdefault('dino_unfreeze', unfreeze)
         channels = self._output_channels(fuse, ch)
         self.dino = timm.create_model(dino, pretrained=pretrained_dino, num_classes=0, dynamic_img_size=True)
         mean, std = self.dino.pretrained_cfg['mean'], self.dino.pretrained_cfg['std']
         self.register_buffer('dino_mean', torch.tensor(mean).view(1, 3, 1, 1), persistent=False)
         self.register_buffer('dino_std', torch.tensor(std).view(1, 3, 1, 1), persistent=False)
-        if adapt == 'lora':
-            add_adapters(self.dino, 'lora', lora_targets, rank=lora_rank, alpha=2 * lora_rank)
+        depth = len(self.dino.blocks)
+        if not 0 <= unfreeze <= depth:
+            raise ValueError(f'dino_unfreeze: 0 to {depth} blocks, not {unfreeze}')
+        if unfreeze and adapt == 'full':
+            raise ValueError("dino_unfreeze needs dino_adapt 'frozen' or 'lora': 'full' trains every block already")
+        if adapt == 'lora':  # the blocks that train in full need no LoRA
+            add_adapters(self.dino, 'lora', lora_targets, blocks=self.dino.blocks[:depth - unfreeze], rank=lora_rank,
+                         alpha=2 * lora_rank)
         elif adapt != 'full' and adapt != 'frozen':
             raise ValueError(f"dino_adapt: 'full', 'frozen' or 'lora', not {adapt!r}")
         self.freeze_dino()
@@ -75,13 +84,23 @@ class DinoYOLO(DetectionModel):
 
     def freeze_dino(self):
         """Set requires_grad on the ViT as dino_adapt says: all of it ('full'), none ('frozen'), only the LoRA A and B
-        ('lora'). The ultralytics trainer turns gradients on for every parameter, so the trainer calls this again."""
+        ('lora'); then the last dino_unfreeze blocks and the final norm in full. The ultralytics trainer turns gradients
+        on for every parameter, so the trainer calls this again."""
         adapt = self.yaml.get('dino_adapt', 'full')  # .get: models saved before dino_adapt fine-tuned the ViT
         self.dino.requires_grad_(adapt == 'full')
         for m in self.dino.modules():
             if isinstance(m, LoRA):
                 m.down.requires_grad_(True)
                 m.up.requires_grad_(True)
+        for p in self.unfrozen_parameters():
+            p.requires_grad_(True)
+
+    def unfrozen_parameters(self):
+        """The ViT parameters that train in full under dino_unfreeze (the last K blocks and the final norm), else []."""
+        k = self.yaml.get('dino_unfreeze', 0)  # .get: models saved before dino_unfreeze
+        if not k:
+            return []
+        return [p for m in (*self.dino.blocks[-k:], self.dino.norm) for p in m.parameters()]
 
     def _output_channels(self, layers, ch):
         """{layer index: its output channels}, from one forward pass of the plain YOLO."""
@@ -101,8 +120,10 @@ class DinoYOLO(DetectionModel):
         """images [B, 3, H, W] in [0, 1] (H, W multiples of 16) -> the last ViT block: patch tokens as a map
         [B, embed_dim, H/16, W/16] and the CLS token [B, embed_dim]."""
         x = (x - self.dino_mean) / self.dino_std
-        # a frozen ViT needs no activations kept for the backward pass
-        with torch.set_grad_enabled(torch.is_grad_enabled() and self.yaml.get('dino_adapt', 'full') != 'frozen'):
+        # a frozen ViT needs no activations kept for the backward pass; with unfrozen last blocks, autograd records
+        # only those (nothing before them needs a gradient)
+        frozen = self.yaml.get('dino_adapt', 'full') == 'frozen' and not self.yaml.get('dino_unfreeze', 0)
+        with torch.set_grad_enabled(torch.is_grad_enabled() and not frozen):
             tokens, prefix = self.dino.forward_intermediates(x, indices=1, norm=True, output_fmt='NCHW',
                                                              intermediates_only=True, return_prefix_tokens=True)[0]
         return tokens, prefix[:, 0]
@@ -194,13 +215,15 @@ class DinoYOLOTrainer(DetectionTrainer):
     trains at about the reference LoRA rate (1e-4). A frozen or LoRA ViT (dino_adapt) is frozen again after the
     ultralytics trainer unfreezes everything, and its frozen weights are left out of the optimizer.
     dino=None builds the plain YOLO DetectionModel instead. rot90 > 0 adds RandomRot90(rot90) to the training
-    augmentation."""
+    augmentation. The last `unfreeze` ViT blocks (and the final norm) train in full at lr x unfreeze_lr_mult, a gentler
+    rate than the LoRA weights'."""
 
     def __init__(self, *args, dino='vit_small_patch16_dinov3.lvd1689m', fuse=None, dino_lr_mult=0.1,
                  cls_head=False, cls_weight=1.0, rot90=0.0, dino_adapt='full', lora_rank=16,
-                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False, **kwargs):
+                 lora_targets=('attn.qkv', 'attn.proj'), grad_ckpt=False, unfreeze=0, unfreeze_lr_mult=0.02, **kwargs):
         # before super(): it may build the model
         self.dino, self.fuse, self.dino_lr_mult, self.cls_head, self.cls_weight = dino, fuse, dino_lr_mult, cls_head, cls_weight
+        self.unfreeze, self.unfreeze_lr_mult = unfreeze, unfreeze_lr_mult
         self.rot90 = rot90
         self.dino_adapt, self.lora_rank, self.lora_targets, self.grad_ckpt = dino_adapt, lora_rank, lora_targets, grad_ckpt
         super().__init__(*args, **kwargs)
@@ -242,7 +265,7 @@ class DinoYOLOTrainer(DetectionTrainer):
             model = DinoYOLO(cfg, ch=self.data['channels'], nc=self.data['nc'], verbose=verbose, dino=dino,
                              fuse=self.fuse, cls_head=self.cls_head, cls_weight=self.cls_weight,
                              dino_adapt=self.dino_adapt, lora_rank=self.lora_rank, lora_targets=self.lora_targets,
-                             grad_ckpt=self.grad_ckpt)
+                             grad_ckpt=self.grad_ckpt, unfreeze=self.unfreeze)
         model = self.set_model_names_for_load(model)
         if weights:
             model.load(weights)  # COCO-pretrained YOLO12 (all but the class outputs), or a checkpoint to resume
@@ -262,14 +285,17 @@ class DinoYOLOTrainer(DetectionTrainer):
         if not hasattr(unwrap_model(model), 'dino'):  # a plain YOLO
             return optimizer
         dino = {id(p) for p in unwrap_model(model).dino.parameters()}
+        unfrozen = {id(p) for p in unwrap_model(model).unfrozen_parameters()}
         for group in list(optimizer.param_groups):
-            moved = [p for p in group['params'] if id(p) in dino]
-            if moved:
-                group['params'] = [p for p in group['params'] if id(p) not in dino]
-                # a new param_group name: the warmup treats 'bias' groups specially
-                optimizer.add_param_group({**{k: v for k, v in group.items() if k != 'params'}, 'params': moved,
-                                           'lr': group['lr'] * self.dino_lr_mult,
-                                           'param_group': f"dino_{group.get('param_group')}"})
+            # the last blocks that train in full get their own, lower rate; the rest of the ViT (LoRA weights, or the
+            # whole ViT with dino_adapt 'full') keeps dino_lr_mult
+            for ids, mult, prefix in ((unfrozen, self.unfreeze_lr_mult, 'dino_unf'), (dino - unfrozen, self.dino_lr_mult, 'dino')):
+                moved = [p for p in group['params'] if id(p) in ids]
+                if moved:
+                    group['params'] = [p for p in group['params'] if id(p) not in ids]
+                    # a new param_group name: the warmup treats 'bias' groups specially
+                    optimizer.add_param_group({**{k: v for k, v in group.items() if k != 'params'}, 'params': moved,
+                                               'lr': group['lr'] * mult, 'param_group': f"{prefix}_{group.get('param_group')}"})
         return optimizer
 
 

@@ -4,7 +4,9 @@ splits (eval_yolo.py).
 Example: python train_yolo.py --epochs 50 --batch-size 16 --name dino_yolo12s
          python train_yolo.py --yolo yolo26s --epochs 24 --name dino_yolo26s_ep24
          python train_yolo.py --yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --epochs 24 \
-             --name dinob_lora_yolo26s_ep24   (a frozen ViT-B/16 + LoRA: 86 M frozen, about 12 M trainable)"""
+             --name dinob_lora_yolo26s_ep24   (a frozen ViT-B/16 + LoRA: 86 M frozen, about 12 M trainable)
+         python train_yolo.py --yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen \
+             --dino-unfreeze 2 --epochs 24 --name dinob_unf2_yolo26s_ep24   (the last 2 ViT-B blocks train in full)"""
 import argparse
 import re
 from pathlib import Path
@@ -38,6 +40,11 @@ def parse_args():
                    help='the block layers that get LoRA; add mlp.fc1 mlp.fc2 to adapt the MLPs too')
     p.add_argument('--dino-grad-ckpt', action='store_true',
                    help='gradient checkpointing in the DINO ViT: less GPU memory, slower (LoRA on a ViT-B, 10 GB)')
+    p.add_argument('--dino-unfreeze', type=int, default=0, metavar='K',
+                   help='with --dino-adapt frozen or lora: train the last K DINO ViT blocks and the final norm in full '
+                        '(7.1 M parameters per ViT-B block; with lora, only the earlier blocks get LoRA)')
+    p.add_argument('--dino-unfreeze-lr-mult', type=float, default=0.02,
+                   help='the unfrozen ViT blocks train at lr x this (default 2e-5, the reference full fine-tuning rate)')
     p.add_argument('--cls-head', action='store_true',
                    help='classify the image with a head on the DINO features, not from the detections')
     p.add_argument('--cls-weight', type=float, default=1.0, help='weight of the image-class loss (with --cls-head)')
@@ -63,6 +70,10 @@ def parse_args():
             p.error('--cls-head needs the DINO features')
         if args.dino_adapt != 'full':
             p.error('--dino-adapt needs a DINO ViT')
+        if args.dino_unfreeze:
+            p.error('--dino-unfreeze needs a DINO ViT')
+    if args.dino_unfreeze and args.dino_adapt == 'full':
+        p.error("--dino-unfreeze needs --dino-adapt frozen or lora ('full' trains every block already)")
     if args.pretrained is None:  # the P2 / P6 variants have no COCO weights of their own: the shared layers load
         args.pretrained = re.sub(r'-p[26]$', '', args.yolo) + '.pt'
     return args
@@ -84,7 +95,8 @@ def main():
     trainer = DinoYOLOTrainer(overrides=overrides, dino=args.dino, fuse=args.fuse, dino_lr_mult=args.dino_lr_mult,
                               cls_head=args.cls_head, cls_weight=args.cls_weight, rot90=args.rot90,
                               dino_adapt=args.dino_adapt, lora_rank=args.lora_rank, lora_targets=args.lora_targets,
-                              grad_ckpt=args.dino_grad_ckpt)
+                              grad_ckpt=args.dino_grad_ckpt, unfreeze=args.dino_unfreeze,
+                              unfreeze_lr_mult=args.dino_unfreeze_lr_mult)
     print(f'rot90 augmentation: p = {args.rot90}')
     trainer.train()
     total, trainable = parameter_counts(trainer.model)

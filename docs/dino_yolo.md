@@ -131,6 +131,31 @@ python train_yolo.py $B --dino-adapt lora --dino-grad-ckpt --lora-targets attn.q
     --name dinob_loramlp_yolo26s_ep24
 ```
 
+### Partly unfrozen DINO
+
+`--dino-unfreeze K` (with `--dino-adapt frozen | lora`) trains the last K ViT blocks and the final norm in full: 7.09 M
+parameters per ViT-B block. With `lora`, only the earlier blocks get LoRA (`add_adapters(blocks=...)`). The unfrozen
+blocks train at lr x `--dino-unfreeze-lr-mult` = 2e-5 (the reference full fine-tuning rate); the LoRA weights keep 1e-4.
+The limits bind: with YOLO26-s, K = 4 is the most that fits under 40 M trainable (39.1 M); with YOLO26-m, K = 2. K is in
+the model yaml, so `--resume`, eval_yolo.py and predict_yolo.py rebuild the same model.
+
+| config (ViT-B/16) | total | trainable | peak memory, batch 16 | time per epoch |
+|---|---:|---:|---:|---:|
+| `frozen --dino-unfreeze 2` | 96.4 M | 24.9 M | 5.2 GB | 3.0 min |
+| `frozen --dino-unfreeze 4` | 96.4 M | 39.1 M | 6.4 GB | 3.3 min |
+| `lora --dino-grad-ckpt --dino-unfreeze 2` (LoRA r16 on blocks 0-9) | 97.1 M | 25.7 M | 4.7 GB | 5.1 min |
+| `--yolo yolo26m`, `lora --dino-grad-ckpt` | 109.5 M | 23.9 M | 7.3 GB | 5.5 min |
+
+Memory is the peak of a 1-epoch run on 5% of train. The ViT in front of the unfrozen blocks keeps no activations (no
+input or weight there needs a gradient), so unfreezing the last blocks is cheaper than LoRA in every block.
+
+```bash
+python train_yolo.py $B --dino-adapt frozen --dino-unfreeze 2 --name dinob_unf2_yolo26s_ep24
+python train_yolo.py $B --dino-adapt lora --dino-grad-ckpt --dino-unfreeze 2 --name dinob_lora_unf2_yolo26s_ep24
+python train_yolo.py --yolo yolo26m --dino vit_base_patch16_dinov3.lvd1689m --epochs 24 --dino-adapt lora \
+    --dino-grad-ckpt --name dinob_lora_yolo26m_ep24
+```
+
 ## Results
 
 Local split, seed 0, %. Δm as in train.py and compare_runs.py (reference 93.31 / 26.13), so the rows are comparable
@@ -148,6 +173,13 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | dinob_loramlp_yolo26s_ep24 (ViT-B/16 + LoRA r16 qkv, proj, fc1, fc2, best.pt = epoch 24) | 24 | 98.7 M / 13.1 M | 91.4 | 31.1 | 90.7 | 31.2 | +8.3 |
 | dinob_lora64_yolo26s_ep24 (ViT-B/16 + LoRA r64 qkv, proj, best.pt = epoch 24) | 24 | 99.9 M / 14.3 M | 91.2 | 31.0 | 91.5 | 30.7 | +7.8 |
 | dinob_lora256_yolo26s_ep24 (ViT-B/16 + LoRA r256 qkv, proj, best.pt = epoch 24) | 24 | 110.5 M / 24.9 M | 91.6 | 31.5 | 91.5 | 31.9 | +10.0 |
+| dino_yolo26s_ep24_seed1 (`--seed 1`, best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 92.0 | 31.2 | 91.2 | 31.5 | +9.2 |
+| dinob_lora_yolo26s_ep24_seed1 (ViT-B/16 + LoRA r16, `--seed 1`) | 24 | 97.3 M / 11.6 M | 91.4 | 30.7 | 90.8 | 31.1 | +8.1 |
+| dinob_lora256_yolo26s_ep24_seed1 (ViT-B/16 + LoRA r256, `--seed 1`) | 24 | 110.5 M / 24.9 M | 92.1 | 31.4 | 92.0 | 31.9 | +10.3 |
+| dinob_unf2_yolo26s_ep24 (frozen ViT-B/16, last 2 blocks unfrozen, best.pt = epoch 24) | 24 | 96.4 M / 24.9 M | 91.2 | 29.3 | 90.6 | 29.8 | +5.5 |
+| dinob_unf4_yolo26s_ep24 (frozen ViT-B/16, last 4 blocks unfrozen, best.pt = epoch 24) | 24 | 96.4 M / 39.1 M | 91.8 | 30.3 | 90.8 | 30.5 | +7.0 |
+| dinob_lora_unf2_yolo26s_ep24 (ViT-B/16 + LoRA r16 in blocks 0-9, last 2 unfrozen) | 24 | 97.1 M / 25.7 M | 91.4 | 30.9 | 91.6 | 31.4 | +9.2 |
+| dinob_lora_yolo26m_ep24 (ViT-B/16 + LoRA r16 + YOLO26-m) | 24 | 109.5 M / 23.9 M | 91.7 | 31.2 | 91.0 | 31.6 | +9.2 |
 | dino_yolo12s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.2 M / 31.2 M | 90.0 | 28.0 | 89.5 | 27.8 | +1.1 |
 | dino_yolo26s_rot90_ep24 (`--rot90 0.75`, best.pt = epoch 24) | 24 | 31.9 M / 31.9 M | 90.4 | 29.2 | 90.7 | 29.1 | +4.3 |
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
@@ -194,6 +226,19 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   (val +8.3 / +8.1 / +9.5). Rank 64 is no better than 16; rank 256 (24.9 M trainable, 110.5 M in total) is 1.3 Δm
   above rank 16, just under the 1.5 that one seed can show, and level with the fine-tuned ViT-S (+9.4). Rank 16 to 64
   moves nothing, so the gain at 256 is not a clear trend: it needs a second seed.
+- Second seed (`--seed 1`, same split), mean of 2 seeds, val / test Δm: LoRA r16 +8.0 / +8.4, LoRA r256 +9.4 / +10.2,
+  fine-tuned ViT-S +9.1 / +9.3. Rank 256 is ahead of rank 16 on both seeds (test +1.3 and +2.2), so that gain is
+  real. Against the fine-tuned ViT-S it is +0.3 / +0.9, inside the noise of two seeds: level, with 24.9 M instead of
+  31.9 M trainable but 110.5 M instead of 31.9 M in total, and 2.1 h instead of 0.9 h. Rank 64 (+7.8, one seed) is
+  no better than 16.
+- Unfreezing parts of the ViT-B (Partly unfrozen DINO, seed 0, 24 epochs, test Δm; the references are the means of 2
+  seeds: LoRA r16 +8.4, r256 +10.2, fine-tuned ViT-S +9.3): the last 2 blocks alone reach +5.5 and the last 4 +7.0
+  (val +4.9 / +7.2). More unfrozen blocks help, but both stay below LoRA r16, which adapts all 12 blocks: the early and
+  middle layers need adapting too, and the 40 M trainable limit stops at 4 blocks. LoRA in blocks 0-9 plus the last 2
+  unfrozen gives +9.2 (val +8.1), and LoRA r16 with YOLO26-m (21.8 M instead of 9.95 M) gives +9.2 (val +8.8). Both are
+  0.8 above LoRA r16, inside the roughly 1.5 that one seed can show, and below r256 (+10.2). So neither partial
+  unfreezing nor a bigger YOLO beats rank 256 in the LoRA layers; no second seed or combined run was made. Time: 1.2 h
+  and about 1.3 h for the two frozen runs, 2.1 h and 2.2 h for the LoRA ones.
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
