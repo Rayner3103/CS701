@@ -185,6 +185,7 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
 | dino_yolo12s_ep50 (best.pt = epoch 49) | 50 | 31.2 M / 31.2 M | 92.2 | 33.9 | 92.2 | 34.3 | +15.0 |
 | dino_yolo12s_ep100 (best.pt = epoch 100) | 100 | 31.2 M / 31.2 M | 92.9 | 37.2 | 92.4 | 36.3 | +19.0 |
 | dino_yolo26s_ep100 (best.pt = epoch 100) | 100 | 31.9 M / 31.9 M | 93.7 | 37.2 | 93.9 | 37.1 | +21.3 |
+| dinob_lora256_yolo26s_ep100 (ViT-B/16 + LoRA r256 qkv, proj, best.pt = epoch 100) | 100 | 110.5 M / 24.9 M | 93.8 | 37.7 | 93.2 | 37.2 | +21.2 |
 | terramind + MoE-LoRA (`runs/full_seed0`) | 24 | | | | 90.9 | 29.4 | +5.0 |
 | vit + MoE-LoRA + spatial prior (`runs/full_seed0`) | 24 | | | | 92.8 | 28.6 | +4.5 |
 | terramind + MoE-LoRA (`runs/single_seed0`) | 50 | | 90.2 | 33.6 | 91.8 | 35.2 | +16.5 |
@@ -239,6 +240,12 @@ with `runs/`. With the test reference of the leaderboard (93.99 / 25.41), dino_y
   0.8 above LoRA r16, inside the roughly 1.5 that one seed can show, and below r256 (+10.2). So neither partial
   unfreezing nor a bigger YOLO beats rank 256 in the LoRA layers; no second seed or combined run was made. Time: 1.2 h
   and about 1.3 h for the two frozen runs, 2.1 h and 2.2 h for the LoRA ones.
+- ViT-B/16 + LoRA r256 + YOLO26-s at 100 epochs (8.7 h, one seed, best epoch = the last): test Δm +21.2, val +22.5. The
+  fine-tuned ViT-S + YOLO26-s at 100 epochs has +21.3 / +21.3 and TerraMind + MoE-LoRA +21.8 / +18.8, so on test the
+  three are level (one seed each, within the roughly 1.5 that one seed can show). The val gain over ViT-S (+1.2) is not
+  on test; test mAP is the same (37.2 vs 37.1) and test F1 0.7 lower (93.2 vs 93.9). The 24-epoch picture holds: the
+  frozen ViT-B with LoRA matches the fine-tuned ViT-S and does not beat it, at 110.5 M instead of 31.9 M in total and
+  8.7 h instead of 3.9 h. TerraMind keeps about 0.8 more test mAP (38.0).
 - Weak classes (test AP): bridge 3.6, playground 1.2, wind turbine 15.1. The image-class errors come from these
   classes too: bridge, oil tank and playground images are confused with each other. When the detector finds no
   bridge, the vote falls to another class.
