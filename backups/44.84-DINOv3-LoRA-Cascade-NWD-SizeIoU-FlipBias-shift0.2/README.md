@@ -7,7 +7,9 @@
 | 文件 | 内容 | Codabench val Δm |
 |---|---|---|
 | `F1_full_val.zip` | v2 配方，在全部 9,392 张有标注图上训练 100 轮 | 41.26（F1 95.90，mAP 46.97） |
-| **`F2_full_val_shift-0.2.zip`**（本备份） | F1 + A4 + A2，推理时把所有框平移 −0.2 像素 | 尚未提交 |
+| **`F2_full_val_shift-0.2.zip`**（本备份） | F1 + A4 + A2，推理时把所有框平移 −0.2 像素 | **44.84**（F1 95.46，mAP 48.97，AP50 71.53，Acc 95.79） |
+
+F2 比 F1 高 3.58 Δm：mAP +2.00，macro-F1 −0.44。
 
 本地消融用 36 轮的 C36 配方做，基准是 36 个随机种子的平均（val / test mAP 37.46±0.35 / 38.90±0.37）。在这个基准上，A4 + A2 一起用得到 val / test mAP 38.43 / 40.01。−0.2 平移在两个本地留出集上各多 0.2 mAP。
 
@@ -36,9 +38,11 @@
 | `weights/model.pt` | 训练好的权重（只存可训练部分，95 MB；冻结的 DINOv3 权重运行时从 timm 下载） | 否，只在本机 |
 | `weights/F2_full_val_raw.pt` | Codabench val 图片的原始模型输出（338 MB） | 否，只在本机 |
 
-权重没有放进 git：GitHub 单个文件限 100 MB，而且一旦提交，所有人 clone 都要下载它。本机的位置是 `/mnt/hdd/junkaichen/CS701/CS701/backups/F2_full_shift-0.2/weights/`，原始训练目录 `/mnt/hdd/junkaichen/CS701/cs701_runs/F2_full/` 里还有一份，外加 `ckpt_e10` 到 `ckpt_e90`。
+权重没有放进 git：GitHub 单个文件限 100 MB，而且一旦提交，所有人 clone 都要下载它。本机的位置是 `/mnt/hdd/junkaichen/CS701/CS701/backups/44.84-DINOv3-LoRA-Cascade-NWD-SizeIoU-FlipBias-shift0.2/weights/`，原始训练目录 `/mnt/hdd/junkaichen/CS701/cs701_runs/F2_full/` 里还有一份，外加 `ckpt_e10` 到 `ckpt_e90`。
 
 ## 4. 复现
+
+详细步骤（环境、数据、训练参数逐项说明、核对方法、本地消融）见 [REPRODUCE.md](REPRODUCE.md)。方法是怎样一步步优化到 F2 的、每一步的取舍，见 [METHOD_EVOLUTION.md](METHOD_EVOLUTION.md)。下面是最简流程。
 
 环境和数据准备见仓库根目录的 `setup.md`（Step 1–4）。两个脚本默认按 `setup.md` 的目录结构找数据，数据放在别处时用 `DATA`（转换后的数据）和 `IMAGES`（Codabench 图片目录）指定。
 
