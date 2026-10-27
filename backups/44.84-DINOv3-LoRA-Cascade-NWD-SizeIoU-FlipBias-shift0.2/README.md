@@ -42,7 +42,7 @@ F2 比 F1 高 3.58 Δm：mAP +2.00，macro-F1 −0.44。
 
 ## 4. 复现
 
-详细步骤（环境、数据、训练参数逐项说明、核对方法、本地消融）见 [REPRODUCE.md](REPRODUCE.md)。方法是怎样一步步优化到 F2 的、每一步的取舍，见 [METHOD_EVOLUTION.md](METHOD_EVOLUTION.md)。下面是最简流程。
+详细步骤（环境、数据、训练参数逐项说明、核对方法、本地消融）见 [REPRODUCE.md](REPRODUCE.md)。方法是怎样一步步优化到 F2 的、每一步的取舍，见 [METHOD_EVOLUTION.md](METHOD_EVOLUTION.md)。写报告用的数字、表格和注意事项，见 [REPORT.md](REPORT.md)。下面是最简流程。
 
 环境和数据准备见仓库根目录的 `setup.md`（Step 1–4）。两个脚本默认按 `setup.md` 的目录结构找数据，数据放在别处时用 `DATA`（转换后的数据）和 `IMAGES`（Codabench 图片目录）指定。
 
