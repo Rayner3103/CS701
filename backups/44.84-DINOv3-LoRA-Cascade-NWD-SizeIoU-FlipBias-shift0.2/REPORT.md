@@ -1,276 +1,400 @@
-# 报告素材：F2（Δm 44.84）
+# Report material: F2 (Δm 44.84)
 
-> **用途：写 CS701 团队报告用。** 这里按排行榜 Terms 里“Your report”一节要求的每一项，整理好了数字、表格和可以直接改写的说明。方法是怎样一步步演进的、每一步的取舍，见 [METHOD_EVOLUTION.md](METHOD_EVOLUTION.md)；复现步骤见 [REPRODUCE.md](REPRODUCE.md)。
+**English** · [中文](REPORT.zh-CN.md)
+
+> **Purpose: material for the CS701 team report.** Sections 1–4 give the numbers, tables and draft wording for every item the "Your report" part of the leaderboard Terms asks for. Section 5 records how the method evolved into F2 and the choice and trade-off at each step. Reproduction steps are in [README.md](README.md).
 >
-> 数字核对日期：2026-10-27。来源是 `cs701_runs/*/metrics.json`、`metrics_pp.json` 和训练日志。
+> Numbers checked on 2026-10-27 against `cs701_runs/*/metrics.json`, `metrics_pp.json` and the training logs. The experiments ran from 2026-10-20 to 10-23 on 2 × RTX 6000 Ada.
 
 ---
 
-## 0. 写报告和提交前要注意的事
+## 0. Before writing the report and submitting
 
-### 必须先处理
+### Do these first
 
-1. **把 F2 post 到新排行榜上。** 现在只有 https://web-production-c241e.up.railway.app/ 的成绩算数，Codabench 的成绩不算。
-   - 截止时上榜（posted）的那份才算；一份都没 post 的话，算最后一次成功提交的那份。
-   - F2 shift −0.2 已经提交，得分 +44.84，但还没 post。请在 Team 页面 post。
-   - 之后每次试交新文件，都要确认榜上挂的仍是最好的那份。
-2. **仓库现在是公开的**（`Rayner3103/CS701`），而 Terms 规定“Don't share code, data or predictions outside your team”。
-   - 仓库里有全部代码，`backups/.../submission/` 里还有 val 预测结果。
-   - 请仓库所有者 Rayner 改成 Private。在那之前不要再往仓库推预测文件。
-3. **种子数不够。** Terms 要求：收益小于约 2 Δm 的改进，要报多个种子的 mean ± std（参考配置单次运行的波动约 ±1 Δm）。
-   - 现状：A4、A2 和 A4+A2（AA）都只跑了 1 个种子，只有对照组 C36 有 37 次运行。
-   - 二选一：补跑这几项，每项再跑 2–3 个种子，每次 36 轮单卡约 2 小时；或者在报告里如实写明“单种子，对照组的种子区间为 ±0.70 Δm”。
-   - 第 4 节的表已经把对照组区间列出来了。
+1. **Post F2 on the new leaderboard.** Only https://web-production-c241e.up.railway.app/ counts now; Codabench scores do not.
+   - The entry posted at the deadline counts; if nothing is posted, the last successful submission counts.
+   - F2 shift −0.2 has been submitted (+44.84) but not posted. Post it from the Team page.
+   - After every trial submission, check that the posted entry is still the best one.
+2. **The repo is public** (`Rayner3103/CS701`), and the Terms say "Don't share code, data or predictions outside your team".
+   - The repo holds all the code, and `backups/.../submission/` holds val predictions.
+   - Ask Rayner, the owner, to make it private. Until then, push no prediction files.
+3. **Not enough seeds.** The Terms ask for mean ± std over seeds for any gain below about 2 Δm (one run of the reference configuration varies by about ±1 Δm).
+   - Now: A4, A2 and A4+A2 (AA) each have one seed; only the C36 baseline has 37 runs.
+   - Either run 2–3 more seeds of each (about 2 h per 36-epoch run on one GPU), or state plainly "one seed; the baseline's seed spread is ±0.70 Δm".
+   - The table in 4.2 already lists the baseline spread.
 
-### 写报告时容易写错的地方
+### Easy to get wrong in the report
 
-4. **本地 Δm 和排行榜 Δm 不能混用。**
-   - 本地 Δm 的基准是我们自己在本地划分上跑的参考模型（E00），本地划分也和官方不同。排行榜用的是官方参考值（val 93.31 / 26.13）。
-   - 本地分数会高估排行榜：V2 在本地估计约 +44.8，排行榜上是 38.23。
-   - 报告里两种 Δm 要分开列，并写清楚各自的基准。
-5. **后处理有三个版本。** 消融要在同一版本内比较。第 4 节的表按版本分了组，不要跨组比较。
-6. **预训练模型要全部列出。** Terms 要求列出用过的每一个预训练模型，包括只在探索阶段用过的。见第 3.4 节。
-7. **GPU 小时要包括调参。** Terms 要求写整个项目的总量。所有训练加起来约 156 GPU 小时，其中 36 次种子重复占 74 小时。没算进去的有速度测试、推理和失败的运行，所以报告里写“约 160 GPU 小时”比较稳妥。
-8. **代码来源要写清楚。** 基础是助教的参考代码（`doem97/cs701-sar-benchmark`），我们在上面改写和新增了约 2,000 行（第 3.5 节）。代码主要是在 AI 编程助手（Claude Code）的协助下写的，实验也是它跑的。课程如果要求披露 AI 工具的使用，要在报告里写明。
-9. **效率也计分。** Terms 写明，Δm 相近时，可训练参数更少或算力更省的方法在报告评分里加分。我们可训练 23.8M，参考模型 21.0M，上限 40M，可以作为卖点。
-10. **图片放大**：256 像素的原图会被拉伸到 512 输入。参考代码也是这样做的，规则禁止的是放大到超过 512，所以应该没问题。如果担心，可以发邮件找助教确认。
+4. **Never mix local Δm and leaderboard Δm.**
+   - Local Δm is relative to our own run of the reference model on our local split (E00), which differs from the official split. The leaderboard uses the official reference (val 93.31 / 26.13).
+   - Local scores overestimate the leaderboard: V2 was estimated at about +44.8 locally and scored 38.23.
+   - List the two separately and name each one's reference.
+5. **Post-processing has three versions.** Compare ablations only within one version. The tables in section 4 are grouped by version; don't compare across groups.
+6. **Name every pretrained model**, including those used only while exploring (section 3.4).
+7. **GPU hours include tuning.** All training runs add up to about 156 GPU hours, 74 of them for 36 seed replicates. Speed tests, inference and failed runs are not counted, so "about 160 GPU hours" is the safe figure.
+8. **Say where the code comes from.** It builds on the TA's reference code (`doem97/cs701-sar-benchmark`); we added or rewrote about 2,000 lines (section 3.5). Most of the code was written, and the experiments run, with an AI coding assistant (Claude Code). If the course asks for AI-tool disclosure, state it.
+9. **Efficiency earns credit.** At a similar Δm, fewer trainable parameters or less compute scores better in the report grade. We train 23.8M (reference 21.0M, limit 40M), which is worth pointing out.
+10. **Upscaling**: 256 px images are stretched to the 512 input. The reference code does the same, and the rule forbids going beyond 512, so this should be fine. If in doubt, ask the TA by email.
 
-### Phase 2（11-02 00:01 到 11-08 23:59 SGT）
+### Phase 2 (11-02 00:01 to 11-08 23:59 SGT)
 
-11. 总共只能提交 2 次，没有 reset card，test 有 2,065 张图。
-    - 生成文件：`IMAGES=.../cs701-sar-course-data/test ./make_submission_F2.sh`。
-    - 提交前先用 `tools/check_submission.py` 检查格式，提交后记得 post。
-12. 报告要写怎样选的 Phase 2 提交（Terms 要求）。建议的写法见第 3.6 节。如果之后训练了 F3，只有它在本地两个留出集和 Phase 1 排行榜上都超过 F2，才换成 F3。
+11. Two submissions in total, no reset cards, 2,065 test images.
+    - Make the file with `IMAGES=.../cs701-sar-course-data/test ./make_submission_F2.sh`.
+    - Check it with `tools/check_submission.py` before submitting, and post it afterwards.
+12. The report must say how the Phase 2 submission was chosen; suggested wording in 3.6. If F3 is trained, it replaces F2 only if it beats F2 on both local holdouts and on the Phase 1 leaderboard.
 
 ---
 
-## 1. 结果
+## 1. Results
 
-| 提交 | 平台 | Δm | macro-F1 | mAP | AP50 | Acc |
+| Submission | Platform | Δm | macro-F1 | mAP | AP50 | Acc |
 |---|---|---|---|---|---|---|
-| V2 第 100 轮 | Codabench val（已停用） | 38.23 | 95.06 | 45.62 | 70.38 | — |
-| F1_full | Codabench val（已停用） | 41.26 | 95.90 | 46.97 | 71.57 | 96.21 |
-| **F2_full，shift −0.2** | **新排行榜 Phase 1 val** | **44.84** | **95.46** | **48.97** | **71.53** | **95.79** |
+| V2, epoch 100 | Codabench val (retired) | 38.23 | 95.06 | 45.62 | 70.38 | — |
+| F1_full | Codabench val (retired) | 41.26 | 95.90 | 46.97 | 71.57 | 96.21 |
+| **F2_full, shift −0.2** | **New leaderboard, Phase 1 val** | **44.84** | **95.46** | **48.97** | **71.53** | **95.79** |
 
-- 官方参考模型（ViT-B/16 IN-21k + LoRA，3 个种子的平均）是 F1 93.31 / mAP 26.13，Δm = 0。
-- 2026-10-27 新排行榜上已 post 的榜首是 Team 9 的 +41.66。
-- 网站说 Codabench 和新站的评分器给出的数字完全相同，所以上表三行可以直接比较。
+- The official reference (ViT-B/16 IN-21k + LoRA, mean of 3 seeds) is F1 93.31 / mAP 26.13, Δm = 0.
+- On 2026-10-27 the top posted entry on the new leaderboard was Team 9 at +41.66.
+- The site states that its scorer gives exactly the numbers Codabench did, so the three rows compare directly.
 
-## 2. 方法概要（F2）
+## 2. Method summary (F2)
 
 ```
-灰度 SAR 图像，拉伸到 512×512，用训练集的均值 / 标准差归一化
-  → DINOv3 ViT-B/16（冻结）+ LoRA r32，加在全部 12 个 block 的 qkv / proj / fc1 / fc2 上，LayerNorm 也训练
-  → 32×32 个 token，每个 768 维
-      ├─ token 取平均 → LayerNorm + Linear → 图像类别（9 类）
-      └─ ViTDet 简单特征金字塔（步长 4 / 8 / 16 / 32 / 64）
-           → RPN（NWD 匹配，最小锚框 6 像素）
-           → 3 阶段 Cascade R-CNN（IoU 阈值随目标尺寸变化，即 A4）→ 框、类别、分数
+gray SAR image, stretched to 512×512, normalised with the train-set mean / std
+  → DINOv3 ViT-B/16 (frozen) + LoRA r32 on qkv / proj / fc1 / fc2 of all 12 blocks, LayerNorms trained
+  → 32×32 tokens of 768
+      ├─ mean of the tokens → LayerNorm + Linear → image class (9)
+      └─ ViTDet simple feature pyramid (strides 4 / 8 / 16 / 32 / 64)
+           → RPN (NWD matching, smallest anchor 6 px)
+           → 3-stage Cascade R-CNN (size-dependent IoU thresholds, A4) → boxes, classes, scores
 ```
 
-- **训练**：
-  - 全部 9,392 张有标注图，100 轮。
-  - AdamW，weight decay 0.05；LoRA 学习率 3e-4，检测头 1e-4；1 轮 warmup 后余弦降到 0。
-  - batch 16，bf16，`torch.compile`。
-  - 增强只用翻转，并带 A2 翻转偏差修正（`--flip-bias -0.3`）。
-- **推理**：每张图前向一次，然后后处理：
-  - 框分数 × RPN objectness^0.25，按类 soft-NMS（σ 0.75）。
-  - 框取三个 Cascade 阶段的平均。
-  - 分数阈值 1e-5，每张图保留 30 到 100 个框。
-  - 分类结合检测结果：argmax(log p_分类 + log 该类最高检测概率)。
-  - 所有框平移 −0.2 像素。
+- **Training**:
+  - All 9,392 labelled images, 100 epochs.
+  - AdamW, weight decay 0.05; LoRA lr 3e-4, heads 1e-4; one warmup epoch, then cosine to 0.
+  - Batch 16, bf16, `torch.compile`.
+  - Flips only, with the A2 flip-bias correction (`--flip-bias -0.3`).
+- **Inference**: one forward pass per image, then:
+  - Box score × RPN objectness^0.25, per-class soft-NMS (σ 0.75).
+  - Boxes are the mean of the three Cascade stages' boxes.
+  - Score threshold 1e-5, 30 to 100 boxes per image.
+  - Image class = argmax(log p_classifier + log highest detector probability of that class).
+  - Every box moved by −0.2 px.
 
-## 3. Terms 要求报告的各项
+## 3. What the Terms ask the report to state
 
-### 3.1 参数量（`train.py` 会打印）
+### 3.1 Parameters (`train.py` prints them)
 
-| 组成 | 总参数 | 可训练 |
+| Part | Total | Trainable |
 |---|---|---|
-| DINOv3 ViT-B/16 骨干（冻结） | 85,209,600 | 0 |
-| LoRA（r32，48 个线性层） | 4,718,592 | 4,718,592 |
-| 骨干中的 LayerNorm | 38,400 | 38,400 |
-| 特征金字塔（neck） | 5,560,000 | 5,560,000 |
+| DINOv3 ViT-B/16 backbone (frozen) | 85,209,600 | 0 |
+| LoRA (r32, 48 linear layers) | 4,718,592 | 4,718,592 |
+| Backbone LayerNorms | 38,400 | 38,400 |
+| Feature pyramid (neck) | 5,560,000 | 5,560,000 |
 | RPN | 601,645 | 601,645 |
-| Cascade RoI 头（3 阶段） | 12,878,058 | 12,878,058 |
-| 分类头 | 8,457 | 8,457 |
-| **合计** | **109,014,752**（上限 130M） | **23,805,152**（上限 40M） |
+| Cascade RoI heads (3 stages) | 12,878,058 | 12,878,058 |
+| Classification head | 8,457 | 8,457 |
+| **Total** | **109,014,752** (limit 130M) | **23,805,152** (limit 40M) |
 
-另外有 16 个浮点 buffer 值，`train.py` 已经把它们计入预算检查。
+There are also 16 floating-point buffer values, which `train.py` counts in its budget check.
 
-### 3.2 算力
+### 3.2 Compute
 
-| 项目 | 数值 |
+| Item | Value |
 |---|---|
-| GPU | 2 × NVIDIA RTX 6000 Ada Generation（48 GB） |
-| 最终模型训练时间 | 3.59 小时，2 卡 DDP，合计约 7.2 GPU 小时 |
-| 训练显存峰值 | 每卡 38.0 GB（batch 每卡 8） |
-| 推理时间 | 17.7 ms / 张，单 GPU，bf16，端到端平均，后处理也算在内（Phase 1 val 1,426 张） |
-| 整个项目 | 68 次训练，约 156 GPU 小时，其中 36 次种子重复占 74 小时；加上速度测试和推理约 160 GPU 小时 |
+| GPU | 2 × NVIDIA RTX 6000 Ada Generation (48 GB) |
+| Final model training time | 3.59 h on 2 GPUs (DDP), about 7.2 GPU hours |
+| Peak training memory | 38.0 GB per GPU (8 images per GPU) |
+| Inference time | 17.7 ms per image on one GPU, bf16, end-to-end average including post-processing (1,426 Phase 1 val images) |
+| Whole project | 68 training runs, about 156 GPU hours (74 of them for 36 seed replicates); about 160 with speed tests and inference |
 
-### 3.3 输入和预处理
+### 3.3 Input and preprocessing
 
-- 每张图只以 512×512 输入一次，不切块，不做 TTA。
-- 非正方形或 256 像素的原图用 `torchvision.transforms.v2.Resize((512, 512))` 拉伸，和参考代码一致。原图最大就是 512 像素，所以不存在放大到超过 512 的情况。
-- 读成灰度图，缩放到 [0, 1]，用训练集的均值和标准差归一化（0.2526 / 0.2133）。
-- DINOv3 的 RGB patch embedding 权重由 timm 求和为单通道。
-- 预测框按原图尺寸映射回原图像素坐标。
+- Each image goes in once at 512×512; no tiling, no TTA.
+- Non-square and 256 px images are stretched with `torchvision.transforms.v2.Resize((512, 512))`, as in the reference code. The largest originals are 512 px, so nothing is upscaled beyond 512.
+- Read as gray, scaled to [0, 1], normalised with the train-set mean and std (0.2526 / 0.2133).
+- timm sums DINOv3's RGB patch-embedding weights into one channel.
+- Predicted boxes are mapped back to original image pixels.
 
-### 3.4 预训练模型（都不是用 SAR 数据训练的）
+### 3.4 Pretrained models (none trained on SAR data)
 
-| 模型 | 来源 | 用在哪里 |
+| Model | Source | Used in |
 |---|---|---|
-| **DINOv3 ViT-B/16**，LVD-1689M | timm `vit_base_patch16_dinov3.lvd1689m`（Meta，17 亿张通用网页图片，自监督） | **最终模型**，以及大部分实验 |
-| ViT-B/16，ImageNet-21k | timm `vit_base_patch16_224.augreg_in21k`（参考代码默认） | 参考模型 E00，实验 E02、V1 |
-| DINOv3 ConvNeXt-T，LVD-1689M | timm `convnext_tiny.dinov3_lvd1689m` | 实验 E07（全量微调对照） |
+| **DINOv3 ViT-B/16**, LVD-1689M | timm `vit_base_patch16_dinov3.lvd1689m` (Meta, self-supervised on 1.7 B generic web images) | **The final model** and most experiments |
+| ViT-B/16, ImageNet-21k | timm `vit_base_patch16_224.augreg_in21k` (reference-code default) | Reference E00, experiments E02, V1 |
+| DINOv3 ConvNeXt-T, LVD-1689M | timm `convnext_tiny.dinov3_lvd1689m` | Experiment E07 (full fine-tuning comparison) |
 
-- 没有用 teacher 或蒸馏。
-- 另外，缓存里还下载过 DINOv2 ViT-B/14、DINO ViT-B/8、DINOv3 ConvNeXt-S/B 和 ViT-S+，但没有用它们训练过模型。
+- No teacher, no distillation.
+- DINOv2 ViT-B/14, DINO ViT-B/8, DINOv3 ConvNeXt-S/B and ViT-S+ were downloaded into the cache but never used to train a model.
 
-### 3.5 代码
+### 3.5 Code
 
-- **外部代码**：
-  - 助教的参考代码 `doem97/cs701-sar-benchmark`：数据读取、ViT + LoRA 骨干、基础检测器和训练脚本的框架。
-  - PyTorch 2.9 和 torchvision 0.24：RPN、AnchorGenerator、RoIAlign、FPN 等算子。
-  - timm 1.0.24：骨干和预训练权重。
-  - pycocotools：COCO mAP 评估。
-- **我们写的部分**（在参考代码上新增或改写约 2,000 行）：
-  - DINOv3 / ConvNeXt 骨干接入，可配置 LoRA（任意线性层和秩）。
-  - Cascade R-CNN、NWD 锚框匹配、尺寸自适应 IoU 阈值（A4）、翻转偏差修正（A2）。
-  - 两卡 DDP 训练、参数预算检查。
-  - 后处理：soft-NMS、物体性加权、三阶段框平均、平移、检测辅助分类。
-  - 原始输出保存，以及后处理离线评估工具（`pp_eval.py`、`pp_study.py`）。
-  - 提交文件生成和格式检查（`predict.py`、`tools/check_submission.py`），按尺寸统计 AP 的工具。
+- **External code**:
+  - The TA's reference code `doem97/cs701-sar-benchmark`: data loading, ViT + LoRA backbone, base detector and training-script skeleton.
+  - PyTorch 2.9 and torchvision 0.24: RPN, AnchorGenerator, RoIAlign, FPN and other operators.
+  - timm 1.0.24: backbones and pretrained weights.
+  - pycocotools: COCO mAP.
+- **What we wrote** (about 2,000 lines added or rewritten on top of the reference code):
+  - DINOv3 / ConvNeXt backbones, configurable LoRA (any linear layers, any rank).
+  - Cascade R-CNN, NWD anchor matching, size-aware IoU thresholds (A4), flip-bias correction (A2).
+  - 2-GPU DDP training, parameter-budget check.
+  - Post-processing: soft-NMS, objectness weighting, mean of the stage boxes, shift, detection-informed classification.
+  - Raw-output dumps and offline post-processing evaluation (`pp_eval.py`, `pp_study.py`).
+  - Submission writing and format checks (`predict.py`, `tools/check_submission.py`), AP by object size.
 
-  主要文件：`sarbench/tiny.py`、`sarbench/model.py`、`train.py`、`predict.py`、`sarbench/postprocess.py`。
+  Main files: `sarbench/tiny.py`, `sarbench/model.py`, `train.py`, `predict.py`, `sarbench/postprocess.py`.
 
-### 3.6 验证方式，以及怎样选 Phase 2 提交
+### 3.6 Validation, and how the Phase 2 submission is chosen
 
-- **本地划分**：`prepare_course_data.py` 按类别分层，用固定种子 0，从 9,392 张有标注图里切出 train 7,512 / val 940 / test 940 张。val 和 test 两个留出集都用来评估。官方的 val / test 图片只用于预测，从未训练、标注或调参。
-- **采用标准**：一项改动要在本地 val 和 test 两个留出集上都提升才采用。
-- **防止对本地数据调参**：后处理的超参数只在少数几个粗粒度值里选，并且要在 3 个模型 × 2 个留出集上方向一致。
-- **最终模型**：用全部 9,392 张训练，没有留出集。轮数（100）来自 V2 实验：V2 在本地 train + val 上训练 120 轮，用本地 test 监控，第 90 轮后进入平台期，第 100 轮最好。
-- **Phase 2 的选择（建议写法）**：Phase 2 用 Phase 1 排行榜上最好的模型（目前是 F2）。新模型只有在本地两个留出集上都超过 F2，并且在 Phase 1 排行榜上也超过 F2，才替换 F2。
+- **Local split**: `prepare_course_data.py` splits the 9,392 labelled images by class with a fixed seed (0) into train 7,512 / val 940 / test 940. Both holdouts are used for evaluation. The official val / test images are only predicted on: never trained on, labelled or tuned on.
+- **Local reference**: the local split differs from the official one and trains on only 80% of the data, so we reran the reference model locally (E00) and measure local Δm against it.
+- **Acceptance rule**: a change is kept only if it improves both local holdouts and the mean mAP by at least +0.4.
+- **Guarding against tuning on the holdouts**: post-processing settings are chosen from a few coarse values (e.g. λ ∈ {0, 0.5, 1}) and must point the same way on 3 models × 2 holdouts.
+- **Calibration against the leaderboard**: local scores overestimate the leaderboard, for two reasons: the local split has near-duplicate images, and the class mix differs (the leaderboard val set has more wind turbines and airports, fewer bridges and harbours). Local scores rank methods; the leaderboard gives the absolute level.
+- **Final model**: trained on all 9,392 images, no holdout. The epoch count (100) comes from V2, which trained 120 epochs on local train + val and was monitored on local test: it plateaued after epoch 90 and peaked at epoch 100.
+- **Phase 2 choice (suggested wording)**: Phase 2 uses the best model on the Phase 1 leaderboard (currently F2). A new model replaces it only if it beats F2 on both local holdouts and on the Phase 1 leaderboard.
 
-### 3.7 种子
+### 3.7 Seeds
 
-- **对照组**：C36 配方（36 轮，在本地 train 上训练）一共跑了 37 次，是 C36 本身加 36 个随机种子。用最终后处理（框平移 −0.4）的结果：
+- **Baseline**: the C36 recipe (36 epochs, local train) has 37 runs, C36 itself plus 36 seeds. Under the final post-processing (shift −0.4):
 
 | | macro-F1 | mAP |
 |---|---|---|
-| 本地 val | 95.39 ± 0.29 | 37.46 ± 0.35 |
-| 本地 test | 95.21 ± 0.36 | 38.91 ± 0.36 |
-| 本地 Δm（val 和 test 的平均） | 35.56 ± 0.70 | |
+| Local val | 95.39 ± 0.29 | 37.46 ± 0.35 |
+| Local test | 95.21 ± 0.36 | 38.91 ± 0.36 |
+| Local Δm (mean of val and test) | 35.56 ± 0.70 | |
 
-- **其他实验都是单种子**，包括 A4、A2、AA 和最终模型。参见第 0 节第 3 条。
+- **Every other experiment is one seed**, including A4, A2, AA and the final model. See item 3 of section 0.
 
-## 4. 消融（本地留出集）
+## 4. Ablations (local holdouts)
 
-**本地 Δm 的计算方法**：相对我们自己在本地划分上跑的参考模型 E00，不加后处理。E00 是 val F1 91.50 / mAP 22.41，test 91.61 / 23.31。取 val 和 test 两个 Δm 的平均。
+**Local Δm**: relative to our local run of the reference model E00 without post-processing (val F1 91.50 / mAP 22.41, test 91.61 / 23.31), averaged over val and test.
 
-### 4.1 第一批：24 轮（后处理 v1：soft-NMS + 物体性 + 检测辅助分类，阈值 0.001）
+### 4.1 First round: 24 epochs (post-processing v1: soft-NMS + objectness + detection-informed classification, threshold 0.001)
 
-| 实验 | 相对上一步的改动 | val F1 / mAP | test F1 / mAP | 本地 Δm（不加后处理） | 本地 Δm（后处理 v1） |
+| Run | Change from the previous step | val F1 / mAP | test F1 / mAP | Local Δm (no post-proc.) | Local Δm (v1) |
 |---|---|---|---|---|---|
-| E00 | 参考：ViT-B/16 IN21k + LoRA r16（只加在注意力层） | 92.45 / 23.70 | 92.67 / 25.12 | 0 | 3.9 |
-| E01 | 骨干换成 DINOv3 | 93.82 / 26.48 | 93.60 / 28.12 | 8.1 | 10.9 |
-| E02 | IN21k，LoRA r32 加到所有线性层 + LayerNorm | 93.64 / 28.15 | 94.10 / 30.06 | 11.4 | 14.9 |
-| **E04r** | DINOv3 + E02 的配方 | 95.21 / 31.10 | 94.61 / 32.52 | 18.1 | 21.4 |
+| E00 | Reference: ViT-B/16 IN21k + LoRA r16 (attention only) | 92.45 / 23.70 | 92.67 / 25.12 | 0 | 3.9 |
+| E01 | DINOv3 backbone | 93.82 / 26.48 | 93.60 / 28.12 | 8.1 | 10.9 |
+| E02 | IN21k, LoRA r32 on every linear layer + LayerNorms | 93.64 / 28.15 | 94.10 / 30.06 | 11.4 | 14.9 |
+| **E04r** | DINOv3 + the E02 recipe | 95.21 / 31.10 | 94.61 / 32.52 | 18.1 | 21.4 |
 | D1 | E04r + Cascade R-CNN | 95.46 / 31.95 | 95.38 / 33.20 | 21.0 | 23.4 |
-| D2 | E04r + NWD 匹配和 6 像素锚框 | 95.11 / 32.03 | 95.01 / 32.92 | 19.7 | 23.0 |
-| D6 | E04r，LoRA 秩改为 64 | 94.86 / 32.17 | 94.81 / 32.03 | 19.0 | 22.0 |
-| D3 | E04r + CNN 空间先验 + 多层特征颈部 | 94.33 / 26.17 | 94.26 / 26.43 | 5.1 | 9.0 |
-| D4 | E04r + D4 增强 + 复制粘贴 | 94.72 / 26.06 | 95.00 / 27.00 | 7.1 | 9.8 |
-| E07 | DINOv3 ConvNeXt-T 全量微调（35.5M） | 94.75 / 25.84 | 94.55 / 26.64 | 6.8 | 9.1 |
-| E09b | DINOv3 + LoRA r64 + drop path + LoRA+ 等 | 95.06 / 25.60 | 94.68 / 26.76 | 6.2 | 9.1 |
+| D2 | E04r + NWD matching and 6 px anchors | 95.11 / 32.03 | 95.01 / 32.92 | 19.7 | 23.0 |
+| D6 | E04r, LoRA rank 64 | 94.86 / 32.17 | 94.81 / 32.03 | 19.0 | 22.0 |
+| D3 | E04r + CNN spatial prior + multi-level neck | 94.33 / 26.17 | 94.26 / 26.43 | 5.1 | 9.0 |
+| D4 | E04r + D4 rotations + copy-paste | 94.72 / 26.06 | 95.00 / 27.00 | 7.1 | 9.8 |
+| E07 | DINOv3 ConvNeXt-T, full fine-tuning (35.5M) | 94.75 / 25.84 | 94.55 / 26.64 | 6.8 | 9.1 |
+| E09b | DINOv3 + LoRA r64 + drop path + LoRA+ and more | 95.06 / 25.60 | 94.68 / 26.76 | 6.2 | 9.1 |
 
-F1 和 mAP 是加了后处理 v1 之后的数值。
+F1 and mAP are after post-processing v1.
 
-### 4.2 第二批：36 / 48 轮（最终后处理 v3）
+### 4.2 Second round: 36 / 48 epochs (final post-processing v3)
 
-| 实验 | 在 C36 上的改动 | val F1 / mAP | test F1 / mAP | 本地 Δm | 相对 C36 均值 |
+| Run | Change on top of C36 | val F1 / mAP | test F1 / mAP | Local Δm | vs C36 mean |
 |---|---|---|---|---|---|
-| L36 | E04r 训练 36 轮（不加 Cascade / NWD） | 94.79 / 36.42 | 95.43 / 37.49 | 32.77 | −2.79 |
-| **C36**（37 次运行） | E04r + Cascade + NWD，36 轮 | 95.39 / 37.46 | 95.21 / 38.91 | **35.56 ± 0.70** | 0 |
-| C48 | 同上，48 轮 | 95.23 / 40.96 | 95.10 / 41.60 | 42.28 | +6.72 |
-| **AA = A4 + A2（F2 的组合）** | 两项一起，不平移 | 95.05 / 38.43 | 95.55 / 40.01 | **37.83** | **+2.27** |
-| A4 | 尺寸自适应 Cascade IoU | 95.27 / 38.15 | 95.27 / 39.78 | 37.25 | +1.69 |
-| A2 | 翻转偏差修正，不平移 | 95.74 / 37.86 | 95.00 / 39.61 | 36.79 | +1.23 |
-| S5 | CNN 空间先验 | 95.39 / 38.23 | 95.04 / 39.79 | 37.32 | +1.76 |
-| N1 | 最后 2 个 block 全量训练（可训练 37.2M） | 95.05 / 38.05 | 95.21 / 39.69 | 36.97 | +1.41 |
-| A4b | 只对 <16 像素放宽 IoU | 95.94 / 37.82 | 95.02 / 39.41 | 36.60 | +1.04 |
-| R1 | NWD 常数 16 | 95.64 / 38.05 | 95.39 / 39.08 | 36.52 | +0.96 |
-| S6 | 训练 patch embedding | 94.98 / 37.62 | 95.23 / 39.39 | 36.16 | +0.60 |
+| L36 | E04r for 36 epochs (no Cascade / NWD) | 94.79 / 36.42 | 95.43 / 37.49 | 32.77 | −2.79 |
+| **C36** (37 runs) | E04r + Cascade + NWD, 36 epochs | 95.39 / 37.46 | 95.21 / 38.91 | **35.56 ± 0.70** | 0 |
+| C48 | same, 48 epochs | 95.23 / 40.96 | 95.10 / 41.60 | 42.28 | +6.72 |
+| **AA = A4 + A2 (F2's combination)** | both, no shift | 95.05 / 38.43 | 95.55 / 40.01 | **37.83** | **+2.27** |
+| A4 | Size-aware Cascade IoU | 95.27 / 38.15 | 95.27 / 39.78 | 37.25 | +1.69 |
+| A2 | Flip-bias correction, no shift | 95.74 / 37.86 | 95.00 / 39.61 | 36.79 | +1.23 |
+| S5 | CNN spatial prior | 95.39 / 38.23 | 95.04 / 39.79 | 37.32 | +1.76 |
+| N1 | Last 2 blocks fully trained (37.2M trainable) | 95.05 / 38.05 | 95.21 / 39.69 | 36.97 | +1.41 |
+| A4b | Relaxed IoU below 16 px only | 95.94 / 37.82 | 95.02 / 39.41 | 36.60 | +1.04 |
+| R1 | NWD constant 16 | 95.64 / 38.05 | 95.39 / 39.08 | 36.52 | +0.96 |
+| S6 | Trained patch embedding | 94.98 / 37.62 | 95.23 / 39.39 | 36.16 | +0.60 |
 | E1 | EMA | 95.98 / 37.40 | 95.02 / 38.74 | 35.43 | −0.13 |
-| B1 | IoU 质量分支 | 95.27 / 37.25 | 95.01 / 38.75 | 35.08 | −0.48 |
-| S8 | 重叠 patch（步长 8，计算量 2.6 倍） | 94.91 / 37.09 | 95.59 / 38.40 | 34.58 | −0.98 |
-| R2 | RoI 采样 1024 | 95.91 / 35.38 | 95.62 / 37.08 | 31.55 | −4.01 |
+| B1 | IoU-quality branch | 95.27 / 37.25 | 95.01 / 38.75 | 35.08 | −0.48 |
+| S8 | Overlapping patches (stride 8, 2.6× compute) | 94.91 / 37.09 | 95.59 / 38.40 | 34.58 | −0.98 |
+| R2 | 1024 sampled RoIs | 95.91 / 35.38 | 95.62 / 37.08 | 31.55 | −4.01 |
 
-- C36 这一行是 37 次运行的平均。
-- 最终后处理 v3 = v1 + 三阶段框取平均 + 分数阈值 1e-5 + 每张图至少 30 个框 + 框平移 −0.4。A2 和 AA 训练时已经修正了偏差，所以不再平移。
-- 只有 AA 超过了 C36 均值 3 个标准差（0.70 × 3 = 2.1）。A4、S5、A2 和 N1 在 2–2.5 个标准差之间，是单种子结果，要按第 0 节第 3 条处理。
+- The C36 row is the mean of 37 runs.
+- Final post-processing v3 = v1 + mean of the stage boxes + score threshold 1e-5 + at least 30 boxes per image + shift −0.4. A2 and AA correct the bias in training and are not shifted.
+- Only AA clears 3 standard deviations of the C36 mean (3 × 0.70 = 2.1). A4, S5, A2 and N1 sit at 2–2.5 standard deviations from a single seed each; handle them as in item 3 of section 0.
 
-### 4.3 长训练和全量数据
+### 4.3 Long training and full data
 
-| 实验 | 设置 | 结果 |
+| Run | Setup | Result |
 |---|---|---|
-| V2 | C48 配方，两卡，在本地 train + val 上训练 120 轮，用本地 test 监控 | 本地 test mAP（后处理 v3）：第 70 / 80 / 90 / **100** / 110 / 120 轮为 46.92 / 47.84 / 48.31 / **48.91** / 48.61 / 48.54；Codabench val 38.23 |
-| L1 / L2 | V2 配方 100 轮 + D4 增强 / + 随机放大 | 本地 test mAP 45.43 / 47.68，都低于 V2 |
-| F1 | V2 配方，全部 9,392 张，100 轮 | Codabench val 41.26 |
-| F2 | F1 + A4 + A2，shift −0.2 | 新排行榜 val **44.84** |
+| V2 | C48 recipe, 2 GPUs, 120 epochs on local train + val, monitored on local test | Local test mAP (v3) at epochs 70 / 80 / 90 / **100** / 110 / 120: 46.92 / 47.84 / 48.31 / **48.91** / 48.61 / 48.54; Codabench val 38.23 |
+| L1 / L2 | V2 recipe, 100 epochs + D4 augmentation / + random zoom | Local test mAP 45.43 / 47.68, both below V2 |
+| F1 | V2 recipe, all 9,392 images, 100 epochs | Codabench val 41.26 |
+| F2 | F1 + A4 + A2, shift −0.2 | New leaderboard val **44.84** |
 
-### 4.4 后处理（都只作用于同一次前向传播的输出）
+### 4.4 Post-processing (all on the outputs of the same forward pass)
 
-| 步骤 | 本地效果 |
-|---|---|
-| 检测辅助分类（λ = 1） | 弱模型 F1 约 +1；强模型 ±0.2 |
-| 框分数 × 物体性^0.25 + 按类 soft-NMS（σ 0.75） | mAP +1.3 ~ +1.8 |
-| 三个 Cascade 阶段的框取平均 | mAP +0.3 ~ +0.5（3 个模型） |
-| 框平移 −0.4 像素（A2 模型改为 −0.2） | mAP +0.4 ~ +0.7（A2 模型再平移 −0.2 是 +0.2） |
-| 分数阈值 1e-5，每张图至少 30 个框 | mAP +0.06 ~ +0.16 |
+| Step | Local effect | Notes |
+|---|---|---|
+| Detection-informed classification (λ = 1) | Weak models F1 about +1; strong models ±0.2 | λ chosen from {0, 0.5, 1}; the three are within noise on three models, so 1 stays |
+| Box score × RPN objectness^0.25 + per-class soft-NMS (σ 0.75) | mAP +1.3 to +1.8 | σ 0.5–1 and power 0.25–0.5 all give about the same, so it is not tuned to the holdouts |
+| Mean of the three Cascade stages' boxes | mAP +0.3 to +0.5 (3 models) | Matches how Cascade already averages the class probabilities; weighted versions differ by ≤0.06, so equal weights |
+| Shift boxes by −0.4 px (−0.2 for A2 models) | mAP +0.4 to +0.7; A2 models +0.2 from a further −0.2 | A systematic annotation offset; see A2 in 5.3 |
+| Score threshold 1e-5, at least 30 boxes per image | mAP +0.06 to +0.16 | 84 val images had no box at all; in COCO AP, low-score boxes at the end of the ranking only add recall |
 
-### 4.5 按目标尺寸的 AP（A4 的取舍，本地 val + test，后处理 v3）
+Counter-examples: re-scoring boxes by the image-class probability changed nothing, so detection errors are mostly localisation, not class confusion. Re-scoring by the IoU-quality branch (B1) got worse the stronger it was (Δm −1.1 at strength 1).
 
-| 目标边长（512 输入下） | <8 | 8–16 | 16–32 | 32–96 | ≥96 |
+### 4.5 AP by object size (A4's trade-off, local val + test, v3)
+
+| Box side (512 input) | <8 | 8–16 | 16–32 | 32–96 | ≥96 |
 |---|---|---|---|---|---|
 | C36 | 8.2 | 17.0 | 28.4 | 52.4 | 47.6 |
 | A4 | 12.9 | 20.7 | 28.2 | 50.4 | 47.6 |
 | A4b | 12.5 | 21.3 | 29.6 | 49.8 | 47.8 |
 
-## 5. 方法演进（摘要）
+## 5. How the method evolved: what was done at each step and why
 
-完整版本见 [METHOD_EVOLUTION.md](METHOD_EVOLUTION.md)。
+### 5.1 Starting point
 
-1. **看清指标结构，定下方向。**
-   - 官方参考的 mAP 只有 26，所以 mAP 每涨 1 个点，Δm 涨约 1.9；F1 涨 1 个点，Δm 只涨约 0.54。重心放在检测上。
-   - 一半的框小于 16 像素，所以小目标和定位精度是主要问题。
-2. **选骨干和适配方式。**
-   - DINOv3 ViT-B/16 冻结 + 宽 LoRA（r32，所有线性层，加 LayerNorm）最好，本地 Δm +18.1。
-   - 只换骨干是 +8.1；只加宽 LoRA 是 +11.4。
-   - 为什么不全量微调 ConvNeXt-T：它在预算内只有 +6.8，小目标更差。
-   - 为什么不用 r64：只多 +0.6，还要多占 4.7M 可训练参数。
-   - 更激进的配方（E09b）反而让检测变差。
-3. **改检测头。**
-   - Cascade R-CNN 提升定位精度，NWD 匹配解决小框的 IoU 问题，两项都采用。
-   - 多层特征颈部、D4 增强加复制粘贴、Mona 都放弃。
-4. **延长训练。** 24 → 36 → 48 → 100 轮是单项最大的提升。V2 显示 100 轮是平台期。
-5. **后处理。** 每项都只作用于同一次前向传播，并且在多个模型上方向一致才采用，合计约 +3 mAP。
-6. **全量数据（F1）。** 不留留出集，换来 11% 更多的数据。排行榜 +3.03。
-7. **精修（F2）。**
-   - A4 让小目标的阈值放宽，小于 8 像素的 AP 从 8.2 涨到 12.9，代价是 32–96 像素掉 2 个点。只放宽小目标的 A4b 反而更差，保留 A4。
-   - A2 修正标注坐标约定和翻转增强之间的冲突。
-   - 排行榜 +3.58：mAP +2.00，F1 −0.44。AP50 不变，说明提升来自更准的框。
+**Metric**: Δm = ½ × [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref] × 100. The reference mAP is low (26.13), so one mAP point is worth about 1.9 Δm and one F1 point only about 0.54, a ratio of 3.6. Classification is already near saturation at 93–96, so **the work concentrates on detection mAP**.
 
-## 6. 效率
+**Data**:
+- 9 classes, 9,392 labelled SAR images.
+- 70% of the boxes are COCO "small". At the 512 input, half the boxes are under 16 px, smaller than one ViT patch. Wind turbines, bridges and oil tanks have median sides of only 8–12 px.
+- Bridge and playground AP started near 0. The labels are not wrong: a bridge is a 6–10 px dot where a river crosses a road, a playground a 15 px patch in dense city blocks.
 
-- 可训练参数 23.8M，是上限 40M 的 60%，只比参考模型（21.0M）多 2.8M。
-- 总参数 109.0M，参考模型是 107.0M。
-- 最终模型训练约 7.2 GPU 小时，推理 17.7 ms / 张。
-- 主动放弃了两个更贵但没有带来收益的方案：
-  - S8 重叠 patch：计算量 2.6 倍，变差。
-  - LoRA r64：可训练参数 +4.7M，只多 +0.6。
+**Rules** decide which routes are open: at most 130M parameters in total and 40M trainable (heads included); one model, no ensembles or TTA; each image once at ≤512, no tiling; no other SAR data or SAR-trained models; no training on val / test images.
 
-## 7. 局限和下一步
+### 5.2 The path at a glance
 
-- 本地留出集比排行榜容易：本地有近似重复图，类别比例也不同。所以本地只用来比较方案，绝对分数以排行榜为准。
-- 桥梁和操场的 AP 仍然很低，本地只有 1–4。
-- **下一步 F3 = F2 + S5（空间先验）**，S5 在本地是 +1.76 Δm，单种子。S5 的空间先验是随机初始化的；如果改用 `--pretrained-prior`（ImageNet ResNet-18），要在 3.4 节的预训练模型表里补上。
+| Stage | Run | Change | Result | Decision |
+|---|---|---|---|---|
+| 0 | E00 | Reference: ViT-B/16 IN21k + LoRA r16 (attention only), 24 epochs | baseline | — |
+| 1 Backbone | E01 | DINOv3 ViT-B/16 instead | local Δm +8.1 | ✅ |
+| | E07 | DINOv3 ConvNeXt-T, all weights trained | +6.8 | ❌ |
+| 2 Adaptation | E02 | IN21k + LoRA r32 on every linear layer + LayerNorms | +11.4 | stepping stone |
+| | E09b | DINOv3 + LoRA r64 + extra settings | +6.2, detection worse | ❌ |
+| | **E04r** | DINOv3 + the E02 recipe | **+18.1** | ✅ new base |
+| | D6 | E04r, LoRA rank 64 | only +0.6 over E04r | ❌ |
+| 3 Detection head | **D1** | + 3-stage Cascade R-CNN | +21.0 (mAP +1.3) | ✅ |
+| | **D2** | + NWD matching + 6 px anchors | +19.7 (mAP +0.7) | ✅ |
+| | D3 / D4 / D5 | Multi-level neck / D4 + copy-paste / Mona | +5.1 / +7.1 / crashed | ❌ |
+| 4 Training length | L36 | E04r for 36 epochs | +29.4, the largest single gain | ✅ |
+| | C36 / C48 | Cascade + NWD, 36 / 48 epochs | +31.3 / +38.6 | ✅ |
+| | V2 | same, 2 GPUs, cosine 120 epochs | best at epoch 100 | ✅ 100 epochs |
+| 5 Post-processing | — | soft-NMS, objectness, stage-box mean, shift, low-score boxes | about +3 mAP together | ✅ |
+| 6 Full data | **F1** | V2 recipe, all 9,392 images, 100 epochs | **Codabench 41.26** | ✅ |
+| 7 Refinement | A4 / A2 / AA | Size-aware IoU / flip-bias fix / both | see 4.2 | ✅ |
+| | **F2** | F1 + A4 + A2, shift −0.2 at inference | **New leaderboard 44.84** | ✅ current best |
+
+Local numbers are the mean of the two local holdouts, without post-processing.
+
+### 5.3 Each stage: details and trade-offs
+
+#### Stage 1: choosing the backbone
+
+- **Tried**: DINOv3 ViT-B/16 (E01); DINOv3 ConvNeXt-T with full fine-tuning (E07); planned DINOv3 ConvNeXt-B (E03) and DINOv2 ViT-B/14.
+- **Result**: swapping only the backbone for DINOv3 ViT-B/16 gave +8.1 Δm (+10.9 with post-processing), the largest single gain at the time.
+- **ViT vs full fine-tuning of ConvNeXt-T**: ConvNeXt-T with its heads is only 35.5M, so it can be fully trained inside the 40M limit, and in the reference code full fine-tuning beats LoRA by about 13.5 Δm. In practice it gave +6.8: despite native stride-4 features, its AP below 8 px was only 1.9, worse than the reference. So DINOv3's weakness on small objects comes from its pretraining, not its architecture. Conclusion: a frozen 86M model with LoRA beats a fully trained 35M model.
+- **DINOv2 ViT-B/14**: patch 14 doesn't divide 512, so the feature grid and the anchors would be misaligned; not used.
+- **Cost**: DINOv3 is clearly stronger above 16 px and weaker than IN21k below it. The detection head and A4 later work on that gap.
+
+#### Stage 2: adaptation (where LoRA goes, how wide)
+
+- **Tried**: E02 (IN21k, LoRA on qkv / proj / fc1 / fc2, rank 32, trained LayerNorms, lr 3e-4); E09b (the "wide LoRA" from our literature search: DINOv3 + rank 64 + LoRA+ ×2 + drop path 0.1, trained biases and layer scales); E04r (DINOv3 + the E02 recipe unchanged); D6 (E04r with rank 64).
+- **Result**: more adaptation capacity alone (E02, +11.4) gained more than the backbone alone (+8.1). E09b classified best (F1 95.2) but detected worse than E01. The diagnostic E04r showed that E09b's extra settings (drop path, LoRA+, stronger regularisation), not DINOv3, caused the drop. E04r reached +18.1, consistent on both holdouts, and became the base of every later run.
+- **Rank 32 or 64**: r64 adds only +0.6, within noise, for 4.7M more trainable parameters. r32 keeps the budget for the detection head.
+- **LayerNorms trained, patch embedding not**: LayerNorms are tiny and let the feature statistics adapt to SAR; training the patch embedding at a low lr (S6) gained very little.
+
+#### Stage 3: the detection head and small objects
+
+One change at a time on E04r, 24 epochs.
+
+- **Cascade R-CNN (D1)**: 3 stages (IoU 0.5 / 0.6 / 0.7), light class-agnostic box heads, RoIAlign aligned to pixel centres. mAP +1.39 / +1.23 on val / test; the IN21k control V1 gained +1.6 too. The motive is localisation: AP50 and AP75 are far apart (aircraft 71 vs 16, wind turbines 46 vs 4), and an 8 px turbine at IoU 0.75 needs about 1 px precision. The light heads even cut about 1M trainable parameters (23.8M vs 24.9M).
+- **NWD matching and small anchors (D2)**: the RPN matches by max(IoU, NWD) with C = 8, the smallest anchor is 6 px, anchors centred on pixels. An 8 px box a few pixels off has IoU near 0 and is dropped as a positive; NWD treats boxes as Gaussians and is far more forgiving for small boxes. Δm +1.6 (mAP +0.88 / +0.57).
+- **Dropped**:
+  - CNN spatial prior + multi-level neck (D3): much worse at 24 epochs, mainly because the multi-level neck takes the highest-resolution features from shallow blocks with weak semantics. The spatial prior alone (S5) gave +1.76 Δm at 36 epochs; that result came after F2 had started, so it heads the list for the next model.
+  - D4 rotations + same-class copy-paste (D4): much worse; retested in a 100-epoch run (L1), still no help.
+  - Mona adapters (D5): crashed with a cuDNN error at start; with surer options available it was not fixed.
+
+#### Stage 4: training length (the largest single gain)
+
+- Going from 24 to 36 epochs with the same recipe (L36) raised local Δm from +18.1 to +29.4; with Cascade + NWD, 36 epochs (C36) gave +31.3 and 48 epochs (C48) +38.6.
+- V2: 2-GPU DDP, cosine 120 epochs, trained on local train + val and monitored on local test (curve in 4.3). It plateaued after epoch 90 with no clear overfitting.
+- **100 epochs**: epochs 100 to 120 differ by about 0.4, within the noise of a 940-image set, and 100 is cheaper.
+- **Cosine to 0, no EMA**: with the lr decayed to 0 the weights are already smooth; EMA (E1) came out even.
+- **2-GPU DDP**: same global batch of 16, 37 → 72 images/s, 100 epochs in 3.6 h instead of 7, which made the full-data runs possible in time.
+
+#### Stage 5: post-processing
+
+Effects and reasons per step are in 4.4. Principles: everything works on one forward pass, no ensemble or TTA, and each step must point the same way on several models and both holdouts.
+
+#### Stage 6: full data (F1)
+
+- The V2 recipe on all 9,392 images for 100 epochs, no local holdout. Codabench val 41.26, 3.03 above V2 epoch 100 (38.23): mAP +1.35, F1 +0.84.
+- **Trade-off**: with all data in training there is no holdout to monitor or pick checkpoints. That is acceptable because V2 showed epoch 100 is a plateau without overfitting, so the last epoch is taken; 940 more images (+11%) matter more than keeping the monitor.
+
+#### Stage 7: refinement, F1 → F2
+
+Both changes were screened on the 36-epoch C36 recipe; results in 4.2.
+
+**A4: size-aware Cascade IoU thresholds** (`--cascade-size-iou`)
+
+With the default 0.5 / 0.6 / 0.7, small objects get almost no positives in stages 2 and 3. A4 relaxes the thresholds for them:
+
+| Box side | IoU thresholds of the three stages |
+|---|---|
+| < 8 px | 0.40 / 0.45 / 0.50 |
+| 8–16 px | 0.45 / 0.50 / 0.55 |
+| 16–32 px | 0.50 / 0.55 / 0.65 |
+| larger | 0.5 / 0.6 / 0.7 (unchanged) |
+
+- mAP +0.93 / +0.74 (against the single C36 run). By size (4.5), small objects gain a lot and 32–96 px loses 2 points.
+- **Trade-off**: A4b tried to protect medium objects by relaxing only below 16 px. Its 32–96 px AP still fell by 2.6 and its total was about 0.35 below A4. So the medium-object loss doesn't come from their own thresholds but from the extra low-IoU positives of small objects acting on the shared classifier. A4 has the largest net gain and stays.
+
+**A2: flip-bias correction** (`--flip-bias -0.3`)
+
+- **Finding**: moving every predicted box by −0.4 px (512 input) raised mAP consistently on 3 models and both holdouts.
+- **Ruling out other explanations**: shifting top-left and bottom-right corners separately, x and y separately, or in original-image pixels all still put the optimum at a uniform −0.4, with other variants within ±0.02. That is about −0.3 px in the original image, the same for 512 and 256 px originals, so a systematic offset in the annotation convention is the likely cause.
+- **Consequence**: flip augmentation mirrors the offset, so the regression target of the same object swings between ±0.3 px, which matters for objects under 8 px.
+- **Fix**: when flipping, move the box by twice the bias, so every training target follows one convention.
+- **Result**: mAP +0.64 / +0.57, and the −0.4 shift is no longer needed, which confirms the explanation. A further −0.2 px shift adds +0.2 mAP on both holdouts for A2 models, while +0.2 hurts; F2 therefore uses −0.2.
+
+**Do they stack (AA)?** +2.27 Δm over the C36 mean (mAP 38.43 / 40.01): they stack, but less than the sum of the two single gains.
+
+**F2 on the leaderboard**:
+
+| | Δm | macro-F1 | mAP | AP50 |
+|---|---|---|---|---|
+| F1 | 41.26 | 95.90 | 46.97 | 71.57 |
+| F2 (shift −0.2) | **44.84** | 95.46 | **48.97** | 71.53 |
+
+- mAP +2.00, more than the +1.0 the 36-epoch local runs suggested, perhaps because the leaderboard val set has more small-object classes (wind turbines).
+- F1 −0.44 costs only about 0.24 Δm.
+- AP50 is unchanged, so the whole gain is localisation at higher IoU thresholds, exactly what A4 and A2 target.
+
+### 5.4 Tried and not adopted
+
+| Run | Change | Result | Why |
+|---|---|---|---|
+| S8 | Overlapping patches (stride 8, 4× tokens) | mAP −0.13 / −0.64 | The smallest classes improved (bridge +0.7, playground +1.4, wind turbine +1.6) but oil tank fell from 42 to 35.6; 2.6× compute |
+| E1 | Weight EMA | even | No extra smoothing once the cosine lr reaches 0 |
+| B1 | IoU-quality branch | even; re-scoring worse | The stronger the re-scoring by predicted IoU, the worse |
+| R1 | NWD constant 8 → 16 | unclear on test | within noise |
+| R2 | 512 → 1024 sampled RoIs per image | about −2 mAP | clearly worse; not investigated further |
+| S6 | Trained patch embedding | very small | not worth it |
+| N1 | Last 2 blocks fully trained | small gain | 37.2M trainable, close to the 40M limit |
+| L1 / L2 | 100 epochs + D4 / + random zoom | below V2 | neither augmentation helped |
+| E07 | ConvNeXt-T full fine-tuning | +6.8 | see stage 1 |
+| D3 / D4 | Multi-level neck / D4 + copy-paste | much worse | see stage 3 |
+
+### 5.5 Principles throughout
+
+1. **Read the metric before choosing a direction.** mAP moves Δm 3.6 times as much as F1, so most GPU time went to detection.
+2. **Change one thing at a time, on the current best recipe.** E09b mixed several settings, and finding why detection dropped cost an extra diagnostic run (E04r); after that every screen changed one thing.
+3. **Look at breakdowns, not just totals.** AP by size and by class showed that DINOv3 is weak on small objects, that localisation is the bottleneck, and that A4 costs medium objects.
+4. **Rules first.** All post-processing uses one forward pass; the final model has 23.8M trainable and 109.0M total parameters, with room left under 40M / 130M.
+5. **Improve both holdouts, then check on the leaderboard.** Every adopted change also paid off on the leaderboard: V2 38.23 → F1 41.26 → F2 44.84.
+
+## 6. Efficiency
+
+- 23.8M trainable parameters, 60% of the 40M limit and only 2.8M more than the reference (21.0M); 109.0M in total against the reference's 107.0M.
+- The final model trains in about 7.2 GPU hours and predicts in 17.7 ms per image.
+- Two costlier options were dropped because they didn't pay: S8 overlapping patches (2.6× compute, worse) and LoRA r64 (+4.7M trainable for +0.6).
+
+## 7. Limitations and next steps
+
+- The local holdouts are easier than the leaderboard (near-duplicates, different class mix); they rank methods, and the leaderboard gives the absolute score.
+- Bridge and playground AP is still very low, 1–4 locally.
+- **Next: F3 = F2 + S5 (spatial prior)**, possibly with N1. S5 gave +1.76 Δm locally (one seed) and works differently from A4 / A2, so the gains may stack; a full-data 2-GPU run takes about 3.6 h. S5's spatial prior is randomly initialised; with `--pretrained-prior` (ImageNet ResNet-18) it must be added to the pretrained-model table in 3.4.
+- Phase 1 closes on 2026-11-01; Phase 2 (test, 2 submissions) opens on 11-02.
