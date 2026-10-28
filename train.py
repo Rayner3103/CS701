@@ -12,7 +12,7 @@ import torch
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel
-from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.data import DataLoader, DistributedSampler, WeightedRandomSampler
 
 from sarbench.adapters import add_adapters, add_lora, add_mona, unfreeze
 from sarbench.backbones import BACKBONES, build_backbone, set_token_stride
@@ -58,6 +58,12 @@ def parse_args(argv=None):
     p.add_argument('--cascade-size-iou', action='store_true', help='size-aware IoU thresholds for the cascade stages')
     p.add_argument('--size-iou-table', default='a4', choices=['a4', 'small16'],
                    help="with --cascade-size-iou: 'a4' (relaxed up to 32 px) or 'small16' (relaxed below 16 px only)")
+    p.add_argument('--roi-context', type=float, default=0.0,
+                   help='cascade: also pool the RoI enlarged by this factor (>= 32 px) and add it to the box features')
+    p.add_argument('--cls-weights', default='',
+                   help="cascade: RoI classification loss weights by category id, e.g. '3:3,7:3' (bridge, playground)")
+    p.add_argument('--oversample', default='',
+                   help="training images drawn with these weights by image label 0..8, e.g. '2:2,6:2' (one GPU only)")
     p.add_argument('--token-stride', type=int, default=0, help='timm ViTs: patch-embedding stride (8: overlapping patches, 4x tokens)')
     p.add_argument('--grad-ckpt', action='store_true', help='gradient checkpointing of the ViT blocks (saves memory)')
     p.add_argument('--iou-branch', type=float, default=0.0, help='loss weight of an IoU-quality branch on the last cascade stage (0: off)')
@@ -112,6 +118,11 @@ def parse_args(argv=None):
     return args
 
 
+def parse_weights(spec):
+    """'3:3,7:2.5' -> {3: 3.0, 7: 2.5} ('' -> {})."""
+    return {int(k): float(v) for k, v in (item.split(':') for item in spec.split(',') if item)}
+
+
 def log(message, file):
     """Print to the console and to the run's log.txt (only the main process logs: file is None elsewhere)."""
     if file is None:
@@ -128,6 +139,16 @@ def make_loader(args, split, train, world=1, rank=0):
     if train and args.copy_paste:
         dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
                                      source=args.cp_source, seed=args.seed)
+    if train and getattr(args, 'oversample', ''):
+        # each image drawn with probability proportional to the weight of its label; an epoch keeps its length
+        assert world == 1, '--oversample is implemented for one GPU only'
+        factor = parse_weights(args.oversample)
+        base = dataset.base if isinstance(dataset, SameClassCopyPaste) else dataset
+        weights = [factor.get(int(r['label']), 1.0) for r in base.rows]
+        sampler = WeightedRandomSampler(weights, len(weights), replacement=True,
+                                        generator=torch.Generator().manual_seed(args.seed))
+        return DataLoader(dataset, args.batch_size, sampler=sampler, num_workers=args.workers, collate_fn=collate,
+                          persistent_workers=args.workers > 0, drop_last=False)
     if train and world > 1:
         sampler = DistributedSampler(dataset, num_replicas=world, rank=rank, shuffle=True, seed=args.seed)
         return DataLoader(dataset, args.batch_size // world, sampler=sampler, num_workers=args.workers,
@@ -204,7 +225,9 @@ def build_model(args):
         model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
                                           beta=args.cascade_beta, batch_size_per_image=args.roi_batch,
                                           size_iou=(getattr(args, 'size_iou_table', 'a4') if getattr(args, 'cascade_size_iou', False) else False),
-                                          iou_weight=getattr(args, 'iou_branch', 0.0))
+                                          iou_weight=getattr(args, 'iou_branch', 0.0),
+                                          context=getattr(args, 'roi_context', 0.0),
+                                          cls_weights=parse_weights(getattr(args, 'cls_weights', '')))
     if getattr(args, 'pretrained_prior', False):
         assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
         model.neck.prior = PretrainedPrior()

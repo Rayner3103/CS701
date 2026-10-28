@@ -78,14 +78,26 @@ class AlignedMultiScaleRoIAlign(MultiScaleRoIAlign):
 class LightBoxHead(nn.Module):
     """1x1 conv 256 -> reduced, then two FC layers (the repo's SmallBoxHead; reduced=64 -> 4.3 M params)."""
 
-    def __init__(self, in_channels=256, reduced=64, resolution=7, representation=1024):
+    def __init__(self, in_channels=256, reduced=64, resolution=7, representation=1024, context=False):
         super().__init__()
         self.reduce = nn.Sequential(nn.Conv2d(in_channels, reduced, 1), nn.GELU())
+        # context=True: the RoI features of an enlarged box go through their own 1x1 conv and are added (+16 K params)
+        self.ctx_reduce = nn.Sequential(nn.Conv2d(in_channels, reduced, 1), nn.GELU()) if context else None
         self.fc6 = nn.Linear(reduced * resolution * resolution, representation)
         self.fc7 = nn.Linear(representation, representation)
 
-    def forward(self, x):
-        return F.relu(self.fc7(F.relu(self.fc6(self.reduce(x).flatten(1)))))
+    def forward(self, x, ctx=None):
+        x = self.reduce(x)
+        if ctx is not None:
+            x = x + self.ctx_reduce(ctx)
+        return F.relu(self.fc7(F.relu(self.fc6(x.flatten(1)))))
+
+
+def context_boxes(boxes, image_shape, factor, min_side=32.0):
+    """XYXY boxes enlarged about their centres: each side becomes max(factor * side, min_side), clipped to the image."""
+    c = (boxes[:, :2] + boxes[:, 2:]) / 2
+    half = ((boxes[:, 2:] - boxes[:, :2]) * factor).clamp_min(min_side) / 2
+    return box_ops.clip_boxes_to_image(torch.cat([c - half, c + half], 1), image_shape)
 
 
 class AgnosticPredictor(nn.Module):
@@ -138,11 +150,13 @@ class CascadeRoIHeads(RoIHeads):
     def __init__(self, box_roi_pool, num_classes=10, reduced=64, representation=1024, ious=(0.5, 0.6, 0.7),
                  coder_weights=((10., 10., 5., 5.), (20., 20., 10., 10.), (30., 30., 15., 15.)),
                  stage_weights=(1.0, 0.5, 0.25), beta=1 / 9, batch_size_per_image=512, positive_fraction=0.25,
-                 size_iou=False, iou_weight=0.0):
+                 size_iou=False, iou_weight=0.0, context=0.0, cls_weights=None):
         """size_iou: per-GT IoU thresholds by box size (SIZE_IOU) so tiny objects get positives at every stage.
         iou_weight > 0: an IoU-quality branch on the last stage (BCE to the IoU of the decoded box with its GT); at test
-        time its prediction can re-score boxes (post['quality_pow'])."""
-        heads = nn.ModuleList(LightBoxHead(256, reduced, 7, representation) for _ in ious)
+        time its prediction can re-score boxes (post['quality_pow']).
+        context > 0: every stage also pools the RoI enlarged by this factor (at least 32 px) and adds it to the box
+        features (context_boxes). cls_weights: {category id: weight} for the RoI classification loss (others 1)."""
+        heads = nn.ModuleList(LightBoxHead(256, reduced, 7, representation, context=context > 0) for _ in ious)
         preds = nn.ModuleList(AgnosticPredictor(representation, num_classes) for _ in ious)
         super().__init__(box_roi_pool, heads[0], preds[0], fg_iou_thresh=ious[0], bg_iou_thresh=ious[0],
                          batch_size_per_image=batch_size_per_image, positive_fraction=positive_fraction,
@@ -155,6 +169,12 @@ class CascadeRoIHeads(RoIHeads):
         self.post = dict(CascadeRoIHeads.post)
         self.size_iou, self.iou_weight, self._t = size_iou, iou_weight, 0
         self.size_table = SIZE_IOU_TABLES[size_iou if isinstance(size_iou, str) else 'a4'] if size_iou else None
+        self.context = context
+        self.cls_weights = None  # a plain tensor, not a buffer: no state_dict key, not in the parameter budget
+        if cls_weights:
+            self.cls_weights = torch.ones(num_classes)
+            for c, w in cls_weights.items():
+                self.cls_weights[c] = w
         if iou_weight:
             self.iou_head = nn.Linear(representation, 1)
             nn.init.normal_(self.iou_head.weight, std=0.01)
@@ -203,12 +223,17 @@ class CascadeRoIHeads(RoIHeads):
             if self.training:
                 proposals, _, labels, reg_targets = self.select_training_samples(proposals, targets)
                 is_gt = [smp >= n for smp, n in zip(self._sampled, self._n_props)]  # mmdet's pos_is_gt
-            feat = head(self.box_roi_pool(features, proposals, image_shapes))
+            ctx = None
+            if self.context:
+                ctx_props = [context_boxes(p, s, self.context) for p, s in zip(proposals, image_shapes)]
+                ctx = self.box_roi_pool(features, ctx_props, image_shapes)
+            feat = head(self.box_roi_pool(features, proposals, image_shapes), ctx)
             cls, reg = pred(feat)
             if self.training:
                 labels, reg_targets = torch.cat(labels), torch.cat(reg_targets)
                 w = self.stage_weights[t]
-                losses[f'loss_classifier_s{t}'] = w * F.cross_entropy(cls, labels)
+                cw = self.cls_weights.to(cls.device) if self.cls_weights is not None else None
+                losses[f'loss_classifier_s{t}'] = w * F.cross_entropy(cls, labels, weight=cw)
                 losses[f'loss_box_reg_s{t}'] = w * box_loss(reg, labels, reg_targets, self.beta)
                 if self.iou_weight and t == last:  # IoU-quality branch: predict the IoU of the decoded box with its GT
                     pos = torch.where(labels > 0)[0]
