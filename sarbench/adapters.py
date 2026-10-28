@@ -1,4 +1,5 @@
 """LoRA and MoE-LoRA adapters for the attention layers of a frozen backbone."""
+import torch.nn.functional as F
 from torch import nn
 
 
@@ -41,10 +42,51 @@ class MoELoRA(nn.Module):
         return self.base(x) + self.scale * self.up(self.down(x) * gates)
 
 
+class AdaptFormerBlock(nn.Module):
+    """A DINOv3 (timm EvaBlock) block with an AdaptFormer adapter (Chen et al., 2022) parallel to its MLP branch:
+    x = x + g1 * attn(norm1(x)); x = x + g2 * mlp(norm2(x)) + s * up(relu(down(norm2(x)))).
+
+    The adapter sits outside LayerScale (g2): the pretrained g2 grows from ~0.1 in the first blocks to ~10 in the
+    last, so inside it the adapter would be damped early and amplified late. It reads norm2(x), the MLP's own input.
+    """
+
+    def __init__(self, block, bottleneck=64, scale=0.1):
+        super().__init__()
+        self.block = block
+        self.down = nn.Linear(block.norm2.normalized_shape[0], bottleneck)
+        self.up = nn.Linear(bottleneck, block.norm2.normalized_shape[0])
+        nn.init.zeros_(self.up.weight)  # up = 0: training starts from exactly the pretrained block
+        nn.init.zeros_(self.up.bias)
+        self.scale = scale
+
+    def forward(self, x, **kwargs):  # kwargs (rope, attn_mask, ...) differ between timm versions: pass them on
+        b = self.block
+        x = x + b.drop_path1(b.gamma_1 * b.attn(b.norm1(x), **kwargs))
+        h = b.norm2(x)
+        return x + b.drop_path2(b.gamma_2 * b.mlp(h)) + self.scale * self.up(F.relu(self.down(h)))
+
+
+def add_adaptformer(backbone, bottleneck=64, scale=0.1, freeze=True):
+    """Freeze the backbone (unless freeze=False: it is already frozen, with adapters on top that must keep training),
+    then add a parallel AdaptFormer adapter to the MLP of every block (DINOv3 blocks only)."""
+    if freeze:
+        backbone.requires_grad_(False)
+    for i, blk in enumerate(backbone.blocks):
+        if not hasattr(blk, 'gamma_2'):
+            raise ValueError('adaptformer needs DINOv3 (LayerScale) blocks')
+        backbone.blocks[i] = AdaptFormerBlock(blk, bottleneck, scale)
+
+
 def add_adapters(backbone, kind, targets=('attn.qkv', 'attn.proj'), blocks=None, **kwargs):
     """Freeze the backbone, then wrap the linear layers `targets` of every block, or only of `blocks` (kind: 'lora' or
     'moelora'; kwargs: the adapter's, e.g. rank and alpha). Default: attn.qkv and attn.proj; 'mlp.fc1', 'mlp.fc2'
-    adapt the MLP too."""
+    adapt the MLP too. kind 'adaptformer' instead adds a parallel adapter to every block's MLP (add_adaptformer; kwargs:
+    bottleneck, scale); 'adaptformer_lora' adds both: LoRA on the attention and AdaptFormer on the MLP."""
+    if kind == 'adaptformer':
+        return add_adaptformer(backbone, **kwargs)
+    if kind == 'adaptformer_lora':
+        add_adapters(backbone, 'lora', targets=targets, blocks=blocks)  # first: AdaptFormer wraps the blocks
+        return add_adaptformer(backbone, freeze=False, **kwargs)
     adapter = {'lora': LoRA, 'moelora': MoELoRA}[kind]
     backbone.requires_grad_(False)
     for blk in backbone.blocks if blocks is None else blocks:
@@ -58,3 +100,8 @@ def set_task(module, task):
     for layer in module.modules():
         if isinstance(layer, MoELoRA):
             layer.task = task
+
+
+def adapter_kwargs(args):
+    """The add_adapters keyword arguments a run's saved args (train.py's) imply: only AdaptFormer has any."""
+    return {'bottleneck': args.get('bottleneck', 64)} if args['adapt'].startswith('adaptformer') else {}

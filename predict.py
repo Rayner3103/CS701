@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import v2
 
 from make_submission import write_submission
-from sarbench.adapters import add_adapters
+from sarbench.adapters import adapter_kwargs, add_adapters
 from sarbench.backbones import build_backbone
 from sarbench.data import MEAN, STD
 from sarbench.model import MultiTaskModel
@@ -46,7 +46,7 @@ def main():
     run = json.loads((args.run / 'metrics.json').read_text())['args']
     backbone = build_backbone(run['backbone'], pretrained=False)
     if run['adapt'] != 'full':
-        add_adapters(backbone, run['adapt'])
+        add_adapters(backbone, run['adapt'], **adapter_kwargs(run))
     model = MultiTaskModel(backbone, task_routing=run['adapt'] == 'moelora',
                            spatial_prior=run.get('spatial_prior', False))
     model.load_state_dict(torch.load(args.run / args.weights, map_location='cpu'))

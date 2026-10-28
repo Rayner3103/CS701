@@ -19,7 +19,7 @@ from PIL import Image
 from torch.utils.data import DataLoader, Subset
 from torchvision.ops import box_iou
 
-from sarbench.adapters import add_adapters
+from sarbench.adapters import adapter_kwargs, add_adapters
 from sarbench.backbones import build_backbone
 from sarbench.data import SARMultiTask, collate
 from sarbench.model import MultiTaskModel
@@ -66,7 +66,7 @@ def load_model(run, weights, device):
         raise SystemExit(f'{run / weights} does not exist (older runs have only model.pt: --weights model.pt)')
     backbone = build_backbone(args['backbone'], pretrained=False)
     if args['adapt'] != 'full':
-        add_adapters(backbone, args['adapt'])
+        add_adapters(backbone, args['adapt'], **adapter_kwargs(args))
     model = MultiTaskModel(backbone, task_routing=args['adapt'] == 'moelora',
                            spatial_prior=args.get('spatial_prior', False))
     model.load_state_dict(torch.load(run / weights, map_location='cpu'))

@@ -126,9 +126,10 @@ All options of `train.py` (`python train.py -h`):
 
 | Option | Default | What it does |
 |---|---|---|
-| `--backbone vit\|terramind` | required | ViT-B/16 (ImageNet-21k) or TerraMind-1.0-base (Earth observation) |
+| `--backbone vit\|dinov3\|terramind` | required | ViT-B/16 (ImageNet-21k), DINOv3 ViT-B/16 (LVD-1689M, self-supervised) or TerraMind-1.0-base (Earth observation) |
 | `--init pretrained\|scratch` | required | `scratch` only with `--adapt full` |
-| `--adapt full\|lora\|moelora` | required | fine-tune the whole backbone, or freeze it and train LoRA / MoE-LoRA adapters |
+| `--adapt full\|lora\|moelora\|adaptformer\|adaptformer_lora` | required | fine-tune the whole backbone, or freeze it and train LoRA / MoE-LoRA adapters; `adaptformer` (a parallel MLP adapter) and `adaptformer_lora` (both) work with `dinov3` only |
+| `--bottleneck` | 64 | hidden width of the AdaptFormer adapters; the run folder gets `_b<N>` unless it is 64 |
 | `--spatial-prior` | off | a small CNN on the raw image feeds the neck at strides 4 and 8 (small objects); the run folder gets `_sp` |
 | `--epochs` | 24 | one epoch of warmup, then cosine decay to 0 at the last epoch |
 | `--batch-size` | 16 | set for a 96 GB GPU; 8 on 10-12 GB, 4 if `CUDA out of memory` |

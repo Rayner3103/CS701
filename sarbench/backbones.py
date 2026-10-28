@@ -23,6 +23,25 @@ class ViT(nn.Module):
         return tokens[:, self.vit.num_prefix_tokens:]  # drop the CLS token
 
 
+class DINOv3(nn.Module):
+    """timm DINOv3 ViT-B/16 pretrained on LVD-1689M (self-supervised, RoPE, CLS + 4 register tokens, LayerScale)."""
+
+    def __init__(self, pretrained: bool):
+        super().__init__()
+        # in_chans=1 and img_size=512 as for ViT; RoPE needs no position-embedding resampling
+        self.vit = timm.create_model('vit_base_patch16_dinov3.lvd1689m', pretrained=pretrained,
+                                     img_size=512, in_chans=1, num_classes=0)
+        self.embed_dim = 768
+
+    @property
+    def blocks(self):
+        return self.vit.blocks
+
+    def forward(self, x):
+        tokens = self.vit.forward_features(x)  # [B, 5 + N, 768], final norm applied
+        return tokens[:, self.vit.num_prefix_tokens:]  # drop the CLS and register tokens
+
+
 class TerraMind(nn.Module):
     """TerraMind-1.0-base (IBM/ESA) through its Sentinel-1 GRD input."""
 
@@ -42,5 +61,5 @@ class TerraMind(nn.Module):
 
 
 def build_backbone(name, pretrained):
-    """name: 'vit' or 'terramind'. pretrained=False builds the same architecture with random weights."""
-    return {'vit': ViT, 'terramind': TerraMind}[name](pretrained)
+    """name: 'vit', 'dinov3' or 'terramind'. pretrained=False builds the same architecture with random weights."""
+    return {'vit': ViT, 'dinov3': DINOv3, 'terramind': TerraMind}[name](pretrained)

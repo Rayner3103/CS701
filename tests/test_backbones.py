@@ -5,11 +5,11 @@ import torch
 
 from sarbench.backbones import build_backbone
 
-FINAL_NORM = {'vit': 'vit.norm', 'terramind': 'terramind.encoder_norm'}
+FINAL_NORM = {'vit': 'vit.norm', 'dinov3': 'vit.norm', 'terramind': 'terramind.encoder_norm'}
 
 
 @pytest.mark.parametrize('pretrained', [True, False])
-@pytest.mark.parametrize('name', ['vit', 'terramind'])
+@pytest.mark.parametrize('name', ['vit', 'dinov3', 'terramind'])
 def test_patch_tokens(name, pretrained):
     backbone = build_backbone(name, pretrained).cuda().eval()
     normed = []
@@ -18,11 +18,11 @@ def test_patch_tokens(name, pretrained):
         tokens = backbone(torch.randn(2, 1, 512, 512, device='cuda'))
     assert tokens.shape == (2, 1024, 768)  # 32 x 32 patches, no CLS token
     assert tokens.isfinite().all()
-    assert torch.equal(tokens, normed[0][:, -1024:])  # the final norm's output; ViT's norm also sees the CLS token
+    assert torch.equal(tokens, normed[0][:, -1024:])  # the final norm's output; ViT's norm also sees the CLS (and DINOv3's register) tokens
     assert len(backbone.blocks) == 12 and backbone.embed_dim == 768
 
 
-@pytest.mark.parametrize('name', ['vit', 'terramind'])
+@pytest.mark.parametrize('name', ['vit', 'dinov3', 'terramind'])
 def test_pretrained_weights_are_loaded(name):
     first, second, scratch = (dict(build_backbone(name, p).named_parameters()) for p in (True, True, False))
     assert all(torch.equal(first[k], second[k]) for k in first)  # no weight left at a random init

@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from sarbench.adapters import add_adapters
+from sarbench.adapters import adapter_kwargs, add_adapters
 from sarbench.backbones import build_backbone
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
@@ -21,9 +21,10 @@ from sarbench.model import MultiTaskModel
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--data', type=Path, default=Path(__file__).resolve().parents[1] / 'dataset' / 'SARFact-Course-20K')
-    p.add_argument('--backbone', required=True, choices=['vit', 'terramind'])
+    p.add_argument('--backbone', required=True, choices=['vit', 'dinov3', 'terramind'])
     p.add_argument('--init', required=True, choices=['pretrained', 'scratch'])
-    p.add_argument('--adapt', required=True, choices=['full', 'lora', 'moelora'])
+    p.add_argument('--adapt', required=True, choices=['full', 'lora', 'moelora', 'adaptformer', 'adaptformer_lora'])
+    p.add_argument('--bottleneck', type=int, default=64, help='AdaptFormer adapters: hidden width (dinov3 only)')
     p.add_argument('--spatial-prior', action='store_true',
                    help='add a small CNN on the raw image to the neck at strides 4 and 8 (ViT-Adapter style)')
     p.add_argument('--epochs', type=int, default=24)
@@ -138,7 +139,8 @@ def headline(metrics):
 def main():
     args = parse_args()
     torch.manual_seed(args.seed)
-    run_dir = args.out / f'{args.backbone}_{args.init}_{args.adapt}{"_sp" if args.spatial_prior else ""}'
+    bottleneck = f'_b{args.bottleneck}' if args.adapt.startswith('adaptformer') and args.bottleneck != 64 else ''
+    run_dir = args.out / f'{args.backbone}_{args.init}_{args.adapt}{bottleneck}{"_sp" if args.spatial_prior else ""}'
     run_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_path = run_dir / 'last_checkpoint.pt'  # the last completed epoch, for --resume
     checkpoint = None
@@ -155,7 +157,7 @@ def main():
     # Model: adapters are created on the CPU, so they are added before .cuda()
     backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
     if args.adapt != 'full':
-        add_adapters(backbone, args.adapt)  # also freezes the backbone
+        add_adapters(backbone, args.adapt, **adapter_kwargs(vars(args)))  # also freezes the backbone
     model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior).cuda()
     parameters = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)

@@ -76,3 +76,50 @@ def test_moelora_is_a_gated_sum_of_lora_experts():
     B = layer.up.weight.split(2, dim=1)  # B_e: [24, 2]
     experts = sum(gates[..., e, None] * (x @ A[e].T @ B[e].T) for e in range(3))
     torch.testing.assert_close(layer(x), layer.base(x) + 2 * experts)
+
+
+# AdaptFormer on DINOv3: 12 blocks x (768 x 64 + 64 for down, 64 x 768 + 768 for up)
+ADAPTFORMER_TRAINABLE = 12 * (768 * 64 + 64 + 64 * 768 + 768)
+
+
+def test_adaptformer_is_noop_at_init():
+    backbone = build_backbone('dinov3', pretrained=True)
+    x = torch.randn(2, 1, 512, 512, device='cuda')
+    before = tokens(backbone, x)
+    add_adapters(backbone, 'adaptformer')
+    assert (tokens(backbone, x) - before).abs().max() <= 1e-6
+
+
+def test_adaptformer_only_adapter_weights_train():
+    backbone = build_backbone('dinov3', pretrained=False)
+    add_adapters(backbone, 'adaptformer')
+    trainable = {n: p.numel() for n, p in backbone.named_parameters() if p.requires_grad}
+    assert all(n.endswith(('.down.weight', '.down.bias', '.up.weight', '.up.bias')) for n in trainable)
+    assert sum(trainable.values()) == ADAPTFORMER_TRAINABLE
+
+
+def test_adaptformer_changes_tokens_once_up_is_nonzero():
+    backbone = build_backbone('dinov3', pretrained=False)
+    x = torch.randn(2, 1, 512, 512, device='cuda')
+    before = tokens(backbone, x)
+    add_adapters(backbone, 'adaptformer')
+    for layer in backbone.modules():
+        if hasattr(layer, 'up'):
+            nn.init.normal_(layer.up.weight, std=0.02)
+    assert (tokens(backbone, x) - before).abs().max() > 1e-3
+
+
+def test_adaptformer_rejects_blocks_without_layerscale():
+    with pytest.raises(ValueError):
+        add_adapters(build_backbone('vit', pretrained=False), 'adaptformer')
+
+
+def test_adaptformer_lora_trains_both_and_is_noop_at_init():
+    backbone = build_backbone('dinov3', pretrained=True)
+    x = torch.randn(2, 1, 512, 512, device='cuda')
+    before = tokens(backbone, x)
+    add_adapters(backbone, 'adaptformer_lora', bottleneck=128)
+    assert (tokens(backbone, x) - before).abs().max() <= 1e-6
+    trainable = {n: p.numel() for n, p in backbone.named_parameters() if p.requires_grad}
+    assert sum(trainable.values()) == TRAINABLE['lora'] + 12 * (768 * 128 + 128 + 128 * 768 + 768)
+    assert any('.attn.qkv.down' in n for n in trainable) and any(n.endswith('.up.bias') for n in trainable)
