@@ -129,6 +129,10 @@ All options of `train.py` (`python train.py -h`):
 | `--backbone vit\|dinov3\|terramind` | required | ViT-B/16 (ImageNet-21k), DINOv3 ViT-B/16 (LVD-1689M, self-supervised) or TerraMind-1.0-base (Earth observation) |
 | `--init pretrained\|scratch` | required | `scratch` only with `--adapt full` |
 | `--adapt full\|lora\|moelora\|adaptformer\|adaptformer_lora` | required | fine-tune the whole backbone, or freeze it and train LoRA / MoE-LoRA adapters; `adaptformer` (a parallel MLP adapter) and `adaptformer_lora` (both) work with `dinov3` only |
+| `--lora-targets attn\|attn+mlp` | attn | `--adapt lora`: adapt `attn.qkv`/`attn.proj`, or also `mlp.fc1`/`mlp.fc2`; the run folder gets `_mlp` |
+| `--lora-rank` | 16 | `--adapt lora`: rank (alpha = 2 × rank); the run folder gets `_r<N>` unless it is 16 |
+| `--cascade` | off | a 3-stage Cascade R-CNN box head (IoU 0.5 / 0.6 / 0.7, light stage heads: 13.3 M, where the single head has 13.9 M); the run folder gets `_cascade`. Code: `sarbench/cascade.py` |
+| `--cascade-checkpoint` | off | `--cascade`: recompute the stage heads in the backward pass: the same results for about 2 GB less memory (needed with `--lora-targets attn+mlp` at batch size 8 on 10 GB) |
 | `--bottleneck` | 64 | hidden width of the AdaptFormer adapters; the run folder gets `_b<N>` unless it is 64 |
 | `--spatial-prior` | off | a small CNN on the raw image feeds the neck at strides 4 and 8 (small objects); the run folder gets `_sp` |
 | `--epochs` | 24 | one epoch of warmup, then cosine decay to 0 at the last epoch |

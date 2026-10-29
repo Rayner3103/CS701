@@ -68,7 +68,8 @@ def load_model(run, weights, device):
     if args['adapt'] != 'full':
         add_adapters(backbone, args['adapt'], **adapter_kwargs(args))
     model = MultiTaskModel(backbone, task_routing=args['adapt'] == 'moelora',
-                           spatial_prior=args.get('spatial_prior', False))
+                           spatial_prior=args.get('spatial_prior', False),
+                           cascade=args.get('cascade', False))
     model.load_state_dict(torch.load(run / weights, map_location='cpu'))
     return model.to(device).eval()
 

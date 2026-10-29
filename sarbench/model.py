@@ -12,6 +12,7 @@ from torchvision.models.detection.rpn import RegionProposalNetwork, RPNHead
 from torchvision.ops import MultiScaleRoIAlign
 
 from .adapters import set_task
+from .cascade import CascadeRoIHeads
 
 
 def conv_gn(c_in, c_out, stride=1):
@@ -77,7 +78,8 @@ class SimpleFeaturePyramid(nn.Module):
 class MultiTaskModel(nn.Module):
     """backbone tokens -> classification logits (mean token -> LayerNorm -> Linear) and Faster R-CNN detections."""
 
-    def __init__(self, backbone, task_routing: bool, num_classes=9, spatial_prior=False):
+    def __init__(self, backbone, task_routing: bool, num_classes=9, spatial_prior=False, cascade=False,
+                 checkpoint_heads=False):
         super().__init__()
         self.backbone = backbone
         self.task_routing = task_routing  # MoE-LoRA: the backbone runs once per task, with that task's routers
@@ -91,11 +93,14 @@ class MultiTaskModel(nn.Module):
             anchors, RPNHead(256, 6), fg_iou_thresh=0.7, bg_iou_thresh=0.3, batch_size_per_image=256,
             positive_fraction=0.5, pre_nms_top_n=dict(training=2000, testing=1000),
             post_nms_top_n=dict(training=2000, testing=1000), nms_thresh=0.7)
-        self.roi_heads = RoIHeads(
-            MultiScaleRoIAlign(['0', '1', '2', '3'], output_size=7, sampling_ratio=2),
-            TwoMLPHead(256 * 7 * 7, 1024), FastRCNNPredictor(1024, num_classes + 1),  # + 1: background
-            fg_iou_thresh=0.5, bg_iou_thresh=0.5, batch_size_per_image=512, positive_fraction=0.25,
-            bbox_reg_weights=None, score_thresh=0.05, nms_thresh=0.5, detections_per_img=100)
+        pool = MultiScaleRoIAlign(['0', '1', '2', '3'], output_size=7, sampling_ratio=2)
+        if cascade:  # three light stage heads (sarbench/cascade.py) instead of the single TwoMLPHead
+            self.roi_heads = CascadeRoIHeads(pool, num_classes, checkpoint=checkpoint_heads)
+        else:
+            self.roi_heads = RoIHeads(
+                pool, TwoMLPHead(256 * 7 * 7, 1024), FastRCNNPredictor(1024, num_classes + 1),  # + 1: background
+                fg_iou_thresh=0.5, bg_iou_thresh=0.5, batch_size_per_image=512, positive_fraction=0.25,
+                bbox_reg_weights=None, score_thresh=0.05, nms_thresh=0.5, detections_per_img=100)
 
     def forward(self, images, targets=None):
         """images [B, 1, H, W], targets: per-image {'boxes' XYXY, 'labels' 1..9} (training only) ->

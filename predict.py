@@ -48,7 +48,8 @@ def main():
     if run['adapt'] != 'full':
         add_adapters(backbone, run['adapt'], **adapter_kwargs(run))
     model = MultiTaskModel(backbone, task_routing=run['adapt'] == 'moelora',
-                           spatial_prior=run.get('spatial_prior', False))
+                           spatial_prior=run.get('spatial_prior', False),
+                           cascade=run.get('cascade', False))
     model.load_state_dict(torch.load(args.run / args.weights, map_location='cpu'))
     model.cuda().eval()
 

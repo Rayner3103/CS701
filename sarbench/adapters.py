@@ -102,6 +102,15 @@ def set_task(module, task):
             layer.task = task
 
 
+LORA_TARGETS = {'attn': ('attn.qkv', 'attn.proj'), 'attn+mlp': ('attn.qkv', 'attn.proj', 'mlp.fc1', 'mlp.fc2')}
+
+
 def adapter_kwargs(args):
-    """The add_adapters keyword arguments a run's saved args (train.py's) imply: only AdaptFormer has any."""
-    return {'bottleneck': args.get('bottleneck', 64)} if args['adapt'].startswith('adaptformer') else {}
+    """The add_adapters keyword arguments a run's saved args (train.py's) imply. Runs saved before an option existed
+    lack its key and get the old behaviour (LoRA: rank 16 on attn.qkv and attn.proj, alpha = 2 x rank)."""
+    if args['adapt'].startswith('adaptformer'):
+        return {'bottleneck': args.get('bottleneck', 64)}
+    if args['adapt'] == 'lora':
+        rank = args.get('lora_rank', 16)
+        return {'targets': LORA_TARGETS[args.get('lora_targets', 'attn')], 'rank': rank, 'alpha': 2 * rank}
+    return {}

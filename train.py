@@ -24,6 +24,12 @@ def parse_args():
     p.add_argument('--backbone', required=True, choices=['vit', 'dinov3', 'terramind'])
     p.add_argument('--init', required=True, choices=['pretrained', 'scratch'])
     p.add_argument('--adapt', required=True, choices=['full', 'lora', 'moelora', 'adaptformer', 'adaptformer_lora'])
+    p.add_argument('--lora-targets', choices=['attn', 'attn+mlp'], default='attn',
+                   help='--adapt lora: wrap attn.qkv and attn.proj, or also mlp.fc1 and mlp.fc2')
+    p.add_argument('--lora-rank', type=int, default=16, help='--adapt lora: rank (alpha = 2 x rank)')
+    p.add_argument('--cascade', action='store_true', help='a 3-stage Cascade R-CNN box head (sarbench/cascade.py)')
+    p.add_argument('--cascade-checkpoint', action='store_true',
+                   help='--cascade: recompute the stage heads in the backward pass (same results, less memory)')
     p.add_argument('--bottleneck', type=int, default=64, help='AdaptFormer adapters: hidden width (dinov3 only)')
     p.add_argument('--spatial-prior', action='store_true',
                    help='add a small CNN on the raw image to the neck at strides 4 and 8 (ViT-Adapter style)')
@@ -140,7 +146,10 @@ def main():
     args = parse_args()
     torch.manual_seed(args.seed)
     bottleneck = f'_b{args.bottleneck}' if args.adapt.startswith('adaptformer') and args.bottleneck != 64 else ''
-    run_dir = args.out / f'{args.backbone}_{args.init}_{args.adapt}{bottleneck}{"_sp" if args.spatial_prior else ""}'
+    lora = ('_mlp' if args.lora_targets == 'attn+mlp' else '') + (f'_r{args.lora_rank}' if args.lora_rank != 16 else '') \
+        if args.adapt == 'lora' else ''
+    run_dir = args.out / (f'{args.backbone}_{args.init}_{args.adapt}{lora}{bottleneck}{"_cascade" if args.cascade else ""}'
+                          f'{"_sp" if args.spatial_prior else ""}')
     run_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_path = run_dir / 'last_checkpoint.pt'  # the last completed epoch, for --resume
     checkpoint = None
@@ -158,7 +167,8 @@ def main():
     backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained')
     if args.adapt != 'full':
         add_adapters(backbone, args.adapt, **adapter_kwargs(vars(args)))  # also freezes the backbone
-    model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior).cuda()
+    model = MultiTaskModel(backbone, task_routing=args.adapt == 'moelora', spatial_prior=args.spatial_prior,
+                           cascade=args.cascade, checkpoint_heads=args.cascade_checkpoint).cuda()
     parameters = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log(f'parameters: {parameters:,} total, {trainable:,} trainable', log_file)
