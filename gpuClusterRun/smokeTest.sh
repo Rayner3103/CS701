@@ -85,7 +85,7 @@ python -c "import torch; assert torch.cuda.is_available(), 'no GPU visible to to
 
 # Submit your job to the cluster
 # shellcheck disable=SC2086  # EXTRA is meant to split into arguments
-srun --gres=gpu:3090:1 python train.py --backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp \
+srun --gres=gpu:1 python train.py --backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp \
     --cascade --cascade-checkpoint --batch-size 8 --epochs 1 --eval-every 1 --seed 0 \
     --workers "${SLURM_CPUS_PER_TASK:-4}" --data "$DATA" --out "$OUT" ${LIMIT:+--limit $LIMIT} ${EXTRA:-}
 
