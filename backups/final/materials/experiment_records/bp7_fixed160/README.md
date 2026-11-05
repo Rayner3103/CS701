@@ -1,29 +1,31 @@
-# BP7 原学习率、160轮余弦实验
+# BP7 original learning rate, 160-epoch cosine experiment
 
-2026-10-30 用户要求保持原学习率并尝试延长训练。已启动独立等待队列，接在 lr125x 完成及最终验证之后，不中断当前实验。
+**English** · [中文](README.zh-CN.md)
 
-- Head 峰值 LR：1e-4；Backbone 峰值 LR：3e-4。
-- 训练160轮，cosine周期160轮，warmup1轮，seed0。
-- 从通用预训练权重重新初始化，不从130轮断点续训。
-- 固定架构、数据划分7512训练/940验证、双卡、batch16、CPU0–3、nice10、每卡2 workers/threads。
-- 原学习率基线：`BP7_LR130_local_s0_20261029_v2/lr1x`。
-- 新目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_fixedLR160_local_s0_20261030`。
-- 控制器：`tools/run_bp7_fixed160.py`，使用新目录固定源码快照；启动PID3083923。
-- 等待 `BP7_LR125_local_s0_20261030` 完成且释放驱动锁，失败则停止，不重叠启动训练。
+On 2026-10-30 the user asked to keep the original learning rate and try longer training. A separate waiting queue has been started, following the completion and final validation of lr125x, without interrupting the current experiment.
 
-## 实验解释
+- Head peak LR: 1e-4; Backbone peak LR: 3e-4.
+- 160 epochs of training, cosine period 160 epochs, warmup 1 epoch, seed0.
+- Reinitialized from generic pretrained weights, not resumed from the 130-epoch checkpoint.
+- Fixed architecture, data split 7512 train/940 val, dual-GPU, batch16, CPU0–3, nice10, 2 workers/threads per GPU.
+- Original learning-rate baseline: `BP7_LR130_local_s0_20261029_v2/lr1x`.
+- New directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_fixedLR160_local_s0_20261030`.
+- Controller: `tools/run_bp7_fixed160.py`, using the fixed source snapshot in the new directory; started as PID 3083923.
+- Waits for `BP7_LR125_local_s0_20261030` to complete and release the driver lock; on failure it stops, and training is not started overlapping.
 
-当前实现warmup后按余弦衰减，在计划末尾学习率为0。130改160会改变整个学习率轨迹，因此这是两种完整训练方案的对比，不能把收益单独归因为多训练30轮。峰值学习率保持不变，实际中途学习率更高、下降更慢。
+## Interpretation of the experiment
 
-最终使用相同submission后处理的本地val指标与130轮基线比较，记录mAP、Macro-F1、accuracy、AP50及本地Δm差值。超过1.0本地Δm仅作为操作性改善门槛，并非统计显著性。单seed结果不能证明稳定收益。
+In the current implementation the rate decays by cosine after warmup and is 0 at the end of the plan. Changing 130 to 160 changes the whole learning-rate trajectory, so this compares two complete training schemes, and any gain cannot be attributed solely to 30 more epochs. The peak learning rate is unchanged, while the actual mid-run rate is higher and declines more slowly.
 
-本队列只运行一组160轮实验，无自动官方提交、全量重训或test评估。`status.json`记录状态，`comparison.json`记录最终比较。新组命令与130轮基线仅`--epochs`、`--schedule-epochs`两项不同；19项既有调度与结果来源校验测试通过。
+Finally, local val metrics with the same submission post-processing are compared with the 130-epoch baseline, recording the differences in mAP, Macro-F1, accuracy, AP50 and local Δm. Exceeding 1.0 local Δm serves only as an operational improvement gate, not statistical significance. A single-seed result cannot prove a stable gain.
 
-## 用户要求立即开训后的调整
+This queue runs only one 160-epoch experiment, with no automatic official submission, full-data retraining or test evaluation. `status.json` records status and `comparison.json` the final comparison. The new command differs from the 130-epoch baseline only in the two items `--epochs` and `--schedule-epochs`; the 19 existing scheduling and result-source validation tests pass.
 
-2026-10-30 21:31左右，用户要求立即训练、保持原学习率。已停止lr125x（第70轮中途，保留第69轮完整断点）及旧等待控制器；确认其训练进程全部退出后，启动独立目录 `BP7_fixedLR160_local_s0_20261030_direct`，控制器PID3085748。原等待目录仅保留历史。新控制器允许显式授权的 `stopped_by_user` 前置状态，但必须确认原控制器及训练进程退出、原驱动锁释放后才可开始。训练设置仍为Head1e-4、Backbone3e-4、160轮训练/余弦、warmup1轮；没有改变峰值学习率。当前状态以新目录的status.json为准。
+## Adjustment after the user asked to train immediately
+
+Around 21:31 on 2026-10-30, the user asked to train immediately and keep the original learning rate. lr125x (mid epoch 70, complete checkpoint of epoch 69 kept) and the old waiting controller were stopped; after confirming that its training processes had all exited, the separate directory `BP7_fixedLR160_local_s0_20261030_direct` was started, controller PID 3085748. The original waiting directory is kept only as history. The new controller allows the explicitly authorized `stopped_by_user` precondition, but may start only after confirming that the original controller and training processes have exited and the original driver lock is released. Training settings remain Head 1e-4, Backbone 3e-4, 160 epochs training/cosine, warmup 1 epoch; the peak learning rate is unchanged. The status.json in the new directory is authoritative for the current state.
 
 
-## 2026-10-31 用户停止
+## 2026-10-31 stopped by user
 
-160轮训练在e154中途按用户要求停止，保留e153完整断点与e150权重；新上下文候选将用相同160-cos日程e150进行匹配比较。见[当前实验](../bp7_context160/README.md)。
+The 160-epoch training stopped mid e154 at the user's request, keeping the complete checkpoint of e153 and the weights of e150; the new context candidate will use e150 of the same 160-cos schedule for a matched comparison. See the [current experiment](../bp7_context160/README.md).

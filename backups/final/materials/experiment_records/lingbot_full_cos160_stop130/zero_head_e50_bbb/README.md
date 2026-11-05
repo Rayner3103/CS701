@@ -1,9 +1,11 @@
-# 零训练拼接 submission bbb.zip
+# Zero-training assembled submission bbb.zip
 
-用户要求完全不训练地换LingBot-B并生成submission。为与aaa.zip对照，固定复用同一BP7 full e50的分类头、neck、RPN、Cascade，共88个张量、28032480参数；未复制任何DINOv3 backbone或adapter张量。
+**English** · [中文](README.zh-CN.md)
 
-LingBot使用已固定并核验SHA256的官方Base预训练。新LoRA up为零，骨干所有原始张量逐项核对与官方权重一致。拼接后没有创建optimizer或执行训练更新，推理时所有参数冻结，eval/no_grad。输入、官方val1426、batch2及后处理与aaa一致，显式shift−0.2。
+The user asked to swap in LingBot-B with no training at all and generate a submission. To compare with aaa.zip, the classification head, neck, RPN and Cascade of the same BP7 full e50 are reused as fixed, 88 tensors and 28032480 parameters in total; no DINOv3 backbone or adapter tensors are copied.
 
-已生成submissions/bbb.zip与bbb.sha256，通过格式、图片覆盖、有限值、框范围、每图100框、ZIP完整性及25MB限制校验。未上传。来源与模型校验详见assembly.json，生成命令见launch.json，提交校验见validation.json。
+LingBot uses the official Base pretraining, pinned and SHA256-verified. New LoRA up is zero, and all original backbone tensors are checked item by item to match the official weights. After assembly no optimizer was created and no training update run; at inference all parameters are frozen, eval/no_grad. Input, official val 1426, batch2 and post-processing match aaa, with explicit shift−0.2.
 
-model/log.txt首行仅沿用重建架构所需字段及head供体的训练配方，不代表拼接后的模型又训练了这些轮数。拼接后新增训练步数为0；供体head已经在官方train9392上训练50轮。prediction_comparison.json仅比较无标签预测，不能当作准确率或泛化指标。
+submissions/bbb.zip and bbb.sha256 have been generated and pass the format, image coverage, finite values, box range, 100 boxes per image, ZIP integrity and 25MB limit validation. Not uploaded. Source and model validation are in assembly.json, the generating command in launch.json, submission validation in validation.json.
+
+The first line of model/log.txt merely carries over the fields needed to rebuild the architecture and the training recipe of the head donor; it does not mean the assembled model was trained for those epochs again. New training steps after assembly are 0; the donor head was already trained for 50 epochs on the official train 9392. prediction_comparison.json compares only unlabelled predictions and cannot be treated as an accuracy or generalization metric.

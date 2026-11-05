@@ -1,7 +1,9 @@
-# 第二本地留出集配对诊断
+# Paired diagnosis on the second local holdout
 
-原BP7 e150与上下文e150均为train7512、seed0、160cos，统一后处理，local test940。该留出集历史上使用过，不是新盲测。本轮只比较固定两份权重，不在其上调参。
+**English** · [中文](README.zh-CN.md)
 
-原模型mAP53.2262%、F194.5725%、本地Δm65.8027；上下文mAP53.0473%、F195.0628%、Δm65.6865。差值：mAP−0.1789pp、F1+0.4903pp、Δm−0.1162，综合近乎持平。原val的mAP+0.966pp未在该划分重复，不能声称上下文稳定改善或一定有害。
+Original BP7 e150 and context e150 are both train 7512, seed0, 160cos, unified post-processing, local test 940. This holdout has been used in the past and is not a new blind test. This round compares only the two fixed sets of weights and does no tuning on it.
 
-用户随后要求生成3份官方submission做反馈，记录在相邻context_submission_trio_20261031目录。
+Original model mAP 53.2262%, F1 94.5725%, local Δm 65.8027; context mAP 53.0473%, F1 95.0628%, Δm 65.6865. Differences: mAP −0.1789pp, F1 +0.4903pp, Δm −0.1162, overall nearly flat. The mAP +0.966pp on the original val did not repeat on this split; it cannot be claimed that context stably improves or is necessarily harmful.
+
+The user then asked for 3 official submissions for feedback, recorded in the neighbouring context_submission_trio_20261031 directory.

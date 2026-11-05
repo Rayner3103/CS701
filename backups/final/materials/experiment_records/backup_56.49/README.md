@@ -4,7 +4,7 @@
 
 `submission/BP7_avgE100-180_val_agn.zip` is the team's final Phase 1 entry: val Δm **56.49** on the leaderboard (macro-F1 95.27, mAP 55.10), posted on 2026-11-01 20:59 SGT, rank 2 of 8 when Phase 1 closed. It is one model: the trained tensors of nine checkpoints (epochs 100, 110, …, 180) of one 200-epoch-cosine run on all 9,392 labelled images, averaged into one set of weights, run once per image, with a post-processing chain tuned on the last day of Phase 1.
 
-This README says what is in the folder and how to reproduce it in three ways. Numbers, interpretation and the report items are in [REPORT.md](REPORT.md).
+This README says what is in the folder and how to reproduce it in three ways. Numbers, interpretation and the report items are in [REPORT.md](../../report/REPORT.md).
 
 ## 1. Results (leaderboard, Phase 1 val, 1,426 images)
 

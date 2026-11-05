@@ -1,28 +1,30 @@
-# SC1 检测框总数上限消融
+# SC1 ablation of the total detection-box cap
 
-2026-10-30（SGT）。结论：取消全图 100 框上限没有提高本地 val mAP，保留原上限，没有进入 local test 确认阶段。
+**English** · [中文](README.zh-CN.md)
 
-## 假设与设置
+2026-10-30 (SGT). Conclusion: removing the per-image cap of 100 boxes did not raise local val mAP; the original cap stays, and the local test confirmation stage was not entered.
 
-最终后处理同时有 `per_class=100` 和 `total=100`。SC1 val 中有 603/940 张图达到全图总上限，其中 345 张包含多个预测类别。疑问是错误类别是否占用了正确类别的候选名额。
+## Hypothesis and setup
 
-只比较原设置和 `total=None`，仍保留每类 100 框。其他配置完全相同：冻结 SC2 备份的后处理、Soft-NMS σ=0.75、objectness^0.25、三阶段框平均、shift=-0.2、threshold=1e-5、min_keep=30。分类保持 λ=1。不训练、不重新推理、不用 GPU。
+The final post-processing has both `per_class=100` and `total=100`. In SC1 val, 603/940 images reach the per-image total cap, of which 345 contain several predicted classes. The question is whether wrong classes take the candidate slots of the correct class.
 
-数据为 `~/cs701_runs/SC1_r80h1536/raw_val.pt`，940 张本地留出图，均来自官方有标注训练集。脚本检查训练与留出图像 IDs 不相交，并逐张断言扩展输出的前 100 项与基线坐标、类别、分数精确相同。以 val mAP 判断，只有提高才在第二个留出集确认同一固定方案。
+Only the original setting and `total=None` are compared, still keeping 100 boxes per class. Everything else is identical: the frozen post-processing of the SC2 backup, Soft-NMS σ=0.75, objectness^0.25, three-stage box mean, shift=-0.2, threshold=1e-5, min_keep=30. Classification stays λ=1. No training, no re-inference, no GPU.
 
-## 结果
+The data is `~/cs701_runs/SC1_r80h1536/raw_val.pt`, 940 local holdout images, all from the official labelled training set. The script checks that the training and holdout image IDs are disjoint, and asserts image by image that the first 100 items of the extended output are exactly the same as the baseline in coordinates, class and score. Judged by val mAP; only an increase would confirm the same fixed scheme on the second holdout.
 
-| 配置 | mAP | AP50 | AP75 | 输出框数 |
+## Results
+
+| Configuration | mAP | AP50 | AP75 | Output boxes |
 |---|---:|---:|---:|---:|
-| 每类 100，全图 100 | **41.2098** | 68.0708 | 43.0989 | 78,365 |
-| 每类 100，全图不限 | 41.2073 | 68.0699 | 43.1009 | 129,283 |
+| 100 per class, 100 per image | **41.2098** | 68.0708 | 43.0989 | 78,365 |
+| 100 per class, no per-image limit | 41.2073 | 68.0699 | 43.1009 | 129,283 |
 
-取消总上限增加约 65% 框，mAP 下降约 0.0025 个百分点，近乎持平但没有收益。所有尺寸档位 AP 也略低。没有理由为了这些额外预测扩大提交文件。macro-F1 不变（95.6468）。本次不生成官方 submission。
+Removing the total cap adds about 65% boxes, and mAP falls by about 0.0025 percentage points, close to flat but with no gain. AP of all size tiers is also slightly lower. There is no reason to enlarge the submission file for these extra predictions. macro-F1 is unchanged (95.6468). No official submission is generated this time.
 
-复现：
+To reproduce:
 
 ```bash
 ~/miniconda3/envs/cs701bench/bin/python -u tools/evaluate_detection_cap.py --workers 2
 ```
 
-`results.json` 保存完整指标、来源及代码哈希。可再生成的预测 JSON 由本目录 `.gitignore` 排除。尺寸 AP 定义沿用 `tools/evaluate_box_voting.py`，按 512 输入下的面积分组，主指标仍使用原图坐标的 IoU。
+`results.json` saves the full metrics, sources and code hashes. Regenerable prediction JSON is excluded by this directory's `.gitignore`. The definition of size AP follows `tools/evaluate_box_voting.py`, grouped by area at 512 input, and the main metric still uses IoU in original-image coordinates.

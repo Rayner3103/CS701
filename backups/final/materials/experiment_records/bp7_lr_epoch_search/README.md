@@ -1,57 +1,59 @@
-# BP7 固定架构：自主学习率与训练时长探索
+# BP7 fixed architecture: autonomous learning-rate and training-length exploration
 
-2026-10-29 用户授权自行设计并继续训练。后续控制器已部署，等待现有学习率对照完成；本批最多追加两次训练，预计延续至10月30日晚。
+**English** · [中文](README.zh-CN.md)
 
-运行目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR_Epoch_search_20261029`
+On 2026-10-29 the user authorized designing and continuing training autonomously. The follow-up controller is deployed and waits for the existing learning-rate comparison to complete; this batch appends at most two trainings, expected to run into the evening of 10-30.
 
-前序目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2`
+Run directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR_Epoch_search_20261029`
 
-## 顺序与预先固定的决策
+Predecessor directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2`
 
-| 顺序 | 配方 | Head LR | Backbone LR | Epoch | 状态/条件 |
+## Order and decisions fixed in advance
+
+| Order | Recipe | Head LR | Backbone LR | Epoch | Status/condition |
 |---|---|---:|---:|---:|---|
-| 1 | 原学习率 | 1e-4 | 3e-4 | 130 | 前序队列正在训练 |
-| 2 | 整体半倍率 | 5e-5 | 1.5e-4 | 130 | 前序队列自动接续 |
-| 3 | 分组调整 hybrid130 | 1e-4 | 2e-4 | 130 | 等前序全部完成及释放锁 |
-| 4 | schedule160 | 使用选定130轮配方 | 使用选定130轮配方 | 160 | 从通用预训练重新训练，余弦周期也改为160轮 |
+| 1 | Original learning rate | 1e-4 | 3e-4 | 130 | Training in the predecessor queue |
+| 2 | Overall half rate | 5e-5 | 1.5e-4 | 130 | Follows automatically in the predecessor queue |
+| 3 | Grouped adjustment hybrid130 | 1e-4 | 2e-4 | 130 | Waits for the predecessor to fully complete and release the lock |
+| 4 | schedule160 | uses the selected 130-epoch recipe | uses the selected 130-epoch recipe | 160 | Retrained from generic pretraining, cosine period also changed to 160 epochs |
 
-固定架构、增强、AdamW/weight decay0.05、warmup1轮、seed0、global batch16。训练7,512张，选择用本地val940张。所有新模型从通用预训练DINOv3加随机任务模块初始化，没有使用全量已训练权重。
+Fixed architecture, augmentation, AdamW/weight decay0.05, warmup 1 epoch, seed0, global batch16. Training on 7,512 images, selection on local val 940 images. All new models initialize from generic pretrained DINOv3 plus random task modules, using no full-data trained weights.
 
-三组130轮统一比较e130的submission后处理本地Δm；距离最高分不超过1.0的配方视为同档，按 `lr1x → hybrid130 → lr05x` 优先选择。160轮必须比对应130轮高出严格大于1.0，才替换较短方案。
+The three 130-epoch groups are compared uniformly by submission post-processing local Δm at e130; recipes within 1.0 of the highest score count as the same tier, and are preferred in the order `lr1x → hybrid130 → lr05x`. The 160-epoch run must be strictly more than 1.0 above the corresponding 130-epoch run to replace the shorter scheme.
 
-**1.0是操作性取舍门槛，不是统计显著性标准。** 所有实际分数和差值均保存。本批为单seed探索，稳定增益仍需候选与基线配对补seed。
+**1.0 is an operational trade-off gate, not a statistical-significance standard.** All actual scores and differences are saved. This batch is single-seed exploration; a stable gain still needs paired extra seeds for the candidate and baseline.
 
-候选在查看本地test之前固定。然后只对候选和原学习率基线做本地test确认（相同模型去重）；不按test重新选超参数。这个test历史实验已使用，并非全新独立测试集。
+The candidate is fixed before looking at local test. Then local test confirmation is done only for the candidate and the original-learning-rate baseline (deduplicated when the same model); hyperparameters are not reselected by test. This test set has been used in past experiments and is not a brand-new independent test set.
 
-## 资源与自动执行
+## Resources and automatic execution
 
-- 双卡GPU0/1串行运行；合计4个CPU核，nice10，每rank2线程和2个worker。
-- 后续控制器必须看到前序 `complete`，并取得前序释放的 `driver.lock`，才启动GPU任务。
-- 冻结代码与数据清单；训练和评估实现与已验证的前序快照一致。
-- 校验完整参数、权重哈希、模型预算、940张评估覆盖和固定后处理。
-- 状态每30秒更新。前序失败/死亡、结果损坏、训练失败时记录错误并停止，不盲目重复训练。
-- 每轮完整恢复状态及每10轮推理权重继续保存。
-- 本批不自动全量重训或上传线上提交。
+- Dual-GPU GPU0/1 run serially; 4 CPU cores in total, nice10, 2 threads and 2 workers per rank.
+- The follow-up controller must see the predecessor `complete` and acquire the `driver.lock` released by the predecessor before starting GPU jobs.
+- Code and data manifests are frozen; the training and evaluation implementation matches the verified predecessor snapshot.
+- Verifies full parameters, weight hashes, model budget, 940-image evaluation coverage and fixed post-processing.
+- Status updates every 30 seconds. Predecessor failure/death, corrupted results or training failure record the error and stop, with no blind repeated training.
+- The full recovery state every epoch and inference weights every 10 epochs continue to be saved.
+- This batch does not automatically retrain on full data or upload online submissions.
 
-## 输出
+## Outputs
 
-- `status.json`、`driver.log`：实际状态、心跳、进程和命令。
-- `launch_manifest.json`、`source.sha256`、`code/`：冻结的配置、选择规则与源码。
-- `hybrid130/`、`schedule160/`：后续训练、权重及本地val结果。
-- `lr_selection.json`：130轮配方选择及依据。
-- `candidate.json`：在test确认前固定的候选。
-- `confirmation_test_*.json`：候选/基线的确认结果。
-- `comparison.json`：所有验证成绩、130/160差值、候选相对基线的val/test差值及后续配对seed建议。
+- `status.json`, `driver.log`: actual status, heartbeat, processes and commands.
+- `launch_manifest.json`, `source.sha256`, `code/`: frozen config, selection rules and source.
+- `hybrid130/`, `schedule160/`: follow-up training, weights and local val results.
+- `lr_selection.json`: the 130-epoch recipe selection and its basis.
+- `candidate.json`: the candidate fixed before test confirmation.
+- `confirmation_test_*.json`: confirmation results of candidate/baseline.
+- `comparison.json`: all validation scores, the 130/160 difference, the candidate's val/test differences relative to baseline, and follow-up paired-seed recommendations.
 
-启动前19项选择、交接和结果校验测试通过；独立审查确认没有GPU重叠路径，严格参数校验与当前实际运行一致。控制器不需要新增GPU冒烟，因为训练及评估代码与已通过双卡恢复/完整评估检查的快照逐文件相同。
+Before launch, the 19 selection, handoff and result-validation tests passed; independent review confirmed that there is no GPU-overlap path and that strict parameter validation agrees with the current actual run. The controller needs no new GPU smoke test, because the training and evaluation code is file-by-file identical to the snapshot that passed the dual-GPU recovery/full-evaluation checks.
 
-## 2026-10-30 上午进度与共享资源变化
+## Morning of 2026-10-30: progress and shared-resource changes
 
-前序于09:27:45完成，hybrid130于09:27:51自动启动。09:46检查时在第3轮、无训练错误，队列交接正常。
+The predecessor completed at 09:27:45 and hybrid130 started automatically at 09:27:51. At the 09:46 check it was in epoch 3 with no training errors, and the queue handoff was normal.
 
-09:46资源检查发现两个额外VLLM推理进程，各占约9.8GiB级显存并共享GPU算力（未干预）。训练日志速度从夜间约28 images/s/rank降至约7.4；若这一速度持续，hybrid130剩余约18小时，后续160轮也将顺延，原先10月30日晚完成的预计已不适用。资源占用若变化，应重新估算。CPU限制、batch、模型和训练计划保持原配置。
+The 09:46 resource check found two extra VLLM inference processes, each taking GPU memory on the order of about 9.8GiB and sharing GPU compute (no intervention). Training-log speed fell from about 28 images/s/rank overnight to about 7.4; if this speed persists, hybrid130 has about 18 hours left and the later 160-epoch run is also pushed back, so the earlier estimate of finishing on the evening of 10-30 no longer applies. If resource use changes, re-estimate. CPU limits, batch, model and training plan keep the original config.
 
 
-## 2026-10-30 18:04 队列调整
+## 2026-10-30 18:04 queue adjustment
 
-用户明确选择先试学习率提高25%、130轮。旧控制器已被新控制器接管，hybrid130继续完成；原定schedule160暂缓，不会自动启动。后续方案和进程交接记录见 [lr125实验记录](../bp7_lr125/README.md)。运行状态以 `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030/status.json` 为准。
+The user explicitly chose to try the learning rate raised by 25%, 130 epochs, first. The old controller has been taken over by a new controller, hybrid130 continues to completion; the originally planned schedule160 is postponed and will not start automatically. For the follow-up plan and process handoff record see the [lr125 experiment record](../bp7_lr125/README.md). `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030/status.json` is authoritative for the run status.

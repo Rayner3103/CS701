@@ -9,3 +9,7 @@
 2026-11-05 18:14:42 gpu1 predict RPT_LOO36_noSP_s0 final rc=0
 2026-11-05 18:14:42 gpu1 done RPT_LOO36_noSP_s0 ok=True 3.05h
 2026-11-05 18:14:42 gpu1 train RPT_LOO36_noSizeIoU_s0 attempt 0
+2026-11-05 21:30:59 gpu1 train RPT_LOO36_noSizeIoU_s0 rc=0
+2026-11-05 21:31:37 gpu1 predict RPT_LOO36_noSizeIoU_s0 final rc=0
+2026-11-05 21:31:37 gpu1 done RPT_LOO36_noSizeIoU_s0 ok=True 3.28h
+2026-11-05 21:31:37 gpu1 train RPT_LOO36_noFlipBias_s0 attempt 0

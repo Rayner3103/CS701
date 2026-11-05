@@ -4,7 +4,7 @@
 
 `submission/BP7_avgE100-180_val_agn.zip` 是队伍 Phase 1 的最终条目：排行榜 val Δm **56.49**（macro-F1 95.27，mAP 55.10），2026-11-01 20:59 SGT 发布，Phase 1 关闭时 8 队中第 2。它是一个模型：一次在全部 9,392 张有标签图上的 200 轮余弦训练，取其 9 个 checkpoint（第 100、110、…、180 轮）的可训练张量平均成一组权重，每张图前向一次，再加上 Phase 1 最后一天调好的后处理链。
 
-本 README 说明文件夹里有什么，以及三种复现方式。数字、解释和报告各项见 [REPORT.zh-CN.md](REPORT.zh-CN.md)。
+本 README 说明文件夹里有什么，以及三种复现方式。数字、解释和报告各项见 [REPORT.zh-CN.md](../../report/REPORT.zh-CN.md)。
 
 ## 1. 结果（排行榜，Phase 1 val，1,426 张图）
 

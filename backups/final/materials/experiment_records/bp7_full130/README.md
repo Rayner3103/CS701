@@ -1,36 +1,38 @@
-# BP7 全量大模型：130轮双卡训练
+# BP7 full-data large model: 130-epoch dual-GPU training
 
-本次按用户指令，将 SC2 大模型配置（LoRA rank 80 / alpha 160、Cascade head 1536）与 BP7 的 SpatialPrior(64) 结合。
+**English** · [中文](README.zh-CN.md)
 
-- 从通用 DINOv3 预训练权重初始化，新增模块从头训练；不加载 BP7 小模型或 SC2 微调权重。
-- 仅训练官方 train 的全部 9,392 张图。本地 train+val+test 是官方 train 的内部划分，已逐集合核对。
-- 正式训练 130 轮，按130轮余弦学习率衰减；不是旧 SC2 的150轮计划中第130轮。
-- GPU0、GPU1，DDP全局batch16，每卡8；总CPU限制4核，每rank2个数据worker。
-- 总参数125,076,960，可训练39,867,360；梯度检查点、compile、A4、NWD8、flip-bias -0.3沿用SC2。
-- 正式训练前做双卡3步smoke，验证保存权重加载和8张官方val预测格式。smoke权重不用于正式训练。
-- 每10轮保存检查点，最终第130轮保存为model.pt。
-- 完成后自动对官方Phase1 val生成shift -0.2预测ZIP与原始输出，只保存本地，不自动上传。
+Per the user's instruction, this run combines the SC2 large-model configuration (LoRA rank 80 / alpha 160, Cascade head 1536) with BP7's SpatialPrior(64).
 
-运行状态见status.json，调度日志driver.log，正式训练stdout.log/log.txt，代码快照code/，哈希清单source.sha256。启动参数见commands.json。
+- Initialized from generic DINOv3 pretrained weights, with new modules trained from scratch; neither the BP7 small model nor SC2 fine-tuned weights are loaded.
+- Trains only on all 9,392 images of the official train. The local train+val+test are internal splits of the official train, checked set by set.
+- Formal training is 130 epochs with a 130-epoch cosine learning-rate decay; it is not epoch 130 of the old SC2's 150-epoch plan.
+- GPU0, GPU1, DDP global batch16, 8 per GPU; total CPU limited to 4 cores, 2 data workers per rank.
+- 125,076,960 total parameters, 39,867,360 trainable; gradient checkpointing, compile, A4, NWD8 and flip-bias -0.3 carry over from SC2.
+- Before formal training, a dual-GPU 3-step smoke test verifies loading of saved weights and the prediction format on 8 official val images. Smoke weights are not used for formal training.
+- A checkpoint is saved every 10 epochs, and the final epoch 130 is saved as model.pt.
+- On completion, a shift -0.2 prediction ZIP and raw outputs for the official Phase 1 val are generated automatically, saved locally only, not uploaded automatically.
 
-运行目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64`。
-启动驱动：`tools/run_bp7_full130.py`。
+Run status is in status.json, the scheduler log in driver.log, formal-training logs in stdout.log/log.txt, the code snapshot in code/, the hash manifest in source.sha256. Launch arguments are in commands.json.
 
-## 最终结果（2026-10-29，Phase 1）
+Run directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64`.
+Launch driver: `tools/run_bp7_full130.py`.
 
-训练和预测于20:57完成。正式训练耗时6.1304小时，使用2张GPU；rank0记录的训练显存峰值为11.77 GiB。以下线上成绩由用户通过截图或JSON提供，表格保留两位小数，原始精度保存在运行目录对应的`leaderboard_score.json`中。
+## Final results (2026-10-29, Phase 1)
 
-| 检查点 | BP7 Δm | BP7 mAP | SC2 Δm | SC2 mAP | BP7 Δm差值 |
+Training and prediction finished at 20:57. Formal training took 6.1304 hours on 2 GPUs; the peak training GPU memory recorded by rank0 was 11.77 GiB. The online scores below were provided by the user through screenshots or JSON; the table keeps two decimals, and the original precision is in the corresponding `leaderboard_score.json` in the run directory.
+
+| Checkpoint | BP7 Δm | BP7 mAP | SC2 Δm | SC2 mAP | BP7 Δm difference |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | e40 | 32.89 | 42.68 | 30.70 | 41.45 | +2.19 |
 | e80 | 48.40 | 50.75 | 45.83 | 49.37 | +2.57 |
-| e110 | 51.60 | 52.45 | 未评分 | 未评分 | — |
+| e110 | 51.60 | 52.45 | not scored | not scored | — |
 | e130 | 51.76 | 52.53 | 51.86 | 52.66 | −0.10 |
 
-BP7 e130：Macro-F1 95.65%、Accuracy 95.93%、AP50 73.32%。相对e110，Δm约增加0.16、mAP约增加0.08，AP50约下降0.16。
+BP7 e130: Macro-F1 95.65%, Accuracy 95.93%, AP50 73.32%. Relative to e110, Δm rose by about 0.16 and mAP by about 0.08, while AP50 fell by about 0.16.
 
-本次结论：BP7的早期同轮数优势没有转化为最终超过旧最佳的成绩；当前已知最佳仍是SC2 e130（51.86）。最终0.10的差距不足以证明哪一方案稳定更优。两者分别使用130轮和150轮余弦计划，数据worker数也不同，且只有单次运行；不能将差值全部归因于空间先验。e40/e80/e130来自相同训练轨迹，不是独立种子复验。
+Conclusion of this run: BP7's early same-epoch advantage did not turn into a final score above the old best; the best known so far is still SC2 e130 (51.86). The final gap of 0.10 is not enough to prove that either scheme is stably better. The two use 130-epoch and 150-epoch cosine plans respectively, with different data-worker counts, and only one run each; the difference cannot all be attributed to the spatial prior. e40/e80/e130 come from the same training trajectory and are not independent seed rechecks.
 
-最终提交：`submissions/BP7_full130_r80h1536_spatial64_e130_val_shift-0.2.zip`，1,426张图，shift −0.2。格式和SHA256已校验；所有上传由用户完成。
+Final submission: `submissions/BP7_full130_r80h1536_spatial64_e130_val_shift-0.2.zip`, 1,426 images, shift −0.2. Format and SHA256 are verified; all uploads are done by the user.
 
-最终权重：运行目录`model.pt`；线上结果汇总：运行目录`leaderboard_summary.json`；各检查点与代码快照均保留。
+Final weights: `model.pt` in the run directory; online result summary: `leaderboard_summary.json` in the run directory; all checkpoints and the code snapshot are kept.

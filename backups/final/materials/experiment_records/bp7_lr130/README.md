@@ -1,79 +1,81 @@
-# BP7 固定架构：本地学习率对照（2026-10-29）
+# BP7 fixed architecture: local learning-rate comparison (2026-10-29)
 
-用户决定停止架构探索，先比较当前学习率与半倍率学习率，再根据结果决定是否改变训练时长。本轮不自动提交线上、不自动启动全量重训。
+**English** · [中文](README.zh-CN.md)
 
-## 预先固定的比较方案
+The user decided to stop architecture exploration, first compare the current learning rate with a half-rate learning rate, and then decide from the results whether to change the training length. This round does not automatically submit online or automatically start full-data retraining.
 
-| 项目 | lr1x | lr05x |
+## Comparison plan fixed in advance
+
+| Item | lr1x | lr05x |
 |---|---:|---:|
-| Head/neck 学习率 | 1e-4 | 5e-5 |
-| Backbone 可训参数学习率 | 3e-4 | 1.5e-4 |
+| Head/neck learning rate | 1e-4 | 5e-5 |
+| Backbone trainable-parameter learning rate | 3e-4 | 1.5e-4 |
 | Epoch | 130 | 130 |
 | Warmup | 1 epoch | 1 epoch |
-| 调度 | 130 epoch cosine 到 0 | 相同 |
-| Seed / global batch | 0 / 16 | 相同 |
+| Schedule | 130 epoch cosine to 0 | same |
+| Seed / global batch | 0 / 16 | same |
 
-固定 BP7：DINOv3 ViT-B/16、LoRA80/alpha160、Cascade head1536、SpatialPrior64、NWD8、A4 size-IoU、aligned RoI、anchor offset0.5、flip-bias -0.3。总参数125,076,960，可训39,867,360。AdamW weight decay0.05，其余增强和模型配置与原大BP7一致。
+Fixed BP7: DINOv3 ViT-B/16, LoRA80/alpha160, Cascade head1536, SpatialPrior64, NWD8, A4 size-IoU, aligned RoI, anchor offset0.5, flip-bias -0.3. 125,076,960 total parameters, 39,867,360 trainable. AdamW weight decay0.05; other augmentation and model config match the original large BP7.
 
-两组从通用预训练 DINOv3 初始化，新建 LoRA/head/prior；不加载见过全部训练图的旧BP7/SC2权重。GPU0/1顺序双卡DDP，每rank workers2、线程2，总CPU affinity4核、nice10。每组每轮470个optimizer steps。
+Both groups initialize from generic pretrained DINOv3 with new LoRA/head/prior; old BP7/SC2 weights that have seen all training images are not loaded. GPU0/1 run sequential dual-GPU DDP, workers2 and threads2 per rank, total CPU affinity 4 cores, nice10. Each group has 470 optimizer steps per epoch.
 
-训练仅本地 train 7,512张；每10轮监控本地 val 940张。另940张 test 本轮不参与筛选；该集合历史实验已看过，不能称为全新独立测试集。三集合路径互斥，合并后与官方 train 9,392张一致。官方 val/test 不用于训练或本轮选择。
+Training uses only local train 7,512 images; local val 940 images are monitored every 10 epochs. The other 940 test images take no part in screening this round; that set has been seen by past experiments and cannot be called a brand-new independent test set. The paths of the three sets are mutually exclusive and combined they match the official train 9,392 images. The official val/test are not used for training or for selection in this round.
 
-主要比较指标预先固定为 **e130 本地val的 submission后处理 Δm**。训练中的周期指标是原始评估口径，只用于曲线监控；最终独立评估复用 `predict.py` 的分类融合lambda1与完整检测后处理，显式 `shift=-0.2`。本地Δm使用精确本地reference计算，不能当作线上成绩。
+The main comparison metric is fixed in advance as **submission post-processing Δm on local val at e130**. Periodic metrics during training use the raw evaluation definition and serve only to monitor curves; the final independent evaluation reuses the classification-fusion lambda1 and full detection post-processing of `predict.py`, with explicit `shift=-0.2`. Local Δm is computed with the exact local reference and cannot be treated as an online score.
 
-## 运行与恢复
+## Running and recovery
 
-运行目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2`
+Run directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2`
 
-- `status.json` / `driver.log`：队列状态，先lr1x，再lr05x。
-- `launch_manifest.json` / `source.sha256` / `code/`：配置、数据哈希与冻结代码。
-- `validation/`：实际双卡连续训练与中断恢复检查，以及完整本地评估检查。
-- `lr1x/`、`lr05x/`：各组的训练日志、每10轮推理权重与最终评估。
-- `training_state.pt`：每轮原子更新，包含完整模型、AdamW、scheduler、每rank RNG、epoch/global step和历史指标。
-- `comparison.json`：两组完成后自动汇总；差值定义为半倍率减基线。
+- `status.json` / `driver.log`: queue status, lr1x first, then lr05x.
+- `launch_manifest.json` / `source.sha256` / `code/`: config, data hashes and frozen code.
+- `validation/`: actual dual-GPU continuous-training and interrupt-recovery checks, and the full local evaluation check.
+- `lr1x/`, `lr05x/`: each group's training logs, inference weights every 10 epochs, and final evaluation.
+- `training_state.pt`: updated atomically every epoch, holding the full model, AdamW, scheduler, per-rank RNG, epoch/global step and metric history.
+- `comparison.json`: summarized automatically after both groups complete; differences are defined as half-rate minus baseline.
 
-`--reproducible-loader` 在每个epoch重建worker并固定随机种子，使两组数据顺序与增强随机流配对。默认GPU算法保持原样，不声称逐位确定性。断点恢复严格检查数据、配置、world size及步数；不同学习率/调度的分支实验不是普通resume，本轮未实施。
+`--reproducible-loader` rebuilds workers every epoch and fixes random seeds, so that the data order and augmentation random streams of the two groups are paired. The default GPU algorithms stay as they are, and bit-level determinism is not claimed. Checkpoint recovery strictly checks data, config, world size and step count; branch experiments with a different learning rate/schedule are not an ordinary resume and are not implemented in this round.
 
-启动前：训练恢复7项、已有ROI19项、独立评估8项测试通过；运行器的顺序执行、失败停止、源代码校验和防重复启动检查通过。实际双卡检查通过后才进入长训练。
+Before launch: the 7 training-recovery tests, 19 existing ROI tests and 8 independent-evaluation tests passed; the runner's sequential-execution, failure-stop, source-validation and duplicate-launch checks passed. Long training started only after the actual dual-GPU check passed.
 
-预计两组训练和评估约11–13小时，需按正式训练实测速度修正。只在本地选出有价值的方案后再安排全量重训和线上提交。
+Both groups' training and evaluation are expected to take about 11–13 hours, to be corrected by the measured speed of formal training. Full-data retraining and online submissions are arranged only after a worthwhile scheme is selected locally.
 
-首次双卡检查记录保留在不带 `_v2` 的目录：独立GPU训练在恢复前已出现参数数值差异，原固定绝对误差门槛不适用。v2检查每rank随机状态、scheduler/AdamW/global step、模型导出与训练状态的一致性，并记录恢复前后的数值差异；架构、学习率与训练数学配置未改。
+The first dual-GPU check record is kept in the directory without `_v2`: independent GPU training already showed parameter numerical differences before recovery, and the original fixed absolute-error gate did not apply. The v2 check verifies consistency of per-rank random state, scheduler/AdamW/global step, model export and training state, and records numerical differences before and after recovery; the architecture, learning rate and training math config are unchanged.
 
-2026-10-29 21:34:38（新加坡时间）：v2 实际双卡恢复检查通过。两rank随机状态、scheduler和AdamW步数一致，epoch2/global_step4；推理权重与完整状态中的模型逐项一致。独立GPU运行恢复前后最大参数差异分别约0.000894/0.001289，已记录，不声称逐位复现。
+2026-10-29 21:34:38 (Singapore time): the v2 actual dual-GPU recovery check passed. Random state, scheduler and AdamW steps of the two ranks agree, epoch2/global_step4; inference weights match the model in the full state item by item. The maximum parameter differences of independent GPU runs before and after recovery were about 0.000894/0.001289 respectively, recorded, with no claim of bit-level reproduction.
 
-2026-10-29 21:36:23（新加坡时间）：完整940张本地val的线上同口径评估检查通过，正式lr1x双卡训练启动（driver PID1126688）。已确认第1轮100/470步正常、loss有限；lr05x在第一组训练和评估完成后自动启动。
+2026-10-29 21:36:23 (Singapore time): the online-definition evaluation check on the full 940 local val images passed, and formal lr1x dual-GPU training started (driver PID 1126688). Step 100/470 of epoch 1 confirmed normal with finite loss; lr05x starts automatically after the first group's training and evaluation complete.
 
-2026-10-29 用户进一步授权自主实验。当前两组保持原顺序；另一个已部署的控制器将在本队列完成后追加分组学习率130轮与所选配方160轮，详情见 `experiments/bp7_lr_epoch_search/README.md`。
+2026-10-29: the user further authorized autonomous experiments. The current two groups keep the original order; another deployed controller will append grouped-learning-rate 130 epochs and the selected recipe at 160 epochs after this queue completes, see `experiments/bp7_lr_epoch_search/README.md`.
 
-## 基线最终成绩与用户线上反馈（2026-10-30）
+## Baseline final score and user online feedback (2026-10-30)
 
-原学习率130轮完成；用户手工提交 `BP7_local7512_lr1x_e130_val_shift-0.2.zip`，反馈截图保留两位小数。
+The original-learning-rate 130 epochs completed; the user manually submitted `BP7_local7512_lr1x_e130_val_shift-0.2.zip`, and the feedback screenshot keeps two decimals.
 
-| 指标 | 本地val（940张，submission同款后处理） | 官方val（1426张） |
+| Metric | Local val (940 images, same post-processing as submission) | Official val (1426 images) |
 |---|---:|---:|
 | Macro-F1 | 95.32% | 94.80% |
 | mAP | 52.27% | 49.66% |
 | Accuracy | 94.89% | 95.09% |
 | AP50 | 73.12% | 72.07% |
 
-本地Δm为68.6972，线上Δm为45.83；参考基线与图像集不同，不可把两者直接相减衡量退步。
+Local Δm is 68.6972 and online Δm is 45.83; the reference baselines and image sets differ, so the two cannot be directly subtracted to measure a regression.
 
-与旧全量BP7 e130线上51.76比较，本次Δm低5.93，mAP低2.87个百分点。当前模型训练7,512张，旧模型训练9,392张；训练数据、优化步数及增强随机流不同，差距不能全归因于某个因素。这份是原学习率的本地筛选基线，半倍率与分组调整尚未给出结果。
+Compared with the old full-data BP7 e130 online 51.76, this Δm is 5.93 lower and mAP 2.87 percentage points lower. The current model trained on 7,512 images and the old model on 9,392; training data, optimization steps and augmentation random streams differ, so the gap cannot all be attributed to any one factor. This is the local screening baseline at the original learning rate; the half-rate and grouped adjustments have no results yet.
 
-继续按预定本地验证规则选择学习率和轮数。用户线上反馈独立保存，不改自动选择规则，也不当作本地验证分数。最终稳定增益需要配对seed确认，最终候选再用全部官方训练数据重训。
+Learning rate and epochs continue to be selected by the predefined local validation rules. User online feedback is saved separately, does not change the automatic selection rules, and is not treated as a local validation score. A final stable gain needs paired-seed confirmation, and the final candidate is then retrained on all official training data.
 
-完整线上记录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/submission/leaderboard_score.json`。提交文件SHA256：`08afca47bcb2e6bc5f12f5f7b718e63ccf703b4486a80c4c09a2b2d079da50fe`。
+Full online record: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/submission/leaderboard_score.json`. Submission file SHA256: `08afca47bcb2e6bc5f12f5f7b718e63ccf703b4486a80c4c09a2b2d079da50fe`.
 
-## 两组130轮最终对照（2026-10-30 09:27）
+## Final comparison of the two 130-epoch groups (2026-10-30 09:27)
 
-两组已全部完成，统一在本地val940张使用submission同款后处理：
+Both groups are complete, uniformly using the same post-processing as submission on local val 940 images:
 
-| 配方 | 本地Δm | Macro-F1 | mAP | AP50 |
+| Recipe | Local Δm | Macro-F1 | mAP | AP50 |
 |---|---:|---:|---:|---:|
-| 原学习率 | 68.6972 | 95.3213% | 52.2734% | 73.1243% |
-| 整体半倍率 | 61.4869 | 95.5354% | 48.9887% | 72.4483% |
+| Original learning rate | 68.6972 | 95.3213% | 52.2734% | 73.1243% |
+| Overall half rate | 61.4869 | 95.5354% | 48.9887% | 72.4483% |
 
-半倍率相对基线：本地Δm -7.2103，mAP -3.2847个百分点，Macro-F1 +0.2141个百分点，AP50 -0.6761个百分点。在这次同预算、单seed对照中，整体减半的检测结果更差；不能从单次结果推断所有较低学习率/更长调度都无效。
+Half rate relative to baseline: local Δm -7.2103, mAP -3.2847 percentage points, Macro-F1 +0.2141 percentage points, AP50 -0.6761 percentage points. In this same-budget, single-seed comparison, halving overall gives worse detection results; it cannot be inferred from a single run that all lower learning rates/longer schedules are ineffective.
 
-后续控制器已通过完整结果校验，并于09:27:51启动hybrid130（head1e-4、backbone2e-4）。
+The follow-up controller has passed full-result validation and started hybrid130 (head1e-4, backbone2e-4) at 09:27:51.

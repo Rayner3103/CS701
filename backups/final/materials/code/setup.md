@@ -1,5 +1,7 @@
 # Setup Guide
 
+**English** · [中文](setup.zh-CN.md)
+
 How to go from nothing to a working smoke test, and how to share your work with the team.
 
 The scripts find the data by its position next to the repo, so keep this layout (the top folder can have any

@@ -1,31 +1,33 @@
-# BP7：学习率提高 25%，130 轮
+# BP7: learning rate raised by 25%, 130 epochs
 
-2026-10-30 用户确认优先试提高学习率，暂缓原定 160 轮实验。
+**English** · [中文](README.zh-CN.md)
 
-| 设置 | 原学习率基线 | 新对照 lr125x |
+On 2026-10-30 the user confirmed trying a higher learning rate first and postponing the originally planned 160-epoch experiment.
+
+| Setting | Original learning-rate baseline | New comparison lr125x |
 |---|---:|---:|
 | Head LR | 1e-4 | 1.25e-4 |
 | Backbone LR | 3e-4 | 3.75e-4 |
 | Epoch / cosine schedule | 130 / 130 | 130 / 130 |
 | Warmup | 1 epoch | 1 epoch |
 | Seed | 0 | 0 |
-| 训练 / 本地验证 | 7512 / 940 | 7512 / 940 |
+| Train / local val | 7512 / 940 | 7512 / 940 |
 
-固定 BP7 架构、初始化方式、数据增强、优化器、全局 batch16、双卡、CPU0–3、nice10、每卡2 workers/threads。新组从通用预训练权重初始化，不续训已有模型。学习率之外的命令参数与基线一致。
+Fixed: BP7 architecture, initialization method, data augmentation, optimizer, global batch16, dual-GPU, CPU0–3, nice10, 2 workers/threads per GPU. The new group initializes from generic pretrained weights and does not resume an existing model. Command arguments other than learning rate match the baseline.
 
-## 队列与交接
+## Queue and handoff
 
-- 新目录：`/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030`。
-- 代码：`tools/run_bp7_lr125_trial.py`，启动使用新目录中的固定源码快照。
-- 18:04 启动新控制器 PID2665530，已进入 `waiting_for_hybrid130`。
-- 只终止旧控制器 PID1528519，保留 torchrun553814 和训练 rank554080/554081；旧目录状态标记 `superseded`，保留原计划和全部产物。
-- 等 hybrid130 正常结束，确认完整130轮训练状态并完成最终统一后处理验证，然后自动启动 lr125x。
-- 原 `schedule160` 不会自动启动。新队列只启动这一组新训练，完成后停止，无自动上传、全数据重训或本地 test 评估。
+- New directory: `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030`.
+- Code: `tools/run_bp7_lr125_trial.py`, launched from the fixed source snapshot in the new directory.
+- New controller PID 2665530 started at 18:04 and has entered `waiting_for_hybrid130`.
+- Only the old controller PID 1528519 was terminated, keeping torchrun 553814 and training ranks 554080/554081; the old directory's status is marked `superseded`, keeping the original plan and all outputs.
+- After hybrid130 ends normally, the complete 130-epoch training state is confirmed and the final unified post-processing validation done, then lr125x starts automatically.
+- The original `schedule160` will not start automatically. The new queue starts only this one new training and stops on completion, with no automatic upload, full-data retraining or local test evaluation.
 
-## 比较与检查
+## Comparison and checks
 
-主比较为最终 epoch130、相同 submission 后处理的本地 val 指标，与 `BP7_LR130_local_s0_20261029_v2/lr1x` 比较。报告 mAP、Macro-F1、accuracy、AP50 和本地 Δm 差值，不把单 seed 收益当成稳定结论。
+The main comparison is local val metrics at final epoch 130 with the same submission post-processing, against `BP7_LR130_local_s0_20261029_v2/lr1x`. Reports the differences in mAP, Macro-F1, accuracy, AP50 and local Δm; a single-seed gain is not treated as a stable conclusion.
 
-`status.json` 记录状态，`handoff.json` 记录旧进程身份和交接前状态，`commands.json` 记录实际执行命令，`comparison.json` 保存最终对比。失败停止并保留日志，禁止并行重叠启动。
+`status.json` records status, `handoff.json` the old process identity and pre-handoff state, `commands.json` the commands actually executed, and `comparison.json` the final comparison. Failure stops the run and keeps the logs; overlapping parallel starts are forbidden.
 
-检查通过：19 项已有策略/来源校验测试；两组命令只有两个 LR 数值改变；进程身份与退出检测；实际交接后旧控制器退出、原双卡训练继续。
+Checks passed: the 19 existing policy/source validation tests; only the two LR values change between the two commands; process identity and exit detection; in the actual handoff the old controller exited and the original dual-GPU training continued.

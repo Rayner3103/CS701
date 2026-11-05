@@ -1,46 +1,52 @@
-# CS701 Team 7 最终材料
+# CS701 Team 7: Final Materials
 
-报告、代码和实验记录的汇总，截至 2026-11-05。标注“待定”的内容还没有结果，补训练完成后更新。
+**English** · [中文](README.zh-CN.md)
 
-## 目录
+The report, code and experiment records as of 5 November 2026. Items marked TBD have no result yet and will be updated when training finishes. Documents come in two versions: `X.md` is English and `X.zh-CN.md` is Chinese.
 
-| 路径 | 内容 | 是否推送 |
+**Start here: [report/REPORT.md](report/REPORT.md)** (the report with charts and the complete experiment log).
+
+## Contents
+
+| Path | Contents | Pushed |
 |---|---|---|
-| `report/` | 报告 `main.pdf` 和 LaTeX 源文件（正文 + 完整实验日志附录），`gen_report.py` 生成表格和图，`build_materials.sh` 重建本目录 | 是 |
-| `code/` | 当前工作区的代码快照，含未提交的修改：`train.py`、`predict.py`、`sarbench/`、`tools/`、`tests/` | 是 |
-| `experiment_records/` | `experiments/` 下各实验的说明、配置、脚本和结果摘要；`backup_56.49/` 是 56.49 备份的复现说明和运行记录 | 是 |
-| `run_records/` | `cs701_runs/` 下每次训练的配置、指标和日志 | 是 |
-| `phase2_records/` | Phase 2 的计划、排队脚本、评估脚本和 TWIN1 结论 | 是 |
-| `manifest/` | 未推送大文件的清单和校验值，以及训练进度 `training_status.txt` | 是 |
-| `local_only/` | 权重、原始输出、提交文件、会话记录、实验台账（硬链接，只在服务器上） | 否 |
+| `report/` | `REPORT.md`, `REPORT.zh-CN.md`, charts in `figures/`, and the scripts that generate them | Yes |
+| `code/` | Code snapshot of the final model and report runs | Yes |
+| `experiment_records/` | Notes, configs, scripts and result summaries of each experiment; `backup_56.49/` holds reproduction notes and run records of the 56.49 entry | Yes |
+| `run_records/` | Config, metrics and logs of each training run | Yes |
+| `phase2_records/` | Phase 2 plan, queue and evaluation scripts, TWIN1 verdict | Yes |
+| `manifest/` | Lists and checksums of large files not pushed, training status, Phase 2 board snapshot | Yes |
+| `local_only/` | Weights, raw outputs, submission files, session records, experiment ledgers (on the server only) | No |
 
-## Phase 2 成绩
+## Phase 2 result
 
-Δm **61.25**，macro-F1 96.96，mAP 55.74，AP50 75.19，11-03 15:37 SGT 发布。11-05 18:59 的公开榜单上排 8 队第 3，榜单 11-08 锁定。榜单快照见 `manifest/leaderboard_phase2_2026-11-05.json`。
+Δm **61.25**, macro-F1 96.96, mAP 55.74, AP50 75.19, posted 3 November 15:37 SGT. Rank 3 of 8 on the public board at 18:59 on 5 November; the board locks on 8 November. Snapshot: `manifest/leaderboard_phase2_2026-11-05.json`.
 
-## 待定
+## TBD
 
-| 项目 | 状态 |
+| Item | Status |
 |---|---|
-| 实际提交的文件和次数 | 待定：目前依据回忆，最后一次应为 `PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip` |
-| 其他作者姓名 | 待定 |
-| 完整配方 seed 1、2 | 待定：训练中，见 `manifest/training_status.txt` |
-| 留一消融（8 个变体，3 个 seed） | 待定：训练中 |
-| 参考模型本地基准 | 待定：排队中 |
-| 全项目 GPU 时总数 | 待定：截至 11-02 约 388，不含队友和补跑 |
-| 报告格式要求和截止日期 | 待定：“CVPR 模板、不超过 6 页”只来自队内草稿；目前不受页数限制 |
+| File and number of Phase 2 submissions | TBD: the last one is recalled as `PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip`; the board shows no file names |
+| Other authors | TBD |
+| Full-length seeds 1 and 2 | TBD: training, see `manifest/training_status.txt` |
+| Leave-one-out ablations (8 variants, 3 seeds) | TBD: training |
+| Local reference run | TBD: queued |
+| Project GPU-hour total | TBD: about 388 up to 2 November, excluding teammates and the report runs |
+| Report format and due date | TBD: "CVPR template, at most 6 pages" comes only from a team draft; no page limit is applied for now. A LaTeX version is on hold |
 
-## 没有推送的内容及原因
+## Not pushed, and why
 
-仓库是公开的，而 Terms 不允许向队外分享数据和预测；Phase 2 也还没有结束。
+The repository is public, the Terms do not allow sharing data or predictions outside the team, and Phase 2 is still open.
 
-- **预测和数据：** 提交 zip、含逐图框的 JSON、带标签的划分文件。
-- **权重和原始输出：** 单个文件最大超过 600 MB，超出 GitHub 的限制。清单见 `manifest/large_files_not_pushed.tsv`，提交文件和平均权重的校验值见 `manifest/*.sha256`。
-- **会话记录和实验台账：** 含聊天原文和内部讨论。
-- **56.49 备份的旧报告：** 其中的排名等内容已过时，以 `report/main.pdf` 为准。
+- **Predictions and data:** submission zips, JSON files with per-image boxes, labelled split files. For the same reason the report's charts contain no SAR images.
+- **Weights and raw outputs:** single files reach over 600 MB, above GitHub's limit. See `manifest/large_files_not_pushed.tsv` and `manifest/*.sha256`.
+- **Session records and experiment ledgers:** they hold chat text and internal discussion.
+- **Old reports of the 56.49 backup:** some content is out of date; use `report/REPORT.md`.
 
-## 重建
+Not translated: logs, data files, and third-party `LICENSE`, `NOTICE` and `LEGAL` files.
+
+## Rebuild
 
 ```bash
-report_final/build_materials.sh   # 在仓库根目录运行，不会删除本 README
+report_final/build_materials.sh   # from the repository root
 ```

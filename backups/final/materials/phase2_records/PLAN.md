@@ -1,5 +1,7 @@
 # Phase 2 overnight plan (written 2026-11-01 21:15 SGT by Claude; user asleep)
 
+**English** · [中文](PLAN.zh-CN.md)
+
 ## State
 - Phase 1 final: Δm 56.49 = avg(e100..e180 step 10, 9 ckpts of the BP7 cos200 full-data run) + rpn2000, obj_pow 0,
   soft-NMS σ0.5, stage mean, λ=2, shift −0.2, fusion agn γ=1 topk 9. Weights: CS701/.runtime/avg/avg_e100-180.pt.

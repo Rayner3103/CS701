@@ -1,30 +1,32 @@
-# BP7 自动选择时长并全数据训练
+# BP7 automatic length selection and full-data training
 
-2026-10-31 用户授权：“我睡了；你完成160轮之后，自行完成full train”。
+**English** · [中文](README.zh-CN.md)
 
-队列 `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full_selected_20261031`，控制器 `tools/run_bp7_full_selected.py`，启动PID3669143。等待 `BP7_fixedLR160_local_s0_20261030_direct` 完成最终验证并释放锁后自动执行，任何失败停止并保留现场。
+2026-10-31 user authorization: "I'm going to sleep; after you finish the 160 epochs, complete the full train on your own".
 
-## 固定决策
+Queue `/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full_selected_20261031`, controller `tools/run_bp7_full_selected.py`, started as PID 3669143. It waits for `BP7_fixedLR160_local_s0_20261030_direct` to finish final validation and release the lock, then runs automatically; any failure stops it and keeps the state.
 
-用统一submission后处理的本地val最终Δm比较原学习率130轮与160轮。160轮高出超过1.0则选择160，否则130。该门槛是操作性门槛而非统计显著性。按用户授权直接进入全数据训练，跳过第二seed复验，不声称稳定收益。决策写入selection.json。
+## Fixed decision
 
-## 全数据训练
+Compare the original-learning-rate 130 and 160 epochs by final local val Δm with the unified submission post-processing. If 160 is higher by more than 1.0, choose 160; otherwise 130. This gate is operational, not statistical significance. Per the user's authorization it goes directly to full-data training, skips a second-seed recheck, and claims no stable gain. The decision is written to selection.json.
 
-- 原峰值LR固定：Head1e-4、Backbone3e-4。
-- 选择的轮数同时作为余弦周期，warmup1轮，seed0。
-- BP7架构不变，从通用预训练权重重新开始，未使用本地已训模型续训。
-- 本地train+val+test合计9392，互不重叠，核验与官方训练集一致。官方val1426仅用于预测。
-- 双卡、batch16、CPU0–3、nice10、每卡2 workers/threads。
-- 每10轮保存推理权重，每轮保存完整断点。全量训练不再评估已纳入训练的本地val/test。
-- 只执行一组全量训练，无无限搜索、无自动官方上传。
+## Full-data training
 
-## 完成产物
+- Original peak LR fixed: Head 1e-4, Backbone 3e-4.
+- The selected epoch count also serves as the cosine period, warmup 1 epoch, seed0.
+- BP7 architecture unchanged, restarted from generic pretrained weights, no resuming from locally trained models.
+- Local train+val+test total 9392, non-overlapping, verified to match the official training set. Official val 1426 is for prediction only.
+- Dual-GPU, batch16, CPU0–3, nice10, 2 workers/threads per GPU.
+- Inference weights are saved every 10 epochs and a full checkpoint every epoch. Full-data training no longer evaluates the local val/test already included in training.
+- Only one full-data training is run, with no unlimited search and no automatic official upload.
 
-自动用最终model.pt生成官方val submission，统一后处理及shift−0.2。检查格式、1426图片覆盖、框范围、每图最多100框、ZIP完整性及小于25MB，写入submission_validation.json和SHA256。ZIP位于仓库submissions，留给用户手动提交。
+## Outputs on completion
 
-核验：130/160两种全量命令解析通过；学习率固定且无resume；9392数据并集核验通过；19项既有调度/来源校验测试通过。
+An official val submission is generated automatically from the final model.pt, with the unified post-processing and shift−0.2. Checks format, coverage of 1426 images, box ranges, at most 100 boxes per image, ZIP integrity and size below 25MB, written to submission_validation.json and SHA256. The ZIP is in the repository's submissions, left for the user to submit manually.
+
+Verified: both the 130 and 160 full-data commands parse; learning rate fixed and no resume; the 9392 data union check passes; the 19 existing scheduling/source validation tests pass.
 
 
-## 2026-10-31 用户取消此队列
+## 2026-10-31 user cancelled this queue
 
-用户要求停止当前实验并直接启动分类上下文候选。全量队列在waiting阶段已停止，未执行全数据训练。当前实验见[BP7上下文160轮](../bp7_context160/README.md)。
+The user asked to stop the current experiment and directly start the classification-context candidate. The full-data queue was stopped in the waiting stage; no full-data training was run. For the current experiment see [BP7 context 160 epochs](../bp7_context160/README.md).

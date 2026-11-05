@@ -1,38 +1,40 @@
-# BP7 全量训练：160轮余弦，e130停止并导出
+# BP7 full-data training: 160-epoch cosine, stop and export at e130
 
-2026-10-31 用户“来吧”授权，随后询问是否换学习率方法。本轮保持原峰值学习率及余弦方法，先验证较慢衰减在全数据上的效果。
+**English** · [中文](README.zh-CN.md)
 
-- 原BP7，DINOv3 LoRA80 / alpha160，Cascade1536，SpatialPrior64，无RoI context。
-- 官方train全部9392张：本地train7512 + val940 + test940，核验实际路径与官方训练清单一致。官方val1426仅推理。
-- 从通用预训练权重重新训练；Head LR1e-4、Backbone LR3e-4，warmup1轮，seed0，global batch16。
-- epochs160、schedule_epochs160、stop_after_epoch130。e130时学习率约为峰值8.53%。
-- 双卡，CPU0–3，nice10，每卡2个数据worker/计算线程。每10轮存推理checkpoint，每轮原子保存模型、优化器、调度器及两卡RNG。
-- e130完成后校验76310个更新步骤，导出ckpt_e130.pt；保留training_state.pt供后续沿原160轮轨迹继续训练。不会自动继续到160。
-- 自动生成 submissions/BP7_full_cos160_e130.zip，后处理沿用历史配置，显式shift−0.2。检查格式、1426张覆盖、有限数值、框边界、每图最多100框、ZIP完整性及25MB限制，生成SHA256。由用户手动提交。
+On 2026-10-31 the user authorized with "go ahead" and then asked whether to switch the learning-rate method. This round keeps the original peak learning rate and cosine method, and first verifies the effect of a slower decay on full data.
 
-全量运行目录：/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031。
-控制器：tools/run_bp7_full_stop130.py。目录内保存冻结源码、数据与源码校验、命令、状态、烟测结果、断点及提交校验。
+- Original BP7, DINOv3 LoRA80 / alpha160, Cascade1536, SpatialPrior64, no RoI context.
+- All 9392 images of the official train: local train 7512 + val 940 + test 940, with actual paths verified against the official training manifest. Official val 1426 is inference only.
+- Retrained from generic pretrained weights; Head LR 1e-4, Backbone LR 3e-4, warmup 1 epoch, seed0, global batch16.
+- epochs160, schedule_epochs160, stop_after_epoch130. At e130 the learning rate is about 8.53% of peak.
+- Dual-GPU, CPU0–3, nice10, 2 data workers/compute threads per GPU. An inference checkpoint is saved every 10 epochs; the model, optimizer, scheduler and RNG of both GPUs are saved atomically every epoch.
+- After e130 completes, 76310 update steps are verified and ckpt_e130.pt exported; training_state.pt is kept for later continuing along the original 160-epoch trajectory. It does not continue to 160 automatically.
+- submissions/BP7_full_cos160_e130.zip is generated automatically, with post-processing following the historical config and explicit shift−0.2. Checks format, coverage of 1426 images, finite values, box bounds, at most 100 boxes per image, ZIP integrity and the 25MB limit, and generates SHA256. Submitted manually by the user.
 
-选择依据：7512张训练的相同e130提交，130余弦Δ45.83，160余弦Δ47.12；单seed不足以证明稳定收益。本次目标与原全量SC2 Δ51.86及BP7 Δ51.76比较。全量训练后不评估已用于训练的本地留出集。
+Full-data run directory: /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031.
+Controller: tools/run_bp7_full_stop130.py. The directory holds the frozen source, data and source validation, commands, status, smoke-test results, checkpoints and submission validation.
 
-正式训练前用48张官方训练图片做一次双卡、原160轮调度、stop1的流程烟测，并用8张无标签官方val图片验证导出。烟测权重不用于正式初始化。失败停止并保留日志，不盲目重试。
+Basis of the choice: for the same e130 submission trained on 7512 images, 130 cosine gave Δ45.83 and 160 cosine gave Δ47.12; a single seed is not enough to prove a stable gain. This run's target is to compare with the original full-data SC2 Δ51.86 and BP7 Δ51.76. After full-data training, the local holdouts already used in training are not evaluated.
 
-2026-10-31 18:44:33 SGT已完成e130及提交导出。训练130轮、76310次更新，耗时6.4355小时，完整优化器与双卡RNG已保存。`submissions/BP7_full_cos160_e130.zip`为9,792,299字节，覆盖1426图、63386框；格式、框边界、SHA256和ZIP CRC复核通过，尚未上传。详见运行目录`checkpoint_validation.json`和`submission_validation.json`。
+Before formal training, one dual-GPU flow smoke test with the original 160-epoch schedule and stop1 is run on 48 official training images, and export is verified on 8 unlabelled official val images. Smoke weights are not used for formal initialization. Failure stops the run and keeps the logs, with no blind retries.
 
-10项新增CPU测试通过：训练配置、真实断点兼容性签名、提交文件合法与异常案例。
+2026-10-31 18:44:33 SGT: e130 and the submission export are complete. Training ran 130 epochs, 76310 updates, taking 6.4355 hours; the full optimizer and dual-GPU RNG are saved. `submissions/BP7_full_cos160_e130.zip` is 9,792,299 bytes, covering 1426 images and 63386 boxes; format, box bounds, SHA256 and ZIP CRC rechecks pass; not yet uploaded. See `checkpoint_validation.json` and `submission_validation.json` in the run directory.
 
-2026-10-31 12:17:17 SGT 正式训练启动，控制器PID1543483，torchrun PID1543839；双卡烟测、完整断点一致性及8张预测ZIP校验通过。已观察到epoch1 iter50/587，loss5.236且有限。实时进度以运行目录status.json和full_train/log.txt为准。
+10 new CPU tests pass: training config, real checkpoint compatibility signature, and valid and abnormal cases of submission files.
 
-## 官方分数反馈（2026-10-31）
+2026-10-31 12:17:17 SGT: formal training started, controller PID 1543483, torchrun PID 1543839; the dual-GPU smoke test, full checkpoint consistency and the 8-image prediction ZIP validation passed. Epoch1 iter50/587 has been observed, loss 5.236 and finite. Live progress is per status.json and full_train/log.txt in the run directory.
 
-用户提供排行榜截图：本次`BP7_full_cos160_e130.zip`得到Δm **52.78**，为当前项目已反馈结果中的最高分。截图数值仅保留两位小数；对应提交及权重SHA256、历史差值记录在`official_result.json`。是否已公开发布到排行榜未知。
+## Official score feedback (2026-10-31)
 
-| 模型 | Δm | Macro-F1 | mAP | Accuracy | AP50 |
+The user provided a leaderboard screenshot: this `BP7_full_cos160_e130.zip` scored Δm **52.78**, the highest among results fed back in the project so far. The screenshot values have only two decimals; the corresponding submission and weight SHA256 and the historical differences are recorded in `official_result.json`. Whether it has been publicly posted to the leaderboard is unknown.
+
+| Model | Δm | Macro-F1 | mAP | Accuracy | AP50 |
 |---|---:|---:|---:|---:|---:|
-| 原BP7：130轮余弦，e130 | 51.76 | 95.65 | 52.53 | 95.93 | 73.32 |
-| SC2：150轮余弦，e130 | 51.86 | 95.35 | 52.66 | 95.58 | 73.18 |
-| 本次BP7：160轮余弦，e130 | **52.78** | 95.35 | **53.15** | 95.58 | **73.76** |
+| Original BP7: 130-epoch cosine, e130 | 51.76 | 95.65 | 52.53 | 95.93 | 73.32 |
+| SC2: 150-epoch cosine, e130 | 51.86 | 95.35 | 52.66 | 95.58 | 73.18 |
+| This BP7: 160-epoch cosine, e130 | **52.78** | 95.35 | **53.15** | 95.58 | **73.76** |
 
-与原BP7相比，Δm +1.02、mAP +0.62个百分点、AP50 +0.44个百分点，F1下降0.30个百分点；检测提升抵消了分类下降。与历史最佳SC2相比，Δm +0.92、mAP +0.49个百分点、AP50 +0.58个百分点，显示精度下分类指标相同。原BP7是更直接的训练日程对照；SC2还存在空间先验等配置差异。单seed结果支持保留较慢余弦作为候选，尚不能认定稳定或统计显著的收益，也不能说明实际训练到160轮会更好。此次反馈不改变已完成的e130停止状态。
+Compared with the original BP7: Δm +1.02, mAP +0.62 percentage points, AP50 +0.44 percentage points, F1 down 0.30 percentage points; the detection gain offset the classification drop. Compared with the historical best SC2: Δm +0.92, mAP +0.49 percentage points, AP50 +0.58 percentage points, with classification metrics identical at displayed precision. The original BP7 is the more direct training-schedule comparison; SC2 also has configuration differences such as the spatial prior. The single-seed result supports keeping the slower cosine as a candidate, but cannot yet establish a stable or statistically significant gain, nor show that actually training to 160 epochs would be better. This feedback does not change the completed e130 stop state.
 
-2026-10-31资料复核修正：旧全量BP7 cos130未启用reproducible_loader，本次cos160启用，数据顺序和增强随机序列有差别。因此全量+1.02并非严格单变量因果证据。本地lr1x cos130与fixed160两组则核心代码、数据清单一致且均启用该选项；标准本地e130 mAP为51.43→51.99、F1为95.24→94.92，仍是单seed。
+2026-10-31 material recheck correction: the old full-data BP7 cos130 did not enable reproducible_loader while this cos160 does, so data order and augmentation random sequences differ. The full-data +1.02 is therefore not strict single-variable causal evidence. The local lr1x cos130 and fixed160 runs do share core code and data manifest and both enable the option; standard local e130 mAP is 51.43→51.99 and F1 95.24→94.92, still single-seed.

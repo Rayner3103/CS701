@@ -1,81 +1,83 @@
-# SC1 单次推理框投票实验
+# SC1 single-inference box-voting experiment
 
-日期：2026-10-30（SGT）。结论：四组预设配置均未提高本地 val mAP，保留原后处理作为默认。另生成一个 SC2 候选供官方 val 试验，见文末；尚未提交或获得官方得分。
+**English** · [中文](README.zh-CN.md)
 
-## 方法和数据
+Date: 2026-10-30 (SGT). Conclusion: none of the four preset configurations raised local val mAP, and the original post-processing stays the default. An SC2 candidate was also generated for an official val trial, see the end of this document; it has not been submitted or received an official score.
 
-- 使用 `~/cs701_runs/SC1_r80h1536/raw_val.pt`：940 张本地留出图。SC1 仅在本地 train 的 7,512 张图上训练；这些划分均来自官方有标注训练集。
-- SC2 已在全部 9,392 张有标注训练图上训练，不能用这些本地留出集评估 SC2 泛化。本实验是 SC1 上的代理实验，不是 SC2 的官方 val 得分。
-- 直接调用 51.86 备份中的冻结后处理：Soft-NMS σ=0.75、objectness^0.25、三阶段框平均、shift=-0.2、阈值 1e-5、min_keep=30、最多 100 框。
-- 对 Soft-NMS 保留框，从同一次前向、抑制前的同类候选中，选 IoU≥阈值的框，以其未被 Soft-NMS 衰减的分数加权平均坐标。最后做 `原框 + alpha × (加权框 − 原框)`。
-- 分数、类别、框数及分类输出保持相同。没有重新推理、增加视图、读取图像或训练模型；全部计算在 CPU 上完成。
-- 候选池也调用同一冻结后处理，仅将 NMS 改为阈值 1 的 hard NMS，并解除数量上限，保证阶段平均、位移、裁剪、分数和候选过滤一致。
+## Method and data
 
-预先固定 IoU `{0.8, 0.9}` × alpha `{0.10, 0.25}`。以 val mAP 选择，基线平分时优先；只有超过基线才在本地 test 比较基线与唯一选中配置。本次四组均未超过基线，因此没有使用本地 test。两个留出集过去已用于其他实验，不视为全新最终测试集。
+- Uses `~/cs701_runs/SC1_r80h1536/raw_val.pt`: 940 local holdout images. SC1 was trained only on the 7,512 images of local train; these splits all come from the official labelled training set.
+- SC2 has been trained on all 9,392 labelled training images, so these local holdouts cannot be used to assess SC2's generalization. This experiment is a proxy experiment on SC1, not an official val score of SC2.
+- Directly calls the frozen post-processing in the 51.86 backup: Soft-NMS σ=0.75, objectness^0.25, three-stage box mean, shift=-0.2, threshold 1e-5, min_keep=30, at most 100 boxes.
+- For each box kept by Soft-NMS, from the same-class candidates of the same forward pass before suppression, select the boxes with IoU≥threshold and average their coordinates weighted by their scores not decayed by Soft-NMS. Finally apply `原框 + alpha × (加权框 − 原框)` (original box + alpha × (weighted box − original box)).
+- Scores, classes, box counts and classification outputs stay the same. No re-inference, no added views, no image reading and no model training; all computation was on CPU.
+- The candidate pool also calls the same frozen post-processing, changing NMS only to hard NMS with threshold 1 and removing the count cap, so that stage averaging, shift, clipping, scores and candidate filtering stay consistent.
 
-## 结果
+IoU `{0.8, 0.9}` × alpha `{0.10, 0.25}` were fixed in advance. Selection is by val mAP, with the baseline preferred on ties; only a configuration beating the baseline would have the baseline and that single selected configuration compared on local test. None of the four beat the baseline this time, so local test was not used. Both holdouts have been used in other experiments before and are not treated as brand-new final test sets.
 
-下表单位为百分数，差值为百分点；macro-F1 均为 95.6468，共 78,365 个输出框。
+## Results
 
-| 配置 | mAP | 相对基线 | AP50 | AP75 |
+In the table below the unit is percent and differences are percentage points; macro-F1 is 95.6468 throughout, with 78,365 output boxes in total.
+
+| Configuration | mAP | vs baseline | AP50 | AP75 |
 |---|---:|---:|---:|---:|
-| 原方案，shift=-0.2 | **41.2098** | — | 68.0708 | 43.0989 |
-| IoU 0.8，alpha 0.10 | 41.2040 | -0.0058 | 68.0672 | 43.1687 |
-| IoU 0.8，alpha 0.25 | 41.1810 | -0.0288 | 68.0356 | 43.0722 |
-| IoU 0.9，alpha 0.10 | 41.1993 | -0.0105 | 68.0765 | 43.1326 |
-| IoU 0.9，alpha 0.25 | 41.2027 | -0.0071 | 68.0718 | 43.2559 |
+| Original scheme, shift=-0.2 | **41.2098** | — | 68.0708 | 43.0989 |
+| IoU 0.8, alpha 0.10 | 41.2040 | -0.0058 | 68.0672 | 43.1687 |
+| IoU 0.8, alpha 0.25 | 41.1810 | -0.0288 | 68.0356 | 43.0722 |
+| IoU 0.9, alpha 0.10 | 41.1993 | -0.0105 | 68.0765 | 43.1326 |
+| IoU 0.9, alpha 0.25 | 41.2027 | -0.0071 | 68.0718 | 43.2559 |
 
-变化很小，不能据此声称框投票普遍有害，但没有证据支持采用这四组配置。AP75 的局部改善没有转化为主指标 mAP 改善，分类不变，因此综合 Δm 也不会改善。此次保留原方案，不继续用 test 挑选配置。
+The changes are very small, so this cannot support a claim that box voting is generally harmful, but there is no evidence for adopting these four configurations. The partial AP75 improvement did not turn into an improvement in the main metric mAP, and classification is unchanged, so the overall Δm will not improve either. The original scheme is kept this time, and test is not further used to pick configurations.
 
-`results.json` 保留完整指标、每类/尺寸 AP、坐标改变量、缓存与代码 SHA256。尺寸 AP 按 512×512 输入下的 `sqrt(area)` 分组，COCO 区间端点包含边界；IoU 和主指标仍按原图坐标计算。尺寸指标只作诊断，不能替代主指标选型。
+`results.json` keeps the full metrics, per-class/per-size AP, coordinate changes, and cache and code SHA256. Size AP is grouped by `sqrt(area)` at 512×512 input, with COCO interval endpoints inclusive; IoU and the main metric are still computed in original-image coordinates. Size metrics are diagnostic only and cannot replace the main metric for selection.
 
-## 复现与检查
+## Reproduce and check
 
-在仓库根目录、已有 `cs701bench` 环境下运行：
+Run from the repository root, with the existing `cs701bench` environment:
 
 ```bash
 ~/miniconda3/envs/cs701bench/bin/python -u tools/evaluate_box_voting.py --workers 2
 ~/miniconda3/envs/cs701bench/bin/python -m pytest -q tests/test_box_voting.py
 ```
 
-14 个测试通过，覆盖加权坐标、类别与 IoU 隔离、空输入、零权重、零融合、输入不修改和参数合法性。独立抽查六张缓存图确认保留框存在于候选池，原图坐标转换与原函数一致。预测 JSON 保留在本目录并由 `.gitignore` 排除，避免加入约 56 MB 可再生成的结果。
+14 tests pass, covering weighted coordinates, class and IoU isolation, empty input, zero weights, zero fusion, input not modified and parameter validity. An independent spot check of six cached images confirmed that kept boxes exist in the candidate pool and that the conversion to original-image coordinates agrees with the original function. The prediction JSON stays in this directory and is excluded by `.gitignore`, to avoid adding about 56 MB of regenerable results.
 
-## SC2 官方 val 候选
+## SC2 official val candidate
 
-候选文件：`submissions/SC2_e130_val_shift-0.2_boxvote_iou0.8_alpha0.10.zip`。IoU=0.8、alpha=0.10 是四个投票配置中本地 val mAP 最高者，但仍略低于基线。此候选用于进一步试验，不代表已验证优于原提交。
+Candidate file: `submissions/SC2_e130_val_shift-0.2_boxvote_iou0.8_alpha0.10.zip`. IoU=0.8, alpha=0.10 has the highest local val mAP of the four voting configurations, yet is still slightly below the baseline. This candidate is for further trial and does not mean it has been verified better than the original submission.
 
-生成脚本为 `tools/make_box_voting_submission.py`。它以原 51.86 提交中的框作锚框，从同一 SC2 e130 的缓存恢复候选框，只将投票位移加到原坐标；原框已经含 shift=-0.2，不再次平移。分类文件逐字节不变，61,683 个框的分数、类别、数量和顺序不变。缓存精度不会导致这些字段随重放而变化。此生成方式与 SC1 实验的差别仅在于锚框直接取自存档提交，而非重算缓存后处理。
+The generating script is `tools/make_box_voting_submission.py`. It takes the boxes in the original 51.86 submission as anchor boxes, recovers candidate boxes from the cache of the same SC2 e130, and adds only the voting displacement to the original coordinates; the original boxes already include shift=-0.2 and are not shifted again. The classification file is byte-for-byte unchanged, and the scores, classes, count and order of the 61,683 boxes are unchanged. Cache precision does not make these fields change on replay. The only difference between this generation method and the SC1 experiment is that the anchor boxes are taken directly from the archived submission instead of recomputing the cached post-processing.
 
-格式检查通过：1,426 张图、61,683 个框、无缺框图、无越界框、每图每类最多 100 框。所有锚框均有达到投票阈值的同类候选。候选旁的 `.json` 和 `.sha256` 保存输入来源、参数和文件哈希。
+Format check passed: 1,426 images, 61,683 boxes, no image without boxes, no out-of-bounds boxes, at most 100 boxes per class per image. All anchor boxes have a same-class candidate reaching the voting threshold. The `.json` and `.sha256` next to the candidate hold the input sources, parameters and file hash.
 
-用户随后反馈：线上效果“几乎没差”，未提供精确分数，不据此记录数值增益。
+Later user feedback: the online effect was "almost no difference"; no exact score was provided, so no numerical gain is recorded on this basis.
 
 ```bash
 ~/miniconda3/envs/cs701bench/bin/python tools/make_box_voting_submission.py --out submissions/SC2_boxvote_reproduced.zip
 ~/miniconda3/envs/cs701bench/bin/python tools/check_submission.py submissions/SC2_boxvote_reproduced.zip ~/cs701_data/cs701-sar-course-data/val/images.json
 ```
 
-## 仅小框投票的后续检查
+## Follow-up check of small-box-only voting
 
-看到尺寸 AP 的变化后，固定 IoU=0.8、alpha=0.10，额外检查只对预测框 `sqrt(area)<16` 或 `<32`（512输入坐标）投票。分组依据投票前的预测尺寸，无需标签。两项为观察本地 val 结果后的探索性检查。
+After seeing the changes in size AP, with IoU=0.8, alpha=0.10 fixed, an extra check voted only on predicted boxes with `sqrt(area)<16` or `<32` (in 512 input coordinates). Grouping is by the predicted size before voting and needs no labels. Both are exploratory checks made after looking at the local val results.
 
-| 方法 | val mAP | val AP75 |
+| Method | val mAP | val AP75 |
 |---|---:|---:|
-| 原方案 | 41.2098 | 43.0989 |
-| 仅 <16 | 41.2036 | 43.0390 |
-| 仅 <32 | 41.2015 | 43.0381 |
+| Original scheme | 41.2098 | 43.0989 |
+| Only <16 | 41.2036 | 43.0390 |
+| Only <32 | 41.2015 | 43.0381 |
 
-均未提高主指标，因此未进入第二留出集。不能仅凭小尺寸分组 AP 上升推断整体指标会提高。脚本 `tools/evaluate_size_gated_voting.py`；详细结果 `size_gate_results.json`。
+Neither raised the main metric, so neither went on to the second holdout. A rise in small-size-group AP alone cannot imply that the overall metric will rise. Script `tools/evaluate_size_gated_voting.py`; detailed results `size_gate_results.json`.
 
-## 下一步诊断：RPN 候选覆盖
+## Next diagnosis: RPN proposal coverage
 
-在同一 SC1 本地 val 缓存中，取 `raw_stage[0]` 的 RPN 框，按 `raw_obj` 排序。每个 GT 独立检查是否有候选达到 IoU≥0.5；不使用分类分数阈值，不做一对一匹配。因此这是候选覆盖率，不是 AP，也不是最终检测召回。
+On the same SC1 local val cache, take the RPN boxes of `raw_stage[0]` and sort them by `raw_obj`. Each GT is checked independently for a proposal reaching IoU≥0.5; no classification-score threshold and no one-to-one matching are used. So this is proposal coverage, neither AP nor final detection recall.
 
-| 目标组 | GT数量 | 前500候选覆盖 | 前1000候选覆盖 |
+| Target group | GT count | Coverage by top 500 proposals | Coverage by top 1000 proposals |
 |---|---:|---:|---:|
-| 全部 | 3323 | 88.44% | 89.77% |
-| <16像素 | 1698 | 80.74% | 82.51% |
+| All | 3323 | 88.44% | 89.77% |
+| <16 pixels | 1698 | 80.74% | 82.51% |
 | bridge | 357 | 45.94% | 48.74% |
 | playground | 276 | 56.88% | 66.30% |
 
-当前训练 RPN pre/post-NMS 上限是2000，测试是1000（冻结 `code/sarbench/model.py:202`）。后半段候选仍覆盖额外目标，支持把“测试候选上限提高到2000”列为下一项实验；不能据此断言一定提升mAP，新增候选也可能增加误检。这需要重新推理，不能从现有1000候选缓存补出结果。本次没有改模型或启动新GPU推理。诊断数据见 `proposal_coverage.json`。
+The current RPN pre/post-NMS cap is 2000 in training and 1000 in testing (frozen `code/sarbench/model.py:202`). The latter half of the proposals still covers additional targets, which supports listing "raise the test proposal cap to 2000" as the next experiment; it cannot be concluded from this that mAP must rise, and new proposals may also add false positives. This needs re-inference and cannot be filled in from the existing 1000-proposal cache. This round changed no model and started no new GPU inference. Diagnostic data is in `proposal_coverage.json`.

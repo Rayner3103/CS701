@@ -1,5 +1,7 @@
 # USAGE: the current best model (F1_full)
 
+**English** · [中文](USAGE.zh-CN.md)
+
 How the model behind `F1_full_val.zip` (Junkai's best Phase 1 submission candidate) is built, how to
 reproduce it, and how to test a change against it. Setup, data download and the local split are in
 [setup.md](setup.md) (Steps 1-4); every command below runs from the repo folder.

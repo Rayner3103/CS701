@@ -1,25 +1,27 @@
-# 三份submission对照
+# Comparison of three submissions
 
-均为7512训练图、原学习率、160轮余弦日程，单次512输入、统一后处理shift−0.2。
+**English** · [中文](README.zh-CN.md)
 
-|标号|模型/检查点|用途|
+All with 7512 training images, original learning rate, 160-epoch cosine schedule, single 512 input, unified post-processing shift−0.2.
+
+|Label|Model/checkpoint|Purpose|
 |---|---|---|
-|A|原BP7 e150|后期基线|
-|B|上下文BP7 e150|与A同轮数比较架构|
-|C|上下文BP7 e130|与已提交原BP7 e130（47.12）比较，检验较早停止|
+|A|Original BP7 e150|late baseline|
+|B|Context BP7 e150|compare the architecture with A at the same epoch|
+|C|Context BP7 e130|compare with the already submitted original BP7 e130 (47.12), testing earlier stopping|
 
-三份全部通过格式、1426图片覆盖、边界、数量、CRC和大小检查。未上传。results.json保存路径与哈希，各子目录保留命令、来源、raw输出及校验记录。C是在160-cos轨迹上的e130，不是130-cos训练。
-
-
-用户要求简化文件名：A→submissions/a.zip，B→submissions/b.zip，C→submissions/c.zip。已直接重命名ZIP和SHA256文件；校验记录同步更新，文件内容不变。
+All three pass the format, 1426-image coverage, bounds, count, CRC and size checks. Not uploaded. results.json holds paths and hashes, and each subdirectory keeps the command, sources, raw outputs and validation records. C is e130 on the 160-cos trajectory, not a 130-cos training.
 
 
-A官方反馈（2026-10-31截图）：Δm46.92、F194.48%、mAP50.32%、accuracy94.88%、AP5071.65%。相比同一160-cos轨迹e130的47.12，Δm−0.20；截图+1.09是相对posted entry，并非相对e130。B/C反馈待补。
+The user asked to simplify file names: A→submissions/a.zip, B→submissions/b.zip, C→submissions/c.zip. The ZIP and SHA256 files were renamed directly; validation records were updated accordingly, and file contents are unchanged.
 
 
-B官方反馈：Δm46.89、F194.89%、mAP50.19%、accuracy95.16%、AP5072.07%。同e150相对A：Δm−0.03、F1+0.41pp、mAP−0.13pp、accuracy+0.28pp、AP50+0.42pp。综合近乎持平，上下文改善分类但没有带来检测mAP提升；尚不构成稳定收益或损害结论。
+A official feedback (2026-10-31 screenshot): Δm 46.92, F1 94.48%, mAP 50.32%, accuracy 94.88%, AP50 71.65%. Against the 47.12 of e130 on the same 160-cos trajectory, Δm −0.20; the screenshot's +1.09 is relative to the posted entry, not to e130. B/C feedback pending.
 
 
-C官方反馈：Δm46.93、F194.78%、mAP50.24%、accuracy95.09%、AP5072.33%。相对无上下文同e130：Δm−0.19、F1+0.20pp、mAP−0.17pp、accuracy+0.14pp、AP50+0.71pp。
+B official feedback: Δm 46.89, F1 94.89%, mAP 50.19%, accuracy 95.16%, AP50 72.07%. At the same e150 relative to A: Δm −0.03, F1 +0.41pp, mAP −0.13pp, accuracy +0.28pp, AP50 +0.42pp. Overall nearly flat; context improves classification but brings no detection mAP gain; not yet a conclusion of stable gain or harm.
 
-三份Δm：A46.92/B46.89/C46.93，范围仅0.04。两组同轮数对照均未显示上下文综合收益；无上下文e130→e150为47.12→46.92，上下文e130→e150→e160为46.93→46.89→46.80。当前轨迹没有从较晚检查点获得线上提升，但单seed微小差异不证明更长训练普遍无效。建议停止围绕这些相邻检查点消耗提交额度。
+
+C official feedback: Δm 46.93, F1 94.78%, mAP 50.24%, accuracy 95.09%, AP50 72.33%. Relative to no-context at the same e130: Δm −0.19, F1 +0.20pp, mAP −0.17pp, accuracy +0.14pp, AP50 +0.71pp.
+
+The three Δm: A 46.92/B 46.89/C 46.93, a range of only 0.04. Neither same-epoch comparison shows an overall gain from context; no-context e130→e150 is 47.12→46.92, and context e130→e150→e160 is 46.93→46.89→46.80. The current trajectory gained nothing online from later checkpoints, but tiny single-seed differences do not prove that longer training is generally ineffective. The recommendation is to stop spending submission quota around these neighbouring checkpoints.

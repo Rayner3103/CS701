@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Writes tables/*.tex and figures/*.pdf for main.tex from the experiment results. Numbers without a results file are
+"""Writes REPORT.md and REPORT.zh-CN.md: fills the tables in src/*.template.md from the experiment results. Numbers without a results file are
 hand-checked against the ledgers in experiments/report_final_20261105/ledgers (sources in the supplement)."""
 import glob, json, os, statistics as st
 from pathlib import Path
-import matplotlib; matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
 HERE = Path(__file__).resolve().parent; RES = HERE.parent / 'experiments/report_final_20261105/results'
 (HERE / 'tables').mkdir(exist_ok=True); (HERE / 'figures').mkdir(exist_ok=True)
-PEND = r'\textcolor{red}{TBD}'
+PEND = 'TBD'
 cfg = json.loads((HERE / 'report_inputs.json').read_text())
 def w(name, s): (HERE / 'tables' / name).write_text(s)
 def pm(xs, d=2, sign=False):
@@ -100,19 +97,26 @@ rows = [r'Parameters & \textbf{125,076,960 total, 39,867,360 trainable}: frozen 
  r'Validation & \S\ref{sec:val}. Official val and test only predicted',
  r'Seeds & Submitted model: 1 run. Final recipe, full length: %s runs. Ablations: Table~\ref{tab:loo}. C36: 37 runs, $\pm0.70$' % cfg['twin_seeds']]
 w('terms.tex', table('tab:terms', r'Items required by the Terms.', 'p{1.65cm}p{6.1cm}', 'Item & Value', rows))
-# ---------------- model diagram (a diagram, not a chart: neutrals for frozen, one blue for trained)
-BLUE, GRAY, INK, MUT = '#dbe8f8', '#ececea', '#0b0b0b', '#52514e'
-fig, ax = plt.subplots(figsize=(3.4, 2.75)); ax.set_xlim(0, 100); ax.set_ylim(0, 82); ax.axis('off')
-def box(x, y, w_, h, t, c=BLUE, fs=5.4):
-    ax.add_patch(FancyBboxPatch((x, y), w_, h, boxstyle='round,pad=0.2,rounding_size=1.0', fc=c, ec='#8a8984', lw=0.5)); ax.text(x + w_ / 2, y + h / 2, t, ha='center', va='center', fontsize=fs, color=INK, linespacing=1.1)
-def arr(a, b): ax.annotate('', xy=b, xytext=a, arrowprops=dict(arrowstyle='-|>', lw=0.6, color=MUT, mutation_scale=5, shrinkA=0, shrinkB=0))
-box(0, 36, 15, 16, 'Gray image\n512 x 512', '#ffffff')
-box(21, 46, 30, 34, '', GRAY); ax.text(36, 72, 'DINOv3 ViT-B/16\nfrozen, 85.1 M', ha='center', va='center', fontsize=5.4, color=INK, linespacing=1.1); box(24, 49, 24, 14, 'LoRA r80 + norms\n11.8 M')
-box(21, 12, 30, 16, 'Spatial prior CNN\n64 ch, 0.21 M')
-box(57, 34, 16, 26, 'ViTDet\npyramid\nstrides 4-64\n5.56 M', fs=5.0)
-box(57, 66, 43, 12, 'Mean token: class head')
-box(78, 34, 22, 26, 'RPN 0.60 M\nanchors 6-181\nmax(IoU, NWD)', fs=5.0)
-box(57, 4, 43, 18, 'Three-stage Cascade, width 1536\nsize-aware IoU, 21.65 M')
-arr((15, 48), (21, 58)); arr((15, 40), (21, 24)); arr((51, 72), (57, 72)); arr((51, 54), (57, 50)); arr((51, 22), (57, 38)); arr((73, 47), (78, 47)); arr((89, 34), (89, 22))
-fig.savefig(HERE / 'figures/model.pdf', bbox_inches='tight', pad_inches=0.01); plt.close(fig)
-print('tables and figures written;', len(runs), 'twin seed file(s), loo', lf.exists())
+# ---------------- Markdown: fragments, then REPORT.md and REPORT.zh-CN.md from the templates in src/
+import re, sys
+sys.path.insert(0, str(HERE / 'src'))
+from tex2md import tex_table_to_md, Conv
+vals = {'\\PTWO': cfg['phase2_score'], '\\GPUH': cfg['gpu_hours'], '\\TEAMMATES': cfg['teammates']}
+frag = {}
+for key, num in (('official', 'Table 1'), ('loo', 'Table 2'), ('pp', 'Table 3'), ('negative', 'Table 4'), ('terms', 'Table 5')):
+    t = (HERE / 'tables' / f'{key}.tex').read_text()
+    for k, v in vals.items(): t = t.replace(k, v)
+    frag[key] = re.sub(r'(?<=\S) {2,}(?=\S)', ' ', tex_table_to_md(t, num)) if 'tabular' in t else f'**{num}.** TBD'
+mp = json.loads((HERE / 'src/tables_zh_strings.json').read_text()) if (HERE / 'src/tables_zh_strings.json').exists() else {}
+def zh(s):
+    for k in sorted(mp, key=len, reverse=True):  # spacing around math symbols may differ between the map and the fragment
+        pat = re.sub(r'(?:\\ )*(\\?[<>=±→×])(?:\\ )*', r' *\1 *', re.escape(k))
+        s = re.sub(pat, lambda m: mp[k], s)
+    return s
+for tpl, out, conv in (('REPORT.template.md', 'REPORT.md', lambda s: s), ('REPORT.zh-CN.template.md', 'REPORT.zh-CN.md', zh)):
+    p = HERE / 'src' / tpl
+    if not p.exists(): continue
+    s = p.read_text()
+    for k, v in frag.items(): s = s.replace(f'<!--TABLE:{k}-->', conv(v))
+    (HERE / out).write_text(s)
+print('report written;', len(runs), 'twin seed file(s), loo', lf.exists())

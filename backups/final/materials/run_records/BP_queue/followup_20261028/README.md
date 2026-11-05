@@ -1,5 +1,7 @@
 # Bridge / playground follow-up screens
 
+**English** · [中文](README.zh-CN.md)
+
 Prepared on 2026-10-28, after the BP1/BP2/BP4 results. These are local ablations,
 not leaderboard submissions. The running BP5 → BP3 queue remains unchanged.
 

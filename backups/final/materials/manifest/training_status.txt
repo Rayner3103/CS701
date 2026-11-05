@@ -1,10 +1,10 @@
 run                                status         epoch
-RPT_TWIN_cos200_s1                 running      74/180 
+RPT_TWIN_cos200_s1                 running     124/180 
 RPT_TWIN_cos200_s2                 queued        0/180 
 RPT_LOO36_base_s0                  done         36/36  
 RPT_LOO36_noSP_s0                  done         36/36  
-RPT_LOO36_noSizeIoU_s0             running       8/36  
-RPT_LOO36_noFlipBias_s0            queued        0/36  
+RPT_LOO36_noSizeIoU_s0             done         36/36  
+RPT_LOO36_noFlipBias_s0            running      24/36  
 RPT_LOO36_noNWD_s0                 queued        0/36  
 RPT_LOO36_noCascade_s0             queued        0/36  
 RPT_LOO36_noSmallAnchors_s0        queued        0/36  
@@ -29,4 +29,4 @@ RPT_LOO36_noCascade_s2             queued        0/36
 RPT_LOO36_noSmallAnchors_s2        queued        0/36  
 RPT_LOO36_noTrainNorms_s2          queued        0/36  
 RPT_LOO36_smallCapacity_s2         queued        0/36  
-2/30 done, 2 running, 2026-11-05 19:00
+3/30 done, 2 running, 2026-11-05 23:46

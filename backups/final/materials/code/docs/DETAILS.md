@@ -1,5 +1,7 @@
 # Details of the reference code
 
+**English** · [中文](DETAILS.zh-CN.md)
+
 Back to the [README](../README.md).
 
 ## Model

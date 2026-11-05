@@ -1,100 +1,102 @@
-# CS701 autoresearch：规则、已有证据与下一轮候选
+# CS701 autoresearch: rules, existing evidence and next-round candidates
 
-研究时间：2026-10-31，新加坡时间。用户允许考虑符合规则的各种改进；本轮未改变训练队列、训练权重或提交设置，未启动额外GPU任务。完成了官方规则核查、历史实验审计、训练框统计以及已有预测上的CPU TIDE诊断。
+**English** · [中文](README.zh-CN.md)
 
-## 结论
+Research date: 2026-10-31, Singapore time. The user allowed any rule-compliant improvement to be considered; this round changed no training queue, training weights or submission settings, and started no extra GPU jobs. Completed: an official-rules check, an audit of past experiments, training-box statistics, and a CPU TIDE diagnosis on existing predictions.
 
-当前最有依据的方向是**减少弱类漏检、改善严格IoU下的定位**。优先验证BP7与仅分类上下文的组合，以及诊断驱动的正样本匹配/框回归；继续对峰值LR盲扫、简单增大RPN候选数或调NMS，证据更弱。新的设计先在本地训练划分测试，不以官方提交作为搜索循环。
+## Conclusion
 
-## 规则边界（实时核查）
+The best-supported direction at present is **reducing missed detections in the weak classes and improving localization at strict IoU**. First validate BP7 combined with classification-only context, and diagnosis-driven positive-sample matching / box regression; continuing a blind sweep of peak LR, simply raising the RPN proposal count, or tuning NMS has weaker evidence. New designs are tested on the local training split first; official submissions are not used as a search loop.
 
-依据[官方Docs](https://web-production-c241e.up.railway.app/docs)及该页面2026-10-31公开组件Docs-DK1tB6x4.js：单模型、每图一次输入、尺寸不超过512×512；总参数≤130M、训练更新的参数≤40M。禁止预测集成、TTA、切片、额外SAR数据与在额外SAR检测/分类数据上训练的模型。官方val/test只可预测，不可伪标训练、适应或手工标注；本地940/940来自官方train，最终全量训练可以纳入。
+## Rule boundaries (checked live)
 
-通用预训练可以使用并须报告来源。训练-only教师被报告要求提及，但教师来源和训练参数统计仍须满足约束；不把这解读成任意教师都获准。EMA/SWA/权重平均未被单独裁定，暂列需确认，不自动生成平均权重提交。参数冻结后曾被更新过的权重仍需如实披露，不以某一步的可训练参数数目规避上限。
+Based on the [official Docs](https://web-production-c241e.up.railway.app/docs) and that page's public component Docs-DK1tB6x4.js as of 2026-10-31: one model, one input per image, size at most 512×512; total parameters ≤130M, parameters updated in training ≤40M. Forbidden: prediction ensembles, TTA, tiling, extra SAR data, and models trained on extra SAR detection/classification data. The official val/test may only be predicted; they may not be used for pseudo-label training, adaptation or manual labelling. The local 940/940 come from the official train and may be included in the final full-data training.
 
-当前模型总参数125,076,960、训练参数39,867,360，仅剩132,640训练参数空间。
+Generic pretraining may be used and its source must be reported. Training-only teachers must be mentioned in the report, but the teacher's source and the training-parameter count must still meet the constraints; this is not read as approval for any teacher. EMA/SWA/weight averaging has not been ruled on separately; it is listed as needing confirmation for now, and no averaged-weight submission is generated automatically. Weights that were updated before being frozen must still be disclosed truthfully; the count of trainable parameters at any one step is not used to get around the limit.
 
-Phase1参考F1=93.31%、mAP=26.13%。按官方公式，mAP每增加1个百分点约增加1.9135 Δm，F1每增加1个百分点约增加0.5358 Δm；故同等百分点mAP权重约3.57倍。不能为了小F1收益牺牲较多mAP。
+The current model has 125,076,960 total parameters and 39,867,360 trained parameters, leaving only 132,640 of trainable-parameter room.
 
-Phase1每天5次提交；Phase2全程2次。Phase1截止11月1日23:59 SGT，Phase2为11月2日00:01至11月8日23:59。选择公开posted成绩；没有posted时会取该阶段最后一次成功提交，并不自动选择所有私有历史最佳。小于约2 Δm的收益，规则要求跨seed均值及标准差；目前+1.29不能称稳定收益。以[当前官方页面](https://web-production-c241e.up.railway.app/docs)为准。
+Phase 1 reference: F1=93.31%, mAP=26.13%. By the official formula, each 1 percentage point of mAP adds about 1.9135 Δm and each 1 percentage point of F1 adds about 0.5358 Δm, so per percentage point mAP carries about 3.57 times the weight. A small F1 gain must not be bought with a larger mAP loss.
 
-## 本地证据
+Phase 1 allows 5 submissions per day; Phase 2 allows 2 in total. Phase 1 closes on 1 November 23:59 SGT; Phase 2 runs from 2 November 00:01 to 8 November 23:59. The publicly posted score is the one selected; with nothing posted, the last successful submission of the phase is taken, and the best of all private history is not selected automatically. For gains below about 2 Δm, the rules require a mean and standard deviation across seeds; the current +1.29 cannot be called a stable gain. The [current official page](https://web-production-c241e.up.railway.app/docs) prevails.
 
-完整数字及源文件SHA256在[data_audit.json](data_audit.json)。基线为`BP7_LR130_local_s0_20261029_v2/lr1x`，训练7512，验证940，seed0；下列类AP使用统一submission后处理。
+## Local evidence
 
-| 类别 | AP | 训练框中位sqrt面积，512尺度 | 小于16像素比例 |
+Full numbers and source-file SHA256 are in [data_audit.json](data_audit.json). The baseline is `BP7_LR130_local_s0_20261029_v2/lr1x`, train 7512, val 940, seed0; the class APs below use the unified submission post-processing.
+
+| Class | AP | Median sqrt(area) of training boxes, at 512 scale | Share below 16 px |
 |---|---:|---:|---:|
 | bridge |4.78%|9.91|82.8%|
 | playground |22.94%|14.88|64.0%|
 | ship |39.14%|55.71|0.5%|
 | wind_turbine |72.98%|8.16|94.2%|
 
-图像分类48个错误中24个是bridge↔playground。弱类并非简单样本少：bridge999张训练图、playground939张，car只有355张却AP62.75%。bridge长短边比>3仅3.3%，playground仅0.1%；扩展极端anchor长宽比不是它们的首选。wind_turbine更小却明显更好，尺寸也不是唯一原因。
+Of the 48 image-classification errors, 24 are bridge↔playground. The weak classes are not simply short of samples: bridge has 999 training images and playground 939, while car has only 355 yet AP 62.75%. Bridges with a long-to-short side ratio >3 are only 3.3%, playgrounds only 0.1%; extending extreme anchor aspect ratios is not the first choice for them. wind_turbine is smaller yet clearly better, so size is not the only cause either.
 
-### 新增CPU错误分解
+### New CPU error breakdown
 
-使用[TIDE论文](https://arxiv.org/abs/2008.08115)及[官方实现](https://github.com/dbolya/tide)1.0.1，分析已有`predictions_val.json`。这是训练时原生后处理，**不是submission后处理**，没有额外前向或官方val标签。AP50=73.245955、AP75=56.319134，与原COCO评估一致到数值精度。
+Uses the [TIDE paper](https://arxiv.org/abs/2008.08115) and the [official implementation](https://github.com/dbolya/tide) 1.0.1 to analyze the existing `predictions_val.json`. This is the native training-time post-processing, **not the submission post-processing**, with no extra forward pass and no official val labels. AP50=73.245955 and AP75=56.319134 agree with the original COCO evaluation to numerical precision.
 
-| 正匹配IoU | AP | 漏检Miss的oracle dAP | 定位Loc的oracle dAP | 背景Bkg的oracle dAP |
+| Positive-match IoU | AP | Oracle dAP of missed detections (Miss) | Oracle dAP of localization (Loc) | Oracle dAP of background (Bkg) |
 |---|---:|---:|---:|---:|
 |0.50|73.246|14.736|3.461|1.341|
 |0.75|56.319|9.323|20.437|0.741|
 
-结果支持优先调查漏检和精细定位。oracle dAP表示假设理想修正某项错误的影响，不能相加，也不代表某个新算法可实际取得该增益。最终输出漏检也不等于RPN必定没有proposal，分数筛选/NMS等也可能参与。检测分类错误很小不表示图像分类没有问题，它们是不同任务。
+The results support investigating missed detections and fine localization first. Oracle dAP is the effect of ideally correcting one kind of error; the values cannot be added, and do not mean a new algorithm can actually obtain that gain. A miss in the final output also does not mean the RPN necessarily had no proposal; score filtering, NMS and so on may also play a part. Very small detection-classification error does not mean image classification has no problem; they are different tasks.
 
-详细结果：[tide_errors.json](tide_errors.json)。TIDE没有改入训练环境，依赖安装在`/tmp/cs701_autoresearch_tide`。
+Detailed results: [tide_errors.json](tide_errors.json). TIDE was not added to the training environment; its dependency is installed in `/tmp/cs701_autoresearch_tide`.
 
-### 避免重复的旧实验
+### Old experiments not to repeat
 
-下表是旧r32/head1024的36轮筛选，不可与当前r80/head1536的最终AP直接相减。
+The table below is the old r32/head1024 36-epoch screen and cannot be directly subtracted from the final AP of the current r80/head1536.
 
-| 方法 | val mAP | test mAP | 解释 |
+| Method | val mAP | test mAP | Interpretation |
 |---|---:|---:|---|
-|AA基线|38.429|40.009|旧筛选基线|
-|context3|39.446|40.841|有单因素收益|
-|仅分类context3|39.816|41.329|与当前BP7组合未验证|
-|spatial64（BP7）|40.017|41.366|已采用|
-|弱类oversample2|36.724|37.732|不支持重试同配置|
-|partial negatives|38.524|40.122|接近持平|
+|AA baseline|38.429|40.009|old screening baseline|
+|context3|39.446|40.841|single-factor gain|
+|classification-only context3|39.816|41.329|combination with current BP7 not validated|
+|spatial64 (BP7)|40.017|41.366|adopted|
+|weak-class oversample2|36.724|37.732|does not support retrying the same config|
+|partial negatives|38.524|40.122|close to break-even|
 
-来源：`BP_queue/followup_20261028/comparison.json`等记录。AA提高RPN到2000/3000候选仅有约0.01pp的val变化且test略降；SC1框投票和解除全图100框上限也无整体收益。EMA0.9998旧同run对照val mAP比last低0.221pp、test低0.024pp。IoU质量分支、D4/copy-paste、zoom已有探索，不应称全新方向。详见相邻实验README。
+Source: `BP_queue/followup_20261028/comparison.json` and other records. Raising the RPN to 2000/3000 proposals on AA changed val by only about 0.01pp and slightly lowered test; SC1 box voting and removing the per-image cap of 100 boxes also gave no overall gain. In an old same-run comparison, EMA0.9998 had val mAP 0.221pp below last and test 0.024pp below. The IoU quality branch, D4/copy-paste and zoom have already been explored and should not be called brand-new directions. See the READMEs of the neighbouring experiments.
 
-## 候选实验排序
+## Candidate experiments, ranked
 
-### A：BP7 + 仅分类分支的上下文（第一训练候选）
+### A: BP7 + context on the classification branch only (first training candidate)
 
-保持原骨干/学习率/日程，只添加`--roi-context 3 --roi-context-mode classification`。分类使用较大区域，回归仍用局部区域。理由是旧BP8已有正面证据，而bridge/playground容易混淆、背景语义可能有用。与[TSD/Sibling Head论文](https://openaccess.thecvf.com/content_CVPR_2020/html/Song_Revisiting_the_Sibling_Head_in_Object_Detector_CVPR_2020_paper.html)解耦分类和定位的动机相近，但本实现不是TSD，不能照搬其收益。
+Keep the original backbone/learning rate/schedule and add only `--roi-context 3 --roi-context-mode classification`. Classification uses a larger region; regression still uses the local region. The reason is that the old BP8 has positive evidence, and that bridge/playground are easily confused, so background semantics may be useful. The motivation is close to that of the [TSD/Sibling Head paper](https://openaccess.thecvf.com/content_CVPR_2020/html/Song_Revisiting_the_Sibling_Head_in_Object_Detector_CVPR_2020_paper.html), which decouples classification and localization, but this implementation is not TSD and its gains cannot be assumed.
 
-当前实现每阶段增加一个256→64的1×1卷积，共49,344参数，预计训练参数39,916,704、总参数125,126,304，均在预算内；真正启动前仍须实测统计。仅切换已有context的mode才是0新增参数。额外跑RoI head会增加计算，不能称零成本。先测是否过拟合背景及回归是否受益，收益不保证与spatial64相加。
+The current implementation adds one 256→64 1×1 convolution per stage, 49,344 parameters in total, for an expected 39,916,704 trained parameters and 125,126,304 total, all within budget; they must still be measured before actually starting. Only switching the mode of an existing context adds 0 new parameters. Running the RoI head an extra time adds computation and cannot be called zero cost. First test whether it overfits the background and whether regression benefits; the gain is not guaranteed to add to that of spatial64.
 
-### B：诊断驱动的NWD排序匹配（第二训练候选）
+### B: Diagnosis-driven NWD ranking assignment (second training candidate)
 
-当前实现是`max(IoU,NWD)`加固定Matcher，尚非[NWD-RKA](https://arxiv.org/abs/2206.13996)的ranking assignment。先统计最新BP7中每GT的正anchor/正RoI数、排除注入GT后的proposal覆盖、各Cascade阶段目标流失，再决定只改RPN匹配还是Cascade阈值。
+The current implementation is `max(IoU,NWD)` plus a fixed Matcher, not yet the ranking assignment of [NWD-RKA](https://arxiv.org/abs/2206.13996). First count, on the latest BP7, positive anchors/positive RoIs per GT, proposal coverage excluding injected GT, and target drop-off across the Cascade stages, and then decide whether to change only the RPN matching or the Cascade thresholds.
 
-最小对照仅替换一个assigner，其他保持固定；参考NWD-RKA或[ATSS](https://arxiv.org/abs/1912.02424)的每GT自适应分配，不能同时改采样、损失和neck。训练时匹配不新增推理参数。风险是小目标密集时正样本冲突和背景误检。旧SC1的bridge/proposal覆盖低是方向证据，不是最新BP7的直接测量。
+The minimal comparison replaces one assigner only and keeps everything else fixed; refer to the per-GT adaptive assignment of NWD-RKA or [ATSS](https://arxiv.org/abs/1912.02424), and do not change sampling, loss and neck at the same time. Training-time matching adds no inference parameters. The risks are positive-sample conflicts among dense small objects, and background false positives. The low bridge/proposal coverage of the old SC1 is directional evidence, not a direct measurement of the latest BP7.
 
-### C：Cascade的定位损失（根据TIDE结果值得研究）
+### C: Cascade localization loss (worth studying given the TIDE results)
 
-固定assigner后，再比较现有encoded-box Smooth-L1与加入decoded-box GIoU的方案。优先检查AP75/AP90、每类定位误差和小框稳定性；不先同时加质量分支。参考[GIoU论文](https://arxiv.org/abs/1902.09630)，该损失无新增推理参数，但对极小框未必稳定。
+With the assigner fixed, compare the existing encoded-box Smooth-L1 against adding a decoded-box GIoU. Check AP75/AP90, per-class localization error and small-box stability first; do not add a quality branch at the same time at first. See the [GIoU paper](https://arxiv.org/abs/1902.09630). This loss adds no inference parameters, but it may not be stable on extremely small boxes.
 
-实现注意：现有`--giou`在Cascade模式明确不支持，不能直接打开参数；需要给Cascade逐阶段实现并验证坐标、正样本、空样本和归一化。不能声称现成可跑。
+Implementation note: the existing `--giou` is explicitly unsupported in Cascade mode, so the flag cannot simply be turned on; it must be implemented per Cascade stage, with coordinates, positives, empty samples and normalization verified. It cannot be claimed to be ready to run.
 
-### D：训练策略备选，保持峰值LR
+### D: Training-strategy alternatives, keeping peak LR
 
-1. **按更新步数对齐日程**。local130=61,100步；local160=75,200；full130=76,310；full160=93,920。本地160与全量130只差约1.5%，因此本地更长日程有益并不能直接证明全量也需160。下次比较固定step预算的余弦/低LR尾部，不盲目加到200轮。该发现不改变已向用户说明并启动的全量选型队列。
-2. **归一化/偏置不做weight decay**。代码已有`--wd-hygiene`，当前默认仍对所有训练参数施加0.05衰减。可作为不改变架构与峰值LR的单因素对照，但目前没有本地正面结果支持，优先级低于A/B。不要把分类下降直接归因于weight decay。
-3. **后处理小范围校准**。在最新local BP7的同一前向输出上固定少量分类融合λ/定位阶段设置，验证是否保住F1且不损mAP。已有简单分类概率乘检测分数、NMS/框投票弱收益，拒绝大网格官方试分。
+1. **Align schedules by update steps.** local130=61,100 steps; local160=75,200; full130=76,310; full160=93,920. Local 160 and full 130 differ by only about 1.5%, so a longer local schedule being beneficial does not directly prove that full data also needs 160. Next time compare cosine/low-LR tails at a fixed step budget, rather than blindly going to 200 epochs. This finding does not change the full-data selection queue already explained to the user and started.
+2. **No weight decay on normalization/bias.** The code already has `--wd-hygiene`; the current default still applies 0.05 decay to all trained parameters. It can serve as a single-factor comparison that changes neither the architecture nor the peak LR, but there is no positive local result supporting it yet, so its priority is below A/B. Do not attribute a classification drop directly to weight decay.
+3. **Small-range post-processing calibration.** On the same forward outputs of the latest local BP7, fix a small set of classification-fusion λ / localization-stage settings and verify that F1 is kept without losing mAP. Simple classification-probability × detection-score, NMS and box voting have already given weak gains; large-grid trial scoring on the official site is rejected.
 
-通用教师蒸馏、跨层LoRA秩重分配是较远期方向，尚无本地证据；教师预算、参数并集和成本需另核查。EMA/SWA先确认规则，预测集成则不做。
+Generic teacher distillation and cross-layer LoRA rank reallocation are longer-term directions with no local evidence yet; teacher budget, the parameter union and cost need separate checks. EMA/SWA waits for rule confirmation; prediction ensembles are not done.
 
-## 执行顺序与停止条件
+## Execution order and stop conditions
 
-1. 当前160轮→已授权full train→submission流水线保持运行。
-2. 本轮CPU研究已经完成，不占训练GPU，不上传。
-3. 若全量结果仍值得继续投入，下一组优先A；只试一个变量，固定本地划分、seed及完整日程。不在full模型已见过的本地940/940上声称泛化提升。
-4. 小收益需要配对seed复验。提交额度用于有本地证据的候选，Phase2只保留确定方案。不要把某个早期epoch的小优势当成最终收益。
+1. The current 160-epoch → authorized full train → submission pipeline keeps running.
+2. This round of CPU research is complete, occupies no training GPU, and uploads nothing.
+3. If the full-data result still justifies further investment, A has priority in the next group; try one variable only, with the local split, seed and full schedule fixed. Do not claim generalization gains on the local 940/940 that the full model has already seen.
+4. Small gains need paired-seed rechecks. Submission quota goes to candidates with local evidence; Phase 2 keeps only settled plans. Do not treat a small advantage at some early epoch as the final gain.
 
-复现CPU审计：
+To reproduce the CPU audit:
 
 ```bash
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \

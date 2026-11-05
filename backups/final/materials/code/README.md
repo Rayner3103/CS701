@@ -1,5 +1,7 @@
 # CS701 SAR Multi-Task Benchmark
 
+**English** · [中文](README.zh-CN.md)
+
 Reference code for the CS701 team assignment. One ViT-B/16 backbone, two tasks on SAR images: **classify** the
 image (9 classes) and **detect** its objects.
 
