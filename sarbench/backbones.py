@@ -133,7 +133,7 @@ TIMM_CONVNEXTS = {
     'convnext_t_dinov3': 'convnext_tiny.dinov3_lvd1689m',
     'convnext_in22k': 'convnext_base.fb_in22k',
 }
-BACKBONES = ['vit', 'terramind', *TIMM_VITS, *TIMM_CONVNEXTS]
+BACKBONES = ['vit', 'terramind', 'lingbot_b', *TIMM_VITS, *TIMM_CONVNEXTS]
 
 
 def build_backbone(name, pretrained, img_size=512, drop_path=0.0):
@@ -142,6 +142,9 @@ def build_backbone(name, pretrained, img_size=512, drop_path=0.0):
         return ViT(pretrained, drop_path)
     if name == 'terramind':
         return TerraMind(pretrained)
+    if name == 'lingbot_b':
+        from .lingbot import LingBotViT
+        return LingBotViT(pretrained, img_size, drop_path)
     if name in TIMM_VITS:
         return TimmViT(TIMM_VITS[name], pretrained, img_size, drop_path)
     return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained, drop_path)

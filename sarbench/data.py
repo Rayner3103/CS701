@@ -40,8 +40,12 @@ class SARMultiTask(Dataset):
     turns it into -b, so flipped boxes are moved by 2b to keep every target on the same convention."""
 
     def __init__(self, root, split, train=False, size=512, limit=None, aug='flip', zoom_p=0.0, zoom_max=1.5,
-                 flip_bias=0.0):
+                 flip_bias=0.0, speckle=0.0, gamma_jitter=0.0, photo_p=0.5):
         self.root = Path(root)
+        # photometric augmentation (training only, opt-in): multiplicative speckle noise with a per-image standard
+        # deviation ~ U(0.02, speckle) (Gamma(L, L) factor, L = 1 / sd^2, mean 1), and a gamma correction
+        # I ** exp(U(-gamma_jitter, gamma_jitter)); each applied with probability photo_p, on [0, 1] intensities
+        self.speckle, self.gamma_jitter, self.photo_p = (speckle, gamma_jitter, photo_p) if train else (0.0, 0.0, 0.0)
         self.rows, self.coco_images, self.annotations = [], {}, defaultdict(list)
         for part in split.split('+'):
             with open(self.root / 'classification' / f'{part}.csv') as f:
@@ -88,6 +92,17 @@ class SARMultiTask(Dataset):
         out = F.grid_sample(image[None], grid, mode='bilinear', padding_mode='border', align_corners=False)[0]
         return out, clipped[keep], keep
 
+    def photometric(self, image):
+        """Speckle and gamma jitter on the normalised image: back to [0, 1] intensities, perturb, renormalise."""
+        x = image * STD + MEAN
+        if self.speckle and random.random() < self.photo_p:
+            sd = random.uniform(0.02, self.speckle)
+            looks = torch.tensor(1.0 / (sd * sd))
+            x = x * torch.distributions.Gamma(looks, looks).sample(x.shape)
+        if self.gamma_jitter and random.random() < self.photo_p:
+            x = x.clamp(0, 1) ** math.exp(random.uniform(-self.gamma_jitter, self.gamma_jitter))
+        return (x.clamp(0, 1) - MEAN) / STD
+
     def __getitem__(self, i):
         row = self.rows[i]
         info = self.coco_images[row['image']]
@@ -107,6 +122,8 @@ class SARMultiTask(Dataset):
                     lo, hi = boxes[:, axis].clone(), boxes[:, axis + 2].clone()
                     boxes[:, axis] = (self.size - hi + off).clamp(0, self.size)
                     boxes[:, axis + 2] = (self.size - lo + off).clamp(0, self.size)
+        if self.speckle or self.gamma_jitter:
+            image = self.photometric(image)
         if self.aug == 'd4':
             k = random.randrange(4)
             if k:

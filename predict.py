@@ -98,6 +98,10 @@ def main():
     p.add_argument('--images-json', default='images.json', help='file under --images listing the images to predict')
     p.add_argument('--out', type=Path, default=Path('submission.zip'))
     p.add_argument('--batch-size', type=int, default=16)
+    p.add_argument('--rpn-topn', type=int, help='RPN proposals kept per image at test time (default: the model\'s, 1000)')
+    p.add_argument('--extra-iters', type=int, default=0, help='inference: refine boxes k more times with the last cascade head')
+    p.add_argument('--extra-probs', action='store_true', help='inference: include the extra passes in the class-probability average')
+    p.add_argument('--prob-weights', default='', help="inference: comma weights of the cascade stages' class probabilities, e.g. '0.5,1,1.5'")
     p.add_argument('--workers', type=int, default=8)
     # post-processing (defaults: the final settings, = pp_eval.FINAL + cls lambda 1; the reference is
     # --score-thresh 0.05 --per-class 0 --nms hard --obj-pow 0 --cls-lambda 0)
@@ -130,6 +134,10 @@ def main():
         return from_raw(a)
 
     model, args = load_run(a.run, a.weights, device=a.device)
+    if a.rpn_topn:
+        model.rpn._pre_nms_top_n['testing'] = model.rpn._post_nms_top_n['testing'] = a.rpn_topn
+    model.roi_heads.extra_iters, model.roi_heads.extra_probs = a.extra_iters, a.extra_probs
+    model.roi_heads.prob_weights = [float(v) for v in a.prob_weights.split(',')] if a.prob_weights else None
     if a.shift is None:  # a model trained on bias-consistent flips already predicts the annotation convention
         a.shift = 0.0 if getattr(args, 'flip_bias', 0.0) else FINAL['shift']
     set_post(model, a)

@@ -1,0 +1,11 @@
+LingBot-Vision
+Copyright 2026 LingBot-Vision Contributors
+Upstream: https://github.com/Robbyant/lingbot-vision
+Pinned commit: 151e46321bae4399f8568829f190c7bdec216b49
+
+vit.py, layers.py, attention.py and build.py are unmodified upstream files.
+LICENSE, LEGAL.md and lbot_vision_vitb.yaml are copied from that commit.
+The package __init__.py is a local minimal entry point; upstream download,
+image processing and demo helpers are not vendored. The upstream tree did
+not contain a separate NOTICE file; this notice documents the local subset.
+Downstream adaptations are separately implemented in sarbench/lingbot.py.

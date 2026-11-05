@@ -93,6 +93,20 @@ class LightBoxHead(nn.Module):
         return F.relu(self.fc7(F.relu(self.fc6(x.flatten(1)))))
 
 
+def partial_negative_ce(logits, labels, img_cls, weight=None):
+    """RoI classification loss for images annotated with ONE class only (objects of other classes may be there,
+    unlabelled): positives get the usual cross-entropy; an unmatched RoI in an image of class c only learns
+    'not c', -log(1 - p_c), instead of 'background'. Mean over all RoIs, like F.cross_entropy without weights."""
+    logp = F.log_softmax(logits.float(), -1)
+    pos = labels > 0
+    loss_pos = -logp[pos, labels[pos]]
+    if weight is not None:
+        loss_pos = loss_pos * weight[labels[pos]]
+    p_c = logp[~pos].gather(1, img_cls[~pos, None]).squeeze(1).exp()
+    loss_neg = -torch.log1p(-p_c.clamp(max=1 - 1e-6))
+    return (loss_pos.sum() + loss_neg.sum()) / max(len(labels), 1)
+
+
 def context_boxes(boxes, image_shape, factor, min_side=32.0):
     """XYXY boxes enlarged about their centres: each side becomes max(factor * side, min_side), clipped to the image."""
     c = (boxes[:, :2] + boxes[:, 2:]) / 2
@@ -114,9 +128,10 @@ class AgnosticPredictor(nn.Module):
         nn.init.zeros_(self.cls_score.bias)
         nn.init.zeros_(self.bbox_pred.bias)
 
-    def forward(self, x):
+    def forward(self, x, box_features=None):
         x = x.flatten(1)
-        return self.cls_score(x), self.bbox_pred(x).repeat(1, self.num_classes)
+        box_features = x if box_features is None else box_features.flatten(1)
+        return self.cls_score(x), self.bbox_pred(box_features).repeat(1, self.num_classes)
 
 
 def box_loss(box_regression, labels, regression_targets, beta):
@@ -150,12 +165,20 @@ class CascadeRoIHeads(RoIHeads):
     def __init__(self, box_roi_pool, num_classes=10, reduced=64, representation=1024, ious=(0.5, 0.6, 0.7),
                  coder_weights=((10., 10., 5., 5.), (20., 20., 10., 10.), (30., 30., 15., 15.)),
                  stage_weights=(1.0, 0.5, 0.25), beta=1 / 9, batch_size_per_image=512, positive_fraction=0.25,
-                 size_iou=False, iou_weight=0.0, context=0.0, cls_weights=None):
+                 size_iou=False, iou_weight=0.0, context=0.0, cls_weights=None, partial_neg=False,
+                 context_mode='shared'):
         """size_iou: per-GT IoU thresholds by box size (SIZE_IOU) so tiny objects get positives at every stage.
         iou_weight > 0: an IoU-quality branch on the last stage (BCE to the IoU of the decoded box with its GT); at test
         time its prediction can re-score boxes (post['quality_pow']).
         context > 0: every stage also pools the RoI enlarged by this factor (at least 32 px) and adds it to the box
-        features (context_boxes). cls_weights: {category id: weight} for the RoI classification loss (others 1)."""
+        features (context_boxes). cls_weights: {category id: weight} for the RoI classification loss (others 1).
+        partial_neg: unmatched RoIs only learn 'not the image's class' (partial_negative_ce).
+        context_mode: 'shared' uses fused features for classification and regression; 'classification' uses fused
+        features only for classification and runs the same head weights on local RoIs for regression/IoU quality."""
+        if context_mode not in ('shared', 'classification'):
+            raise ValueError(f"context_mode must be 'shared' or 'classification', got {context_mode!r}")
+        if context_mode == 'classification' and not context > 0:
+            raise ValueError("context_mode='classification' requires context > 0")
         heads = nn.ModuleList(LightBoxHead(256, reduced, 7, representation, context=context > 0) for _ in ious)
         preds = nn.ModuleList(AgnosticPredictor(representation, num_classes) for _ in ious)
         super().__init__(box_roi_pool, heads[0], preds[0], fg_iou_thresh=ious[0], bg_iou_thresh=ious[0],
@@ -169,7 +192,8 @@ class CascadeRoIHeads(RoIHeads):
         self.post = dict(CascadeRoIHeads.post)
         self.size_iou, self.iou_weight, self._t = size_iou, iou_weight, 0
         self.size_table = SIZE_IOU_TABLES[size_iou if isinstance(size_iou, str) else 'a4'] if size_iou else None
-        self.context = context
+        self.context, self.partial_neg = context, partial_neg
+        self.context_mode = context_mode
         self.cls_weights = None  # a plain tensor, not a buffer: no state_dict key, not in the parameter budget
         if cls_weights:
             self.cls_weights = torch.ones(num_classes)
@@ -227,14 +251,33 @@ class CascadeRoIHeads(RoIHeads):
             if self.context:
                 ctx_props = [context_boxes(p, s, self.context) for p, s in zip(proposals, image_shapes)]
                 ctx = self.box_roi_pool(features, ctx_props, image_shapes)
-            feat = head(self.box_roi_pool(features, proposals, image_shapes), ctx)
-            cls, reg = pred(feat)
+            local = self.box_roi_pool(features, proposals, image_shapes)
+            feat = head(local, ctx)
+            # Reuse the same head parameters; only classification sees the enlarged RoI in this mode.
+            box_feat = head(local) if self.context_mode == 'classification' else feat
+            cls, reg = pred(feat, box_feat)
             if self.training:
+                # the class of each RoI's image: every box of a training image has the image's class
+                img_cls = torch.cat([tg['labels'][:1].expand(len(lb)) for tg, lb in zip(targets, labels)])
                 labels, reg_targets = torch.cat(labels), torch.cat(reg_targets)
                 w = self.stage_weights[t]
                 cw = self.cls_weights.to(cls.device) if self.cls_weights is not None else None
-                losses[f'loss_classifier_s{t}'] = w * F.cross_entropy(cls, labels, weight=cw)
+                if self.partial_neg:
+                    losses[f'loss_classifier_s{t}'] = w * partial_negative_ce(cls, labels, img_cls, cw)
+                else:
+                    losses[f'loss_classifier_s{t}'] = w * F.cross_entropy(cls, labels, weight=cw)
                 losses[f'loss_box_reg_s{t}'] = w * box_loss(reg, labels, reg_targets, self.beta)
+                if getattr(self, 'giou_weight', 0.0):  # opt-in: GIoU on the decoded positive boxes of every stage
+                    pos = torch.where(labels > 0)[0]
+                    if len(pos):
+                        props = torch.cat(proposals)[pos]
+                        pred_b = self.box_coder.decode_single(reg[pos, :4].float(), props)
+                        gt_b = self.box_coder.decode_single(reg_targets[pos].float(), props)
+                        from torchvision.ops import generalized_box_iou_loss
+                        g = generalized_box_iou_loss(pred_b, gt_b, reduction='sum') / max(labels.numel(), 1)
+                    else:
+                        g = reg.sum() * 0
+                    losses[f'loss_giou_s{t}'] = w * self.giou_weight * g
                 if self.iou_weight and t == last:  # IoU-quality branch: predict the IoU of the decoded box with its GT
                     pos = torch.where(labels > 0)[0]
                     props = torch.cat(proposals)[pos]
@@ -244,13 +287,13 @@ class CascadeRoIHeads(RoIHeads):
                     inter = (rb - lt).clamp(min=0).prod(1)
                     area = lambda b: (b[:, 2:] - b[:, :2]).clamp(min=0).prod(1)
                     iou_t = (inter / (area(pred_b) + area(gt_b) - inter).clamp_min(1e-6)).clamp(0, 1)
-                    logit = self.iou_head(feat[pos]).squeeze(1).float()
+                    logit = self.iou_head(box_feat[pos]).squeeze(1).float()
                     losses['loss_iou'] = self.iou_weight * (F.binary_cross_entropy_with_logits(logit, iou_t)
                                                             if len(pos) else logit.sum() * 0)
             else:
                 probs.append(F.softmax(cls.float(), -1))
                 if self.iou_weight and t == last:
-                    quality = torch.sigmoid(self.iou_head(feat).squeeze(1).float())
+                    quality = torch.sigmoid(self.iou_head(box_feat).squeeze(1).float())
             if not self.training:
                 stage_boxes.append(proposals)  # the input boxes of stage t (RPN proposals for t = 0)
             if t < len(self.stage_heads) - 1:  # refine the boxes for the next stage, without gradient
@@ -261,7 +304,31 @@ class CascadeRoIHeads(RoIHeads):
                     proposals = [pr[~g] for pr, g in zip(proposals, is_gt)]
         if self.training:
             return [], losses
-        logits = torch.stack(probs).mean(0).clamp_min(1e-12).log()  # softmax(log p) = p downstream
+        # opt-in inference-only options (defaults reproduce the trained behaviour exactly):
+        # extra_iters k: refine the last stage's boxes k more times with the SAME last-stage head (iterative box refinement,
+        #   still one forward of the one image); extra_probs: also average those passes' class probabilities.
+        # prob_weights: weights of the stages' class probabilities in the average (default equal).
+        for _ in range(getattr(self, 'extra_iters', 0)):
+            n = [len(p) for p in proposals]
+            new = self.box_coder.decode(reg[:, :4].detach(), proposals)[:, 0]
+            proposals = [box_ops.clip_boxes_to_image(b, s) for b, s in zip(new.split(n), image_shapes)]
+            stage_boxes.append(proposals)
+            ctx = None
+            if self.context:
+                ctx_props = [context_boxes(p, s, self.context) for p, s in zip(proposals, image_shapes)]
+                ctx = self.box_roi_pool(features, ctx_props, image_shapes)
+            local = self.box_roi_pool(features, proposals, image_shapes)
+            feat = self.stage_heads[last](local, ctx)
+            box_feat = self.stage_heads[last](local) if self.context_mode == 'classification' else feat
+            cls, reg = self.stage_preds[last](feat, box_feat)
+            if getattr(self, 'extra_probs', False):
+                probs.append(F.softmax(cls.float(), -1))
+        pw = getattr(self, 'prob_weights', None)
+        if pw is not None:
+            w = torch.tensor(list(pw) + [pw[-1]] * (len(probs) - len(pw)), dtype=torch.float32, device=probs[0].device)[:len(probs)]
+            logits = (torch.stack(probs) * (w / w.sum())[:, None, None]).sum(0).clamp_min(1e-12).log()
+        else:
+            logits = torch.stack(probs).mean(0).clamp_min(1e-12).log()  # softmax(log p) = p downstream
         boxes_all = self.box_coder.decode(reg, proposals)  # [sum N, C + 1, 4], identical boxes per class
         results = []
         for i, (b, lg) in enumerate(zip(boxes_all.split([len(p) for p in proposals]), logits.split([len(p) for p in proposals]))):

@@ -17,6 +17,14 @@ class LoRA(nn.Module):
         nn.init.zeros_(self.up.weight)  # B = 0: training starts from exactly the pretrained layer
         self.scale = alpha / rank
 
+    @property
+    def in_features(self):
+        return self.base.in_features
+
+    @property
+    def out_features(self):
+        return self.base.out_features
+
     def forward(self, x):
         return self.base(x) + self.scale * self.up(self.down(x))
 

@@ -18,6 +18,8 @@ from sarbench.adapters import add_adapters, add_lora, add_mona, unfreeze
 from sarbench.backbones import BACKBONES, build_backbone, set_token_stride
 from sarbench.data import SARMultiTask, collate, to_original_xywh
 from sarbench.metrics import classification_metrics, detection_metrics
+from sarbench.training_state import (compatibility_signature, load_training_state, save_training_state,
+                                     seed_everything, seed_loader_epoch, seed_worker)
 from sarbench.model import REFERENCE_ANCHORS, MultiTaskModel
 from sarbench.tiny import (AlignedMultiScaleRoIAlign, CascadeRoIHeads, OffsetAnchorGenerator, PretrainedPrior,
                            SameClassCopyPaste, iou_nwd_similarity)
@@ -60,8 +62,12 @@ def parse_args(argv=None):
                    help="with --cascade-size-iou: 'a4' (relaxed up to 32 px) or 'small16' (relaxed below 16 px only)")
     p.add_argument('--roi-context', type=float, default=0.0,
                    help='cascade: also pool the RoI enlarged by this factor (>= 32 px) and add it to the box features')
+    p.add_argument('--roi-context-mode', default='shared', choices=['shared', 'classification'],
+                   help='cascade context feeds both tasks (shared), or classification only; regression then uses local RoI features')
     p.add_argument('--cls-weights', default='',
                    help="cascade: RoI classification loss weights by category id, e.g. '3:3,7:3' (bridge, playground)")
+    p.add_argument('--partial-neg', action='store_true',
+                   help="cascade: unmatched RoIs learn only 'not the image's class' (images carry one class's boxes)")
     p.add_argument('--oversample', default='',
                    help="training images drawn with these weights by image label 0..8, e.g. '2:2,6:2' (one GPU only)")
     p.add_argument('--token-stride', type=int, default=0, help='timm ViTs: patch-embedding stride (8: overlapping patches, 4x tokens)')
@@ -75,6 +81,14 @@ def parse_args(argv=None):
     p.add_argument('--giou-only', action='store_true', help='the GIoU loss replaces the smooth-L1 RoI box loss')
     # optimisation
     p.add_argument('--epochs', type=int, default=24)
+    p.add_argument('--warmup-epochs', type=float, default=1.0, help='linear warmup length; default reproduces one epoch')
+    p.add_argument('--schedule-epochs', type=int, help='cosine horizon (default: --epochs; must be >= --epochs)')
+    p.add_argument('--save-training-state', action='store_true', help='atomically save complete training_state.pt each epoch')
+    p.add_argument('--resume', type=Path, help='restore a trusted local training_state.pt, including AdamW and rank RNG')
+    p.add_argument('--init-weights', type=Path, help='initialise the trained tensors from this model.pt / ckpt (e.g. an averaged checkpoint) with a fresh optimizer')
+    p.add_argument('--stop-after-epoch', type=int, help='cleanly stop after this epoch without shortening the LR schedule')
+    p.add_argument('--reproducible-loader', action='store_true',
+                   help='seed Python/NumPy and restart epoch-seeded workers; required for training-state save/resume')
     p.add_argument('--batch-size', type=int, default=16)
     p.add_argument('--lr', type=float, default=1e-4)
     p.add_argument('--backbone-lr', type=float, help='for the trainable backbone parameters (default: --lr)')
@@ -93,12 +107,16 @@ def parse_args(argv=None):
     p.add_argument('--cp-source', default='mixed', choices=['mixed', 'same_class', 'same_image'])
     p.add_argument('--cp-max-n', type=int, default=6)
     p.add_argument('--cp-max-side', type=int, default=40)
+    p.add_argument('--speckle', type=float, default=0.0, help='photometric aug: max std of multiplicative speckle noise (0: off)')
+    p.add_argument('--gamma-jitter', type=float, default=0.0, help='photometric aug: gamma = exp(U(-g, g)) (0: off)')
+    p.add_argument('--photo-p', type=float, default=0.5, help='probability of each photometric aug per image')
     p.add_argument('--zoom-p', type=float, default=0.0)
     p.add_argument('--zoom-max', type=float, default=1.5)
     # data, evaluation, output
     p.add_argument('--train-split', default='train', help="e.g. 'train+val+test' for the final model")
     p.add_argument('--eval-splits', default='val,test', help="comma-separated; '' for none")
     p.add_argument('--eval-every', type=int, default=4, help='validate every N epochs, and after the last one')
+    p.add_argument('--eval-batch-size', type=int, help='evaluation batch size (default: --batch-size)')
     p.add_argument('--save-every', type=int, default=0, help='save a checkpoint (trained tensors) every N epochs (0: off)')
     p.add_argument('--score-thresh', type=float, default=0.05, help='detection score threshold at evaluation')
     p.add_argument('--dump-raw', action='store_true', help='save raw per-class boxes and logits of the eval splits')
@@ -113,8 +131,25 @@ def parse_args(argv=None):
     args = p.parse_args(argv)
     if args.init == 'scratch' and args.adapt != 'full':
         p.error('--init scratch is only valid with --adapt full')
+    if args.roi_context_mode == 'classification' and (not args.cascade or args.roi_context <= 0):
+        p.error('--roi-context-mode classification requires --cascade and --roi-context > 0')
     if args.backbone_lr is None:
         args.backbone_lr = args.lr
+    if args.schedule_epochs is None:
+        args.schedule_epochs = args.epochs
+    if args.epochs < 1 or args.schedule_epochs < args.epochs:
+        p.error('--schedule-epochs must be >= --epochs, and --epochs must be positive')
+    if not 0 <= args.warmup_epochs <= args.schedule_epochs:
+        p.error('--warmup-epochs must be between 0 and --schedule-epochs')
+    if args.batch_size < 1 or args.eval_every < 1 or args.save_every < 0:
+        p.error('batch-size/eval-every must be positive and save-every nonnegative')
+    if args.eval_batch_size is not None and args.eval_batch_size < 1:
+        p.error('--eval-batch-size must be positive')
+    if (args.save_training_state or args.resume) and not args.reproducible_loader:
+        p.error('--save-training-state/--resume require --reproducible-loader for epoch-boundary RNG recovery')
+    if args.stop_after_epoch is not None:
+        if not 1 <= args.stop_after_epoch <= args.epochs or not args.save_training_state:
+            p.error('--stop-after-epoch must be within 1..epochs and requires --save-training-state')
     return args
 
 
@@ -134,8 +169,15 @@ def log(message, file):
 def make_loader(args, split, train, world=1, rank=0):
     """Batches of `split`; only the training set is shuffled and augmented (copy-paste uses training images only).
     With world > 1 (DDP) the training set is split over the processes, each taking batch_size / world images."""
+    reproducible = getattr(args, 'reproducible_loader', False)
+    loader_options = ({'generator': torch.Generator().manual_seed(args.seed + rank),
+                       'worker_init_fn': seed_worker} if reproducible else {})
+    persistent = train and args.workers > 0 and not reproducible
+    batch_size = args.batch_size if train else (getattr(args, 'eval_batch_size', None) or args.batch_size)
     dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
-                           zoom_max=args.zoom_max, flip_bias=getattr(args, 'flip_bias', 0.0))
+                           zoom_max=args.zoom_max, flip_bias=getattr(args, 'flip_bias', 0.0),
+                           speckle=getattr(args, 'speckle', 0.0), gamma_jitter=getattr(args, 'gamma_jitter', 0.0),
+                           photo_p=getattr(args, 'photo_p', 0.5))
     if train and args.copy_paste:
         dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
                                      source=args.cp_source, seed=args.seed)
@@ -148,13 +190,13 @@ def make_loader(args, split, train, world=1, rank=0):
         sampler = WeightedRandomSampler(weights, len(weights), replacement=True,
                                         generator=torch.Generator().manual_seed(args.seed))
         return DataLoader(dataset, args.batch_size, sampler=sampler, num_workers=args.workers, collate_fn=collate,
-                          persistent_workers=args.workers > 0, drop_last=False)
+                          persistent_workers=persistent, drop_last=False, **loader_options)
     if train and world > 1:
         sampler = DistributedSampler(dataset, num_replicas=world, rank=rank, shuffle=True, seed=args.seed)
         return DataLoader(dataset, args.batch_size // world, sampler=sampler, num_workers=args.workers,
-                          collate_fn=collate, persistent_workers=args.workers > 0, drop_last=False)
-    return DataLoader(dataset, args.batch_size, shuffle=train, num_workers=args.workers, collate_fn=collate,
-                      persistent_workers=train and args.workers > 0, drop_last=False)
+                          collate_fn=collate, persistent_workers=persistent, drop_last=False, **loader_options)
+    return DataLoader(dataset, batch_size, shuffle=train, num_workers=args.workers, collate_fn=collate,
+                      persistent_workers=persistent, drop_last=False, **loader_options)
 
 
 def lr_factor(step, warmup, total):
@@ -166,6 +208,9 @@ def lr_factor(step, warmup, total):
 
 def build_model(args):
     """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
+    if getattr(args, 'roi_context_mode', 'shared') == 'classification' and (
+            not getattr(args, 'cascade', False) or getattr(args, 'roi_context', 0.0) <= 0):
+        raise ValueError('--roi-context-mode classification requires --cascade and --roi-context > 0')
     backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained', drop_path=getattr(args, 'drop_path', 0.0))
     if getattr(args, 'token_stride', 0):
         set_token_stride(backbone, args.token_stride)
@@ -221,13 +266,16 @@ def build_model(args):
         pool = AlignedMultiScaleRoIAlign(pool.featmap_names, output_size=pool.output_size, sampling_ratio=pool.sampling_ratio)
         model.roi_heads.box_roi_pool = pool
     if getattr(args, 'cascade', False):
-        assert not args.giou, '--giou is not implemented for --cascade'
+        assert not getattr(args, 'giou_only', False), '--giou-only is not implemented for --cascade (use --giou w to add a GIoU term)'
         model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
                                           beta=args.cascade_beta, batch_size_per_image=args.roi_batch,
                                           size_iou=(getattr(args, 'size_iou_table', 'a4') if getattr(args, 'cascade_size_iou', False) else False),
                                           iou_weight=getattr(args, 'iou_branch', 0.0),
                                           context=getattr(args, 'roi_context', 0.0),
-                                          cls_weights=parse_weights(getattr(args, 'cls_weights', '')))
+                                          context_mode=getattr(args, 'roi_context_mode', 'shared'),
+                                          cls_weights=parse_weights(getattr(args, 'cls_weights', '')),
+                                          partial_neg=getattr(args, 'partial_neg', False))
+        model.roi_heads.giou_weight = getattr(args, 'giou', 0.0)
     if getattr(args, 'pretrained_prior', False):
         assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
         model.neck.prior = PretrainedPrior()
@@ -368,11 +416,16 @@ def main():
         dist.init_process_group('nccl')
         torch.cuda.set_device(int(os.environ['LOCAL_RANK']))
     main_proc = rank == 0
-    torch.manual_seed(args.seed)
+    if args.batch_size % world:
+        raise ValueError('--batch-size must be divisible by the DDP world size')
+    if args.reproducible_loader:
+        seed_everything(args.seed)
+    else:
+        torch.manual_seed(args.seed)
     torch.backends.cudnn.benchmark = True
     run_dir = args.out / (args.name or f'{args.backbone}_{args.init}_{args.adapt}')
     run_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(run_dir / 'log.txt', 'w') if main_proc else None
+    log_file = open(run_dir / 'log.txt', 'a' if args.resume else 'w') if main_proc else None
     log(json.dumps(vars(args), default=str), log_file)
     if world > 1:
         log(f'DDP: {world} processes, {args.batch_size // world} images per GPU per step', log_file)
@@ -384,6 +437,13 @@ def main():
 
     # Model: adapters are created on the CPU, so they are added before .cuda()
     model = build_model(args).cuda()
+    if getattr(args, 'init_weights', None):
+        state = torch.load(args.init_weights, map_location='cpu', weights_only=True)
+        state = {k.replace('._orig_mod', ''): v for k, v in state.items()}
+        missing, unexpected = model.load_state_dict(state, strict=False)
+        if unexpected:
+            raise SystemExit(f'--init-weights has unexpected tensors: {unexpected[:5]}')
+        log(f'Initialised {len(state)} tensors from {args.init_weights} ({len(missing)} tensors keep their pretrained/fresh values)', log_file)
     model.roi_heads.post['score_thresh'] = args.score_thresh
     if args.compile:
         compile_blocks(model.backbone)
@@ -400,82 +460,119 @@ def main():
     optimizer = torch.optim.AdamW(param_groups(model, args), lr=args.lr, weight_decay=args.weight_decay)
     # training steps go through train_model (DDP-wrapped with several GPUs); evaluation, EMA and checkpoints use model
     train_model = DistributedDataParallel(model, device_ids=[torch.cuda.current_device()]) if world > 1 else model
-    warmup, total = len(train_loader), args.epochs * len(train_loader)  # one epoch of warmup
+    warmup = round(args.warmup_epochs * len(train_loader))
+    total = args.schedule_epochs * len(train_loader)
     schedule = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: lr_factor(step, warmup, total))
     ema = EMA(model, args.ema) if args.ema else None
 
-    # Train, validating every --eval-every epochs on the first eval split; the reported model is the last-epoch model
-    history, start, step = [], time.time(), 0
-    for epoch in range(1, args.epochs + 1):
+    signature = compatibility_signature(args, model, train_loader, world) if (args.save_training_state or args.resume) else None
+    history, start, step, first_epoch, previous_hours = [], time.time(), 0, 1, 0.0
+    if args.resume:
+        progress = load_training_state(args.resume, model, optimizer, schedule, ema, signature=signature, rank=rank)
+        history, step = progress['history'], progress['global_step']
+        first_epoch, previous_hours = progress['epoch'] + 1, progress['train_hours']
+        if first_epoch > args.epochs or (args.stop_after_epoch and args.stop_after_epoch < first_epoch):
+            raise ValueError('The resumed checkpoint has already reached the requested stopping epoch')
+        log(f'Resumed {args.resume}: epoch {first_epoch - 1}, global step {step}', log_file)
+        start = time.time()
+
+    # Evaluation and state saving are coordinated across all DDP ranks at epoch boundaries.
+    for epoch in range(first_epoch, args.epochs + 1):
         if world > 1:
             train_loader.sampler.set_epoch(epoch)
+        if args.reproducible_loader:
+            seed_loader_epoch(train_loader, args.seed, epoch, rank)
+            for loader in eval_loaders.values():
+                seed_loader_epoch(loader, args.seed, epoch, rank)
         step = train_one_epoch(train_model, train_loader, optimizer, schedule, epoch, log_file, args, ema, step)
+        if epoch == args.epochs:
+            break  # final evaluation/export below precedes the final training-state checkpoint
         periodic = (args.save_every and epoch % args.save_every == 0) or \
             (eval_splits and epoch % args.eval_every == 0)
-        if not main_proc:  # the other processes wait while the main one evaluates / saves
-            if periodic and epoch != args.epochs:
-                dist.barrier()
-            continue
-        if args.save_every and epoch % args.save_every == 0 and epoch != args.epochs:
-            keep = {n for n, q in model.named_parameters() if q.requires_grad} | {n for n, _ in model.named_buffers()}
-            ckpt = {k.replace('._orig_mod', ''): v for k, v in model.state_dict().items() if k in keep}
-            torch.save(ckpt, run_dir / f'ckpt_e{epoch}.pt')
-        if eval_splits and (epoch % args.eval_every == 0 or epoch == args.epochs) and epoch != args.epochs:
-            if ema:
-                ema.swap()
-            scores = {}
-            for s in eval_splits:  # every eval split, so the growth curve is measured on the whole holdout
-                scores[s], _, _ = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json')
-            if ema:
-                ema.swap()
-            history.append({'epoch': epoch, **scores[eval_splits[0]], 'all': scores})
-            log(f'epoch {epoch} ' + ' || '.join(f'{s}: {headline(m)}' for s, m in scores.items()), log_file)
-        if world > 1 and periodic and epoch != args.epochs:
+        if main_proc:
+            if args.save_every and epoch % args.save_every == 0:
+                keep = {n for n, q in model.named_parameters() if q.requires_grad} | {n for n, _ in model.named_buffers()}
+                ckpt = {k.replace('._orig_mod', ''): v for k, v in model.state_dict().items() if k in keep}
+                torch.save(ckpt, run_dir / f'ckpt_e{epoch}.pt')
+            if eval_splits and epoch % args.eval_every == 0:
+                if ema:
+                    ema.swap()
+                scores = {}
+                for split in eval_splits:
+                    scores[split], _, _ = evaluate(model, eval_loaders[split], args.data / 'detection' / f'instances_{split}.json')
+                if ema:
+                    ema.swap()
+                history.append({'epoch': epoch, **scores[eval_splits[0]], 'all': scores})
+                log(f'epoch {epoch} ' + ' || '.join(f'{split}: {headline(m)}' for split, m in scores.items()), log_file)
+        if args.save_training_state:
+            save_training_state(run_dir / 'training_state.pt', model, optimizer, schedule, ema,
+                                epoch=epoch, step=step, history=history,
+                                train_hours=previous_hours + (time.time() - start) / 3600,
+                                signature=signature, world=world, rank=rank)
+        elif world > 1 and periodic:
             dist.barrier()
-    train_hours = (time.time() - start) / 3600
-    if world > 1 and not main_proc:
-        dist.destroy_process_group()
-        return
-    if ema:  # evaluate the last-iterate weights too (paired comparison with the EMA weights, same run)
-        last = {}
+        if args.stop_after_epoch == epoch:
+            log(f'Stopped cleanly after epoch {epoch}; resume from {run_dir / "training_state.pt"}', log_file)
+            if log_file:
+                log_file.close()
+            if world > 1:
+                dist.destroy_process_group()
+            return
+    train_hours = previous_hours + (time.time() - start) / 3600
+    if main_proc:
+        if ema:  # evaluate the last-iterate weights too (paired comparison with the EMA weights, same run)
+            last = {}
+            for s in eval_splits:
+                m, _, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
+                last[s] = m
+                log(f'{s} (last-iterate weights): {headline(m)}', log_file)
+                if raw is not None:
+                    torch.save(raw, run_dir / f'raw_{s}_last.pt')
+            (run_dir / 'metrics_last.json').write_text(json.dumps(last, indent=2, default=str))
+            ema.swap()  # from here on the model holds the EMA weights
+
+        # Final evaluation of the last-epoch model on every eval split
+        results = {}
         for s in eval_splits:
-            m, _, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
-            last[s] = m
-            log(f'{s} (last-iterate weights): {headline(m)}', log_file)
+            t0 = time.time()
+            m, dets, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
+            m['seconds'] = time.time() - t0
+            results[s] = m
+            log(f'{s}: {headline(m)}', log_file)
+            (run_dir / f'predictions_{s}.json').write_text(json.dumps(dets))
             if raw is not None:
-                torch.save(raw, run_dir / f'raw_{s}_last.pt')
-        (run_dir / 'metrics_last.json').write_text(json.dumps(last, indent=2, default=str))
-        ema.swap()  # from here on the model holds the EMA weights
+                torch.save(raw, run_dir / f'raw_{s}.pt')
+        peak_gb = torch.cuda.max_memory_allocated() / 2**30
+        log(f'training {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
 
-    # Final evaluation of the last-epoch model on every eval split
-    results = {}
-    for s in eval_splits:
-        t0 = time.time()
-        m, dets, raw = evaluate(model, eval_loaders[s], args.data / 'detection' / f'instances_{s}.json', raw=args.dump_raw)
-        m['seconds'] = time.time() - t0
-        results[s] = m
-        log(f'{s}: {headline(m)}', log_file)
-        (run_dir / f'predictions_{s}.json').write_text(json.dumps(dets))
-        if raw is not None:
-            torch.save(raw, run_dir / f'raw_{s}.pt')
-    peak_gb = torch.cuda.max_memory_allocated() / 2**30
-    log(f'training {train_hours:.2f} h, peak GPU memory {peak_gb:.1f} GB', log_file)
+        # Save
+        summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable, 'buffer_values': buffers,
+                   'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb, 'val_history': history,
+                   **{s: results[s] for s in eval_splits}}
+        if 'val' in results:
+            summary['val'] = results['val']
+        (run_dir / 'metrics.json').write_text(json.dumps(summary, indent=2, default=str))
+        if args.save != 'none':
+            state = model.state_dict()
+            if args.save == 'trainable':
+                keep = {n for n, p in model.named_parameters() if p.requires_grad} | {n for n, _ in model.named_buffers()}
+                state = {k: v for k, v in state.items() if k in keep}
+            state = {k.replace('._orig_mod', ''): v for k, v in state.items()}  # compiled blocks: plain module names
+            torch.save(state, run_dir / 'model.pt')
+        log('RESULT ' + json.dumps({s: {k: round(results[s][k], 4) for k in ('macro_f1', 'mAP', 'AP50')} for s in eval_splits}), log_file)
+        if ema:
+            ema.swap()  # restore last-iterate weights before saving optimizer-compatible training state
+    if args.save_training_state:
+        save_training_state(run_dir / 'training_state.pt', model, optimizer, schedule, ema,
+                            epoch=args.epochs, step=step, history=history, train_hours=train_hours,
+                            signature=signature, world=world, rank=rank)
+    elif world > 1:
+        dist.barrier()
+    if log_file:
+        log_file.close()
+    if world > 1:
+        dist.destroy_process_group()
 
-    # Save
-    summary = {'args': vars(args), 'parameters': parameters, 'trainable_parameters': trainable, 'buffer_values': buffers,
-               'train_hours': train_hours, 'peak_gpu_memory_gb': peak_gb, 'val_history': history,
-               **{s: results[s] for s in eval_splits}}
-    if 'val' in results:
-        summary['val'] = results['val']
-    (run_dir / 'metrics.json').write_text(json.dumps(summary, indent=2, default=str))
-    if args.save != 'none':
-        state = model.state_dict()
-        if args.save == 'trainable':
-            keep = {n for n, p in model.named_parameters() if p.requires_grad} | {n for n, _ in model.named_buffers()}
-            state = {k: v for k, v in state.items() if k in keep}
-        state = {k.replace('._orig_mod', ''): v for k, v in state.items()}  # compiled blocks: plain module names
-        torch.save(state, run_dir / 'model.pt')
-    log('RESULT ' + json.dumps({s: {k: round(results[s][k], 4) for k in ('macro_f1', 'mAP', 'AP50')} for s in eval_splits}), log_file)
 
 
 if __name__ == '__main__':

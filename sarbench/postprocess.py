@@ -11,9 +11,13 @@ from torchvision.ops import boxes as box_ops
 
 def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100):
     """Gaussian soft-NMS (Bodla et al., ICCV 2017) per class: repeatedly keep the best box and decay the others by
-    exp(-IoU^2 / sigma). Returns the indices of the kept boxes and their decayed scores, best first."""
+    exp(-IoU^2 / sigma). Returns the indices of the kept boxes and their decayed scores, best first.
+    sigma may be a dict {label: sigma} (opt-in per-class strength; labels not listed use sigma['default'])."""
     keep_idx, keep_s = [], []
+    sigma_by_class = sigma if isinstance(sigma, dict) else None
     for k in labels.unique():
+        if sigma_by_class is not None:
+            sigma = sigma_by_class.get(int(k), sigma_by_class.get('default', 0.75))
         idx = torch.where(labels == k)[0]
         b, sc = boxes[idx], scores[idx].clone()
         n = 0
@@ -37,7 +41,8 @@ def soft_nms(boxes, scores, labels, sigma=0.75, score_thresh=1e-3, per_class=100
 def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
                         image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75,
-                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None, min_keep=0):
+                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None, min_keep=0,
+                        stage_weights=None):
     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
     first), image_probs: [C] softmax of the image classifier (needed for fusion).
     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
@@ -53,8 +58,13 @@ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0
     if stage_box == 'mean' and stage_inputs is not None:
         # Cascade: average the boxes every stage outputs for a proposal (stage_inputs [S, N, 4] are the input boxes
         # of the S stages, so stage_inputs[1:] are the outputs of all but the last stage), as the scores average
-        # the stages' class probabilities
-        boxes = (boxes.float() + stage_inputs[1:].float().sum(0)[:, None]) / len(stage_inputs)
+        # the stages' class probabilities; stage_weights (opt-in, one per stage output, oldest first) weights them
+        if stage_weights is not None:
+            w = boxes.new_tensor(stage_weights, dtype=torch.float32); w = w / w.sum()
+            outs = [stage_inputs[i].float()[:, None] for i in range(1, len(stage_inputs))] + [boxes.float()]
+            boxes = sum(wi * o for wi, o in zip(w, outs))
+        else:
+            boxes = (boxes.float() + stage_inputs[1:].float().sum(0)[:, None]) / len(stage_inputs)
     boxes = boxes.reshape(-1, 4).float()
     if shift is not None and torch.as_tensor(shift).abs().sum() > 0:
         # constant translation (px on the network input) correcting a systematic box-position bias; a float moves
