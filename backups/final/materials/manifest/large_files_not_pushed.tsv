@@ -510,7 +510,7 @@
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e70.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e80.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e90.pt
-819592253	cs701_runs/RPT_TWIN_cos200_s1/run/training_state.pt
+819592317	cs701_runs/RPT_TWIN_cos200_s1/run/training_state.pt
 96124875	cs701_runs/S5_sp/model.pt
 204337693	cs701_runs/S5_sp/raw_test.pt
 204332987	cs701_runs/S5_sp/raw_val.pt

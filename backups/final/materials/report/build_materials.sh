@@ -53,5 +53,5 @@ echo 'local_only/' > .gitignore
 python3 "$RPT/progress.py" > manifest/training_status.txt
 cp "$RPT/results/leaderboard_phase2.json" manifest/leaderboard_phase2_2026-11-05.json
 # other people and other projects do not belong in a shared repository
-grep -rIlE 'hegeng|SecureVibeGym' . --exclude-dir=local_only 2>/dev/null | while read -r f; do sed -i -E 's/hegeng/another user/g; s/SecureVibeGym/another project/g' "$f"; done
+grep -rIlE 'another user|another project' . --exclude-dir=local_only 2>/dev/null | while read -r f; do sed -i -E 's/another user/another user/g; s/another project/another project/g' "$f"; done
 du -sh --exclude=local_only .; find . -path ./local_only -prune -o -type f -print | wc -l; find . -path ./local_only -prune -o -type f -size +20M -print

@@ -37,6 +37,8 @@ Three properties of the data shaped the design.
 |---|---|
 | ![Share of boxes by side length](figures/box_sizes.png) | ![AP against IoU threshold on the local holdouts](figures/ap_vs_iou.png) |
 
+*Figure 1. Left: share of all 32,533 boxes by side √(wh) at the 512 px input; bins differ in width. Right: AP against IoU threshold on the two local holdouts (averaged weights of the 7,512-image run, class-agnostic fusion).*
+
 ## 2. Related work
 
 LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use a single wide LoRA. For tiny objects, NWD [Wang 2021] replaces IoU in assignment, Cascade R-CNN [Cai 2018] refines boxes, ViTDet [Li 2022] builds a pyramid from one ViT map, and ViT-Adapter [Chen 2023] adds a CNN spatial prior. Soft-NMS [Bodla 2017] and weight averaging along a trajectory [Izmailov 2018] are the two ideas behind our largest zero-cost gains. Δm is the usual multi-task summary [Maninis 2019; Vandenhende 2021].
@@ -45,7 +47,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 
 ![The final model. Blue blocks train (39.87 M); gray is frozen. Each image passes through once at 512 × 512.](figures/model.png)
 
-*Figure 1. The final model. Blue blocks train (39.87 M); gray is frozen. Each image passes through once at 512 × 512.*
+*Figure 2. The final model. Blue blocks train (39.87 M); gray is frozen. Each image passes through once at 512 × 512.*
 
 | Part | What it is | Why |
 |---|---|---|
@@ -60,7 +62,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 
 ![Training curve on vallike with the averaging window](figures/training_curve.png)
 
-*Figure 2. mAP on the held-out split during training (seed 0). The curve flattens in the low-LR tail, which is where averaging helps.*
+*Figure 3. mAP on the held-out split during training, with training-time post-processing (seed 0). The curve flattens in the low-LR tail, which is where averaging helps.*
 
 **Post-processing** uses only that one forward pass:
 
@@ -76,7 +78,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 
 ![Schematic of lattice snapping](figures/lattice_snap.png)
 
-*Figure 3. Lattice snapping, schematic. Grid lines are original pixels; the right panel's lattice is shifted by one fractional offset shared within the image.*
+*Figure 4. Lattice snapping, schematic. Grid lines are original pixels on the left, and the image's shifted lattice on the right.*
 
 ## 4. Experiments
 
@@ -92,7 +94,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 
 ![Official val Δm over the project](figures/official_progress.png)
 
-*Figure 4. Official val Δm at each milestone.*
+*Figure 5. Official val Δm at each milestone.*
 
 <!--TABLE:official-->
 
@@ -108,7 +110,7 @@ We finished Phase 1 third of nine, behind Team 9 (67.16) and Team 6 (65.85). Tea
 
 ![Leave-one-out change in Δm](figures/loo.png)
 
-*Figure 5. Change in Δm when one part is removed (finished runs only; the rest are TBD).*
+*Figure 6. Change in Δm when one part is removed. The gray band is the seed noise of the smaller C36 configuration, shown for scale.*
 
 **Earlier ladder.** On the 7,512 split, raw local Δm against our own reference run rose: DINOv3 instead of ImageNet-21k +8.1; LoRA r32 on all linear layers plus norms +18.1; Cascade +21.0; NWD with small anchors +19.7 (both 24 epochs); both at 36 epochs +31.3; at 48 epochs +38.6. Against the C36 mean of 37 seeds with final post-processing, size-aware IoU added +1.69 (z = 2.4; wind turbine AP +6.5; AP below 8 px from 8.2 to 12.9), flip bias +1.23 (z = 1.75), and both +2.26 (z = 3.2). LoRA r80 with head 1536 added +5.92 on top. These screens are single-seed.
 
@@ -118,7 +120,7 @@ We finished Phase 1 third of nine, behind Team 9 (67.16) and Team 6 (65.85). Tea
 
 ![Gain of each post-processing step](figures/pp_ladder.png)
 
-*Figure 6. Δm gain of each cumulative step on `vallike`.*
+*Figure 7. Δm gain of each cumulative step on `vallike`.*
 
 <!--TABLE:pp-->
 
@@ -139,6 +141,8 @@ The context result is the most instructive: +2.26 local Δm on one holdout, −0
 | Near-duplicates | Per-class AP |
 |---|---|
 | ![mAP by similarity to the nearest training image](figures/near_duplicates.png) | ![Per-class AP of the final recipe](figures/per_class_ap.png) |
+
+*Figure 8. Left: mAP by similarity to the nearest training image on the local holdouts (same weights as Figure 1). Right: per-class AP of the final recipe on `vallike`, seed 0.*
 
 ## 5. Efficiency and required disclosures
 
