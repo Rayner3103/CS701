@@ -1,1 +1,6 @@
-{"teammates": "\\textcolor{red}{[other authors: TBD]}", "phase2_score": "\\textcolor{red}{TBD}", "gpu_hours": "\\textcolor{red}{TBD}", "twin_seeds": "1 finished, 2 running (TBD)"}
+{
+"teammates": "\\textcolor{red}{[other authors: TBD]}",
+"phase2_score": "61.25",
+"gpu_hours": "\\textcolor{red}{TBD}",
+"twin_seeds": "1 finished, 2 running (TBD)"
+}

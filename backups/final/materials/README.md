@@ -14,11 +14,14 @@
 | `manifest/` | 未推送大文件的清单和校验值，以及训练进度 `training_status.txt` | 是 |
 | `local_only/` | 权重、原始输出、提交文件、会话记录、实验台账（硬链接，只在服务器上） | 否 |
 
+## Phase 2 成绩
+
+Δm **61.25**，macro-F1 96.96，mAP 55.74，AP50 75.19，11-03 15:37 SGT 发布。11-05 18:59 的公开榜单上排 8 队第 3，榜单 11-08 锁定。榜单快照见 `manifest/leaderboard_phase2_2026-11-05.json`。
+
 ## 待定
 
 | 项目 | 状态 |
 |---|---|
-| Phase 2 test 成绩 | 待定：榜单目前连不上 |
 | 实际提交的文件和次数 | 待定：目前依据回忆，最后一次应为 `PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip` |
 | 其他作者姓名 | 待定 |
 | 完整配方 seed 1、2 | 待定：训练中，见 `manifest/training_status.txt` |

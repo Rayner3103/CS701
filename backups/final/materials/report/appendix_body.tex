@@ -884,7 +884,7 @@ Per-class gains, integer snap & Aircraft .12, bridge .05, car .06, harbor .13, o
 
 Merged estimates\sn{}: 992 vallike +0.31 [+0.17, +0.45], i.e. +0.59\,\dm{}; 1,880 merged +0.28 [+0.18, +0.40], i.e. +0.54\,\dm{}. On TWIN1 the same step gives +0.20 [+0.07, +0.36] on vallike (Table~\ref{tab:ppseed0}).
 
-\textbf{Status.} The snapped val zip \fl{BP7_avg100-180x9_agn_SNAP_lattice.zip} (sha \fl{65dc8ae5}\ldots) was offered at 23:00, one hour before Phase 1 closed. No score appears in any artifact or note. \textbf{Snap has no official validation of its own}, unless a Phase 2 score is obtained (\S\ref{sec:shot}). Predicted $R$ on official val: 220 wind images with at least 3 confident boxes; $R$ quantiles 10/25/50/75/90 = .07, .14, .32, .65, .81; share with $R\ge.5$ = 0.39. Local val predicted share .14, test .33; GT $R\ge.9$ share .46 / .47. The assumption that val and test share this lattice was never tested on official data.
+\textbf{Status.} The snapped val zip \fl{BP7_avg100-180x9_agn_SNAP_lattice.zip} (sha \fl{65dc8ae5}\ldots) was offered at 23:00, one hour before Phase 1 closed. No score appears in any artifact or note. \textbf{Snap has no official validation of its own}: the Phase 2 score covers only the combined entry (\S\ref{sec:shot}). Predicted $R$ on official val: 220 wind images with at least 3 confident boxes; $R$ quantiles 10/25/50/75/90 = .07, .14, .32, .65, .81; share with $R\ge.5$ = 0.39. Local val predicted share .14, test .33; GT $R\ge.9$ share .46 / .47. The assumption that val and test share this lattice was never tested on official data.
 
 \subsection{min\_keep}
 \label{sec:minkeep}
@@ -1076,7 +1076,7 @@ All pass \fl{tools/check_submission.py}: 2,065 images, 0 outside. All three shot
 \begin{lt}{L{4.6cm}L{12.3cm}}
 \caption{What is recorded about the Phase 2 submission.}\label{tab:phase2known}\\
 \lthead{2}{Question & Finding}
-Was a Phase 2 score recorded? & \textbf{No.} No file, session log or note holds a Team 7 test score. Score on the Phase 2 board: \PTWO{}. Leaderboard API queries on 11-05 timed out\\
+Phase 2 score & Read from the public board on 11-05 18:59 SGT: \textbf{\dm{} 61.25}, macro-F1 96.96, mAP 55.74, AP50 75.19, accuracy 97.09, posted 11-03 15:37 SGT, submission \fl{s_lia6Xuj5jW}. Rank 3 of 8 at that time (Team 6 71.57, Team 9 71.40, Team 2 58.36); the board locks on 11-08. The saved board is \fl{results/leaderboard_phase2.json}\\
 Which file was uploaded? & \textbf{Not established from project records.} Upload was manual and no upload log exists. On 11-05 the team recalled the FINAL zip, as a recollection\\
 Evidence pointing elsewhere & At 21:22--21:23 on 11-02 a screenshot showed a file picker on the plain-recipe zip (\fl{PHASE2_shot1_avg100-180x9_..._k9.zip}), with a question whether that file had the 56.49 recipe. Five minutes later all experiments were stopped\\
 One or two submissions used? & Unknown. The plain recipe could have been an earlier submission. No evidence either way\\
@@ -1525,7 +1525,7 @@ Places where earlier internal notes were wrong, or where a claim is weaker than 
 \label{sec:notestablished}
 
 \begin{itemize}\setlength{\itemsep}{1pt}
-\item Any official test score for Team 7 in project files, and which file or files were uploaded (\S\ref{sec:shot}).
+\item Which file or files were uploaded for Phase 2 (\S\ref{sec:shot}); the board shows the score, not the file.
 \item The official effect of lattice snapping and min\_keep. Whether the lattice holds on val and test labels.
 \item The official effect of the e100--180 window without fusion. The board's split between window and fusion.
 \item Seed variance of the final recipe at full length, until the runs of \S\ref{sec:added} finish.

@@ -68,6 +68,7 @@
 159543051	backups/final/materials/local_only/experiments/report_final_20261105/prior_evidence/sweep/weights/W5_70-130.pt
 159543051	backups/final/materials/local_only/experiments/report_final_20261105/prior_evidence/sweep/weights/W6_50-130.pt
 429993935	backups/final/materials/local_only/experiments/report_final_20261105/raws/RPT_LOO36_base_s0/final_vallike.pt
+429993935	backups/final/materials/local_only/experiments/report_final_20261105/raws/RPT_LOO36_noSP_s0/final_vallike.pt
 159543771	backups/final/materials/local_only/runtime/avg/avg_e100-180.pt
 977660801	backups/final/materials/local_only/runtime/avg/avg_e100-180_test_raw.pt
 675122333	backups/final/materials/local_only/runtime/avg/avg_e100-180_val_raw.pt
@@ -493,13 +494,15 @@
 158944093	cs701_runs/ref_s0/vit_pretrained_lora/raw_test.pt
 158940327	cs701_runs/ref_s0/vit_pretrained_lora/raw_val.pt
 159530955	cs701_runs/RPT_LOO36_base_s0/run/model.pt
-817040459	cs701_runs/RPT_LOO36_noSP_s0/run/training_state.pt
+819587773	cs701_runs/RPT_LOO36_noSizeIoU_s0/run/training_state.pt
+158684171	cs701_runs/RPT_LOO36_noSP_s0/run/model.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e10.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e20.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e30.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e40.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e50.pt
 159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e60.pt
+159546075	cs701_runs/RPT_TWIN_cos200_s1/run/ckpt_e70.pt
 819590141	cs701_runs/RPT_TWIN_cos200_s1/run/training_state.pt
 96124875	cs701_runs/S5_sp/model.pt
 204337693	cs701_runs/S5_sp/raw_test.pt
@@ -765,6 +768,7 @@
 159543051	experiments/report_final_20261105/prior_evidence/sweep/weights/W5_70-130.pt
 159543051	experiments/report_final_20261105/prior_evidence/sweep/weights/W6_50-130.pt
 429993935	experiments/report_final_20261105/raws/RPT_LOO36_base_s0/final_vallike.pt
+429993935	experiments/report_final_20261105/raws/RPT_LOO36_noSP_s0/final_vallike.pt
 159543771	.runtime/avg/avg_e100-180.pt
 977660801	.runtime/avg/avg_e100-180_test_raw.pt
 675122333	.runtime/avg/avg_e100-180_val_raw.pt

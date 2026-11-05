@@ -30,8 +30,8 @@ rows = [r'10-20 & V2, 120-ep cosine, e100 & 38.23 & 95.06 & 45.62 & first long r
  r'11-01 & avg e100/120/140/160 & 55.41 & 95.20 & 54.56 & checkpoint averaging',
  r'11-01 & avg e100--180 (9), hard & 56.41 & 95.27 & 55.06 & wider window + hard fusion',
  r'\textbf{11-01} & \textbf{same, class-agnostic} & \textbf{56.49} & \textbf{95.27} & \textbf{55.10} & \textbf{posted, Phase 1}',
- r'11-02 & test: + min\_keep 100, snap & \PTWO & & & Phase 2 entry']
-w('official.tex', table('tab:official', r'Official scores (Phase 1 val, reference 93.31 / 26.13; seed 0, 1 run each). V2 and F1 were scored on Codabench, the rest on the course leaderboard.', 'lp{2.35cm}rrrp{2.0cm}', r'Date & Entry & \dm & F1 & mAP & Change', rows))
+ r'\textbf{11-03} & \textbf{test: + min\_keep 100, snap} & \textbf{\PTWO} & \textbf{96.96} & \textbf{55.74} & \textbf{posted, Phase 2} (test reference)']
+w('official.tex', table('tab:official', r'Official scores (Phase 1 val, reference 93.31 / 26.13; the last row is test, reference 93.99 / 25.41; seed 0, 1 run each). V2 and F1 were scored on Codabench, the rest on the course leaderboard.', 'lp{2.35cm}rrrp{2.0cm}', r'Date & Entry & \dm & F1 & mAP & Change', rows))
 # ---------------- post-processing ablation over seeds
 files = sorted(glob.glob(str(RES / 'pp_ablation_*.json'))); runs = [json.load(open(f)) for f in files]
 if runs:
