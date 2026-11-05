@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-10-31T11:54:05.865375+08:00",
+  "purpose": "Fixed e150 comparison on second local holdout; no new training or tuning",
+  "split": "test",
+  "holdout_images": 940,
+  "training_images": 7512,
+  "seed": 0,
+  "schedule_epochs": 160,
+  "checkpoint_epoch": 150,
+  "baseline": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_fixedLR160_local_s0_20261030_direct/schedule160",
+  "candidate": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_ctx3_classification_local160_s0_20261031/context160",
+  "post_shift": -0.2,
+  "warning": "Historically used local test, not a pristine blind test. No official labels used."
+}

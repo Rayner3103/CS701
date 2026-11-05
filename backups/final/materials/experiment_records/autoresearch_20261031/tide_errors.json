@@ -1,0 +1,50 @@
+{
+  "time": "2026-10-31T03:34:27.278791+08:00",
+  "tide_version": "1.0.1",
+  "diagnostics": {
+    "0.5": {
+      "AP_percent": 73.24595532820707,
+      "existing_coco_AP_percent": 73.24595532820707,
+      "difference_pp": 0.0,
+      "main": {
+        "lr1x_native_eval": {
+          "Cls": 0.0017724143424970862,
+          "Loc": 3.461260022099779,
+          "Both": 0.0,
+          "Dupe": 0.004009053729149059,
+          "Bkg": 1.3413278492659089,
+          "Miss": 14.73552007807686
+        }
+      },
+      "special": {
+        "lr1x_native_eval": {
+          "FalsePos": 2.331602427568498,
+          "FalseNeg": 20.164102456592204
+        }
+      }
+    },
+    "0.75": {
+      "AP_percent": 56.31913426463169,
+      "existing_coco_AP_percent": 56.319134264631685,
+      "difference_pp": 7.105427357601002e-15,
+      "main": {
+        "lr1x_native_eval": {
+          "Cls": 0,
+          "Loc": 20.436987271294605,
+          "Both": 0,
+          "Dupe": 0,
+          "Bkg": 0.7406220176469844,
+          "Miss": 9.3234909759773
+        }
+      },
+      "special": {
+        "lr1x_native_eval": {
+          "FalsePos": 6.167114360230791,
+          "FalseNeg": 28.40935208252109
+        }
+      }
+    }
+  },
+  "source_predictions": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/predictions_val.json",
+  "note": "Native training-time postprocessing, NOT final submission postprocessing. Oracle error corrections estimate headroom, not achievable gains. Each correction is isolated; dAP values cannot be added."
+}

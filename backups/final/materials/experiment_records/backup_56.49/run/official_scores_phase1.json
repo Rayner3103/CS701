@@ -1,0 +1,31 @@
+{
+ "note": "Every official score of the project. Codabench rows are the old platform (same scorer); the rest are the new leaderboard's Phase 1 val (1,426 images), reference F1 93.31 / mAP 26.13. Times are SGT. 'local' = trained on the 7,512-image local split only (screening runs, not comparable with full-data rows).",
+ "rows": [
+  {"date": "2026-10-21", "platform": "Codabench", "name": "V2 e100 (first long full-data run, 90% data)", "delta_m": 38.23, "macro_f1": 95.06, "mAP": 45.62, "AP50": 70.38},
+  {"date": "2026-10-23", "platform": "Codabench", "name": "F1_full (Cascade + NWD + small anchors, 100 ep, all data)", "delta_m": 41.26, "macro_f1": 95.90, "mAP": 46.97, "AP50": 71.57, "accuracy": 96.21},
+  {"date": "2026-10-27", "platform": "leaderboard", "name": "F2 (F1 + size-IoU + flip-bias, shift -0.2)", "delta_m": 44.84, "macro_f1": 95.46, "mAP": 48.97, "AP50": 71.53, "accuracy": 95.79},
+  {"date": "2026-10-27", "platform": "leaderboard", "name": "SC1 (scaled to 39.7M, local 80:20, 36 ep)", "delta_m": 28.90, "mAP": 40.85, "local": true},
+  {"date": "2026-10-28", "platform": "leaderboard", "name": "SC2 e130 (scaled, 150-ep cosine, all data)", "delta_m": 51.86, "macro_f1": 95.35, "mAP": 52.66, "AP50": 73.18, "accuracy": 95.58},
+  {"date": "2026-10-28", "platform": "leaderboard", "name": "SC2 e150", "delta_m": 51.81, "macro_f1": 95.44, "mAP": 52.61, "AP50": 73.24, "accuracy": 95.72},
+  {"date": "2026-10-29", "platform": "leaderboard", "name": "BP7 full, 130-ep cosine, e130 (SC2 + spatial prior 64)", "delta_m": 51.76, "macro_f1": 95.65, "mAP": 52.53},
+  {"date": "2026-10-30", "platform": "leaderboard", "name": "BP7 local, 130-ep cosine, e130", "delta_m": 45.83, "macro_f1": 94.80, "mAP": 49.66, "AP50": 72.07, "accuracy": 95.09, "local": true},
+  {"date": "2026-10-31", "platform": "leaderboard", "name": "BP7 local, 160-ep cosine, e130", "delta_m": 47.12, "macro_f1": 94.58, "mAP": 50.41, "AP50": 71.62, "accuracy": 94.95, "local": true},
+  {"date": "2026-10-31", "platform": "leaderboard", "name": "BP7 local, 160-ep cosine, e150", "delta_m": 46.92, "macro_f1": 94.48, "mAP": 50.32, "AP50": 71.65, "local": true},
+  {"date": "2026-10-31", "platform": "leaderboard", "name": "BP7 + classification-only RoI context, local, e130 / e150 / e160", "delta_m": [46.93, 46.89, 46.80], "mAP": [50.24, 50.19, 50.15], "macro_f1": [94.78, 94.89, 94.89], "local": true},
+  {"date": "2026-10-31", "platform": "leaderboard", "name": "BP7 full, 160-ep cosine, e130", "delta_m": 52.78, "macro_f1": 95.35, "mAP": 53.15, "AP50": 73.76, "accuracy": 95.58},
+  {"date": "2026-11-01 00:53", "platform": "leaderboard", "name": "LingBot-Vision-B backbone (BP7 heads), full, 160-ep cosine, e60", "delta_m": 39.23, "macro_f1": 94.02, "mAP": 46.44, "AP50": 72.63, "accuracy": 94.60},
+  {"date": "2026-11-01 11:17", "platform": "leaderboard", "name": "BP7 full cos200 e130, default post-processing", "delta_m": 52.76, "macro_f1": 95.04, "mAP": 53.22, "AP50": 73.65, "accuracy": 95.37},
+  {"date": "2026-11-01 14:27", "platform": "leaderboard", "name": "cos200 e160, default post-processing", "delta_m": 53.41, "macro_f1": 95.02, "mAP": 53.56, "AP50": 73.41, "accuracy": 95.37},
+  {"date": "2026-11-01 14:53", "platform": "leaderboard", "name": "cos200 e160, classification lambda 2", "delta_m": 53.45, "macro_f1": 95.10, "mAP": 53.56, "AP50": 73.41, "accuracy": 95.44},
+  {"date": "2026-11-01 16:19", "platform": "leaderboard", "name": "cos200 e180, lambda 2", "delta_m": 53.47, "macro_f1": 95.09, "mAP": 53.58, "AP50": 73.31, "accuracy": 95.44},
+  {"date": "2026-11-01 16:41", "platform": "leaderboard", "name": "e180: last-stage boxes instead of the 3-stage mean", "delta_m": 52.80, "macro_f1": 95.09, "mAP": 53.22, "AP50": 73.09, "accuracy": 95.44, "rejected": true},
+  {"date": "2026-11-01 17:04", "platform": "leaderboard", "name": "e180: soft-NMS sigma 0.75 -> 0.5", "delta_m": 53.76, "macro_f1": 95.09, "mAP": 53.73, "AP50": 73.76, "accuracy": 95.44},
+  {"date": "2026-11-01 17:19", "platform": "leaderboard", "name": "e180: + objectness exponent 0.25 -> 0", "delta_m": 54.81, "macro_f1": 95.09, "mAP": 54.28, "AP50": 74.11, "accuracy": 95.44},
+  {"date": "2026-11-01 17:36", "platform": "leaderboard", "name": "e180: + RPN proposals 1000 -> 2000", "delta_m": 54.83, "macro_f1": 95.09, "mAP": 54.29, "AP50": 74.09, "accuracy": 95.44},
+  {"date": "2026-11-01 17:40", "platform": "leaderboard", "name": "e200, same post-processing", "delta_m": 54.71, "macro_f1": 95.09, "mAP": 54.23, "AP50": 73.90, "accuracy": 95.44, "rejected": true},
+  {"date": "2026-11-01 20:04", "platform": "leaderboard", "name": "parameter average e160/e170/e180", "delta_m": 55.26, "macro_f1": 95.01, "mAP": 54.53, "AP50": 74.21, "accuracy": 95.37},
+  {"date": "2026-11-01 20:14", "platform": "leaderboard", "name": "parameter average e100/e120/e140/e160", "delta_m": 55.41, "macro_f1": 95.20, "mAP": 54.56, "AP50": 74.91, "accuracy": 95.51},
+  {"date": "2026-11-01 20:40", "platform": "leaderboard", "name": "average e100..e180 (9) + hard fusion (only the image class's boxes)", "delta_m": 56.41, "macro_f1": 95.27, "mAP": 55.06, "AP50": 74.79, "accuracy": 95.58},
+  {"date": "2026-11-01 20:59", "platform": "leaderboard", "name": "average e100..e180 (9) + class-agnostic fusion (THIS BACKUP, posted)", "delta_m": 56.49, "macro_f1": 95.27, "mAP": 55.10, "AP50": 74.85, "accuracy": 95.58, "posted": true}
+ ]
+}

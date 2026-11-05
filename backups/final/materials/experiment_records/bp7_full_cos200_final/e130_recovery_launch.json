@@ -1,0 +1,33 @@
+{
+  "time": "2026-11-01T11:11:12+08:00",
+  "pid": 3918658,
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+  "command": [
+    "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+    "-u",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/code/tools/run_bp7_e130_recovery.py",
+    "--suite",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35"
+  ],
+  "cpu_tests_passed": 13,
+  "independent_review": "passed",
+  "gpu_validation": "passed full-data epoch131, optimizer/RNG checkpoint and 8-image prediction",
+  "gpu_memory_fraction": 0.35,
+  "updated_at": "2026-11-01T11:17:36+08:00",
+  "probe_validation": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/validation/probe_passed.json",
+  "probe_training_state_sha256": "b736bfee7d21db3efbd40e2a44204f94c9d18c5ab4c8ca9e2a29e254caf88d9c",
+  "probe_gpu_peaks": [
+    {
+      "local_rank": 0,
+      "allocated_bytes": 12954784256,
+      "reserved_bytes": 13147045888
+    },
+    {
+      "local_rank": 1,
+      "allocated_bytes": 12954784768,
+      "reserved_bytes": 13128171520
+    }
+  ],
+  "observed_progress": "epoch132 iter50/587",
+  "stage": "training"
+}

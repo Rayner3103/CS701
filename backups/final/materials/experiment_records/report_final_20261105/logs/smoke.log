@@ -1,0 +1,45 @@
+2026-11-05 11:31:35 start smoke=True
+2026-11-05 11:31:35 gpu0 train RPT_LOO36_base_s0 attempt 0
+2026-11-05 11:31:35 gpu1 train RPT_LOO36_noSP_s0 attempt 0
+2026-11-05 11:32:50 gpu0 train RPT_LOO36_base_s0 rc=0
+2026-11-05 11:32:50 gpu1 train RPT_LOO36_noSP_s0 rc=0
+2026-11-05 11:35:36 gpu0 predict RPT_LOO36_base_s0 final rc=0
+2026-11-05 11:35:36 gpu0 done RPT_LOO36_base_s0 ok=True 0.07h
+2026-11-05 11:35:36 gpu0 train RPT_LOO36_noSizeIoU_s0 attempt 0
+2026-11-05 11:35:42 gpu1 predict RPT_LOO36_noSP_s0 final rc=0
+2026-11-05 11:35:42 gpu1 done RPT_LOO36_noSP_s0 ok=True 0.07h
+2026-11-05 11:35:42 gpu1 train RPT_LOO36_noFlipBias_s0 attempt 0
+2026-11-05 11:36:00 gpu0 train RPT_LOO36_noSizeIoU_s0 rc=0
+2026-11-05 11:36:09 gpu1 train RPT_LOO36_noFlipBias_s0 rc=0
+2026-11-05 11:38:54 gpu0 predict RPT_LOO36_noSizeIoU_s0 final rc=0
+2026-11-05 11:38:54 gpu0 done RPT_LOO36_noSizeIoU_s0 ok=True 0.05h
+2026-11-05 11:38:54 gpu0 train RPT_LOO36_noNWD_s0 attempt 0
+2026-11-05 11:39:08 gpu1 predict RPT_LOO36_noFlipBias_s0 final rc=0
+2026-11-05 11:39:08 gpu1 done RPT_LOO36_noFlipBias_s0 ok=True 0.06h
+2026-11-05 11:39:08 gpu1 train RPT_LOO36_noCascade_s0 attempt 0
+2026-11-05 11:39:42 gpu0 train RPT_LOO36_noNWD_s0 rc=0
+2026-11-05 11:39:45 gpu1 train RPT_LOO36_noCascade_s0 rc=0
+2026-11-05 11:42:25 gpu1 predict RPT_LOO36_noCascade_s0 final rc=0
+2026-11-05 11:42:25 gpu1 done RPT_LOO36_noCascade_s0 ok=True 0.05h
+2026-11-05 11:42:25 gpu1 train RPT_LOO36_noSmallAnchors_s0 attempt 0
+2026-11-05 11:42:35 gpu0 predict RPT_LOO36_noNWD_s0 final rc=0
+2026-11-05 11:42:35 gpu0 done RPT_LOO36_noNWD_s0 ok=True 0.06h
+2026-11-05 11:42:35 gpu0 train RPT_LOO36_noTrainNorms_s0 attempt 0
+2026-11-05 11:42:47 gpu1 train RPT_LOO36_noSmallAnchors_s0 rc=0
+2026-11-05 11:42:55 gpu0 train RPT_LOO36_noTrainNorms_s0 rc=0
+2026-11-05 11:45:34 gpu1 predict RPT_LOO36_noSmallAnchors_s0 final rc=0
+2026-11-05 11:45:34 gpu1 done RPT_LOO36_noSmallAnchors_s0 ok=True 0.05h
+2026-11-05 11:45:34 gpu1 train RPT_LOO36_smallCapacity_s0 attempt 0
+2026-11-05 11:45:42 gpu0 predict RPT_LOO36_noTrainNorms_s0 final rc=0
+2026-11-05 11:45:42 gpu0 done RPT_LOO36_noTrainNorms_s0 ok=True 0.05h
+2026-11-05 11:45:42 gpu0 train RPT_TWIN_cos200_s1 attempt 0
+2026-11-05 11:46:06 gpu1 train RPT_LOO36_smallCapacity_s0 rc=0
+2026-11-05 11:46:13 gpu0 train RPT_TWIN_cos200_s1 rc=0
+2026-11-05 11:48:42 gpu1 predict RPT_LOO36_smallCapacity_s0 final rc=0
+2026-11-05 11:48:42 gpu1 done RPT_LOO36_smallCapacity_s0 ok=True 0.05h
+2026-11-05 11:48:42 gpu1 train RPT_REF24_s0 attempt 0
+2026-11-05 11:48:59 gpu0 predict RPT_TWIN_cos200_s1 final rc=0
+2026-11-05 11:48:59 gpu0 done RPT_TWIN_cos200_s1 ok=True 0.05h
+2026-11-05 11:49:11 gpu1 train RPT_REF24_s0 rc=0
+2026-11-05 11:49:11 gpu1 done RPT_REF24_s0 ok=True 0.01h
+2026-11-05 11:49:11 ALL DONE

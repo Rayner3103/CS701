@@ -1,0 +1,47 @@
+{
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031",
+  "launch": {
+    "pid": 2066031,
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031/code/tools/run_lingbot_full_stop130.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031"
+    ],
+    "cwd": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031/code"
+  },
+  "observed_status": {
+    "pid": 2066031,
+    "started_at": "2026-10-31T15:17:27+08:00",
+    "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031",
+    "gpus": [
+      0,
+      1
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "global_batch": 16,
+    "schedule_epochs": 160,
+    "stop_after_epoch": 130,
+    "training_images": 9392,
+    "maximum_new_training_runs": 1,
+    "official_submissions": 0,
+    "backbone": "lingbot_b",
+    "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+    "stage": "waiting_for_bp7",
+    "updated_at": "2026-10-31T15:17:28+08:00",
+    "dependency_stage": "training"
+  },
+  "checks": {
+    "backbone_cpu_tests": 9,
+    "queue_cpu_tests": 18,
+    "existing_adapter_cpu_tests": 5,
+    "original_submission_cpu_tests": 10
+  },
+  "gpu_smoke": "Deferred until BP7 completes and exports",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/LingBotB_full_cos160_e130.zip"
+}

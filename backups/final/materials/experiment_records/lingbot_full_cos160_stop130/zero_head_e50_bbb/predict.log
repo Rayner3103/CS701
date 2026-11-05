@@ -1,0 +1,14 @@
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+2026-10-31 15:29:26,346 - INFO - using mlp layer as FFN
+parameters: 125,105,376 total
+INPUT_IMAGES_LOADED 200/1426
+INPUT_IMAGES_LOADED 400/1426
+INPUT_IMAGES_LOADED 600/1426
+INPUT_IMAGES_LOADED 800/1426
+INPUT_IMAGES_LOADED 1000/1426
+INPUT_IMAGES_LOADED 1200/1426
+INPUT_IMAGES_LOADED 1400/1426
+INPUT_IMAGES_LOADED 1426/1426
+wrote /mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/zero_head_e50_bbb/bbb.pending.zip: 1426 images, 127460 boxes, 65.8 ms per image
+PREDICTOR_PEAK_GPU_GIB 0.8195271492004395

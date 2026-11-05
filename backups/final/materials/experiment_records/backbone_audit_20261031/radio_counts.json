@@ -1,0 +1,40 @@
+{
+  "method": "meta-device structural reconstruction of official NVIDIA constructors; no weights loaded",
+  "backbone_original_rgb": 98254848,
+  "backbone_layernorms": 36864,
+  "original_registered_unused_reg_token": 3072,
+  "unused_reg_token_explanation": "Official extra_timm_models.vit_base_patch16_v2_224 creates reg_tokens=4. Official _enable_cpe_for_timm_vit removes patch_embed/cls_token/pos_embed/pos_drop, but does not remove reg_token; the registered 3072 parameters remain in the official module count.",
+  "original_cpe_parameters": 12582912,
+  "lora_per_rank": 147456,
+  "unchanged_sc2_head_and_neck": 27821792,
+  "variants": {
+    "24": {
+      "whole_model_total": 129615584,
+      "trainable": 31397600
+    },
+    "32": {
+      "whole_model_total": 130795232,
+      "trainable": 32577248
+    },
+    "80": {
+      "whole_model_total": 137873120,
+      "trainable": 39655136
+    }
+  },
+  "sources": [
+    "https://huggingface.co/nvidia/C-RADIOv3-B/raw/main/config.json",
+    "https://github.com/NVlabs/RADIO/blob/main/radio/extra_timm_models.py",
+    "https://github.com/NVlabs/RADIO/blob/main/radio/radio_model.py",
+    "https://github.com/NVlabs/RADIO/blob/main/radio/enable_cpe_support.py",
+    "https://github.com/NVlabs/RADIO/blob/main/radio/vit_patch_generator.py"
+  ],
+  "timm_fixed512_structural_count_rgb": 86456064,
+  "timm_fixed512_lora80_whole_total_rgb": 126074336,
+  "timm_fixed512_lora80_trainable": 39655136,
+  "timm_fixed512_sources": [
+    "https://huggingface.co/timm/vit_base_patch16_radio_v3.c_radio",
+    "https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/vision_transformer.py"
+  ],
+  "timm_fixed512_note": "Official timm model card states a native remap with no additional training: 128x128 CPE is resized once to 32x32 with RADIO interpolation. Outputs match original at 512x512; other resolutions drift. Numerical equality was not independently weight-tested in this audit.",
+  "rgb_normalization_note": "RGB counts preserve original 3-channel patch embedding. Summing 3-channel weights into grayscale removes 393216 parameters, but preserving exact pretrained RGB behavior also requires consistent input normalization."
+}

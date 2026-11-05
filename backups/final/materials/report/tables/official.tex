@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lp{2.35cm}rrrp{2.0cm}@{}}
+\toprule
+Date & Entry & \dm & F1 & mAP & Change\\
+\midrule
+10-20 & V2, 120-ep cosine, e100 & 38.23 & 95.06 & 45.62 & first long run, 90\,\% data\\
+10-21 & F1, all data, 100 ep & 41.26 & 95.90 & 46.97 & all data, better post-proc.\\
+10-27 & F2 & 44.84 & 95.46 & 48.97 & size-aware IoU, flip bias, shift\\
+10-28 & SC2, e130 of 150 & 51.86 & 95.35 & 52.66 & LoRA r80, head 1536, longer\\
+10-31 & BP7, e130 of 160 & 52.78 & 95.35 & 53.15 & spatial prior, slower cosine\\
+11-01 & cos200, e160 & 53.41 & 95.02 & 53.56 & slower cosine again\\
+11-01 & e180, $\sigma$.5, obj$^0$, RPN 2k, $\lambda$2 & 54.83 & 95.09 & 54.29 & post-processing only\\
+11-01 & avg e100/120/140/160 & 55.41 & 95.20 & 54.56 & checkpoint averaging\\
+11-01 & avg e100--180 (9), hard & 56.41 & 95.27 & 55.06 & wider window + hard fusion\\
+\textbf{11-01} & \textbf{same, class-agnostic} & \textbf{56.49} & \textbf{95.27} & \textbf{55.10} & \textbf{posted, Phase 1}\\
+11-02 & test: + min\_keep 100, snap & \PTWO & & & Phase 2 entry\\
+\bottomrule
+\end{tabular}
+\caption{Official scores (Phase 1 val, reference 93.31 / 26.13; seed 0, 1 run each). V2 and F1 were scored on Codabench, the rest on the course leaderboard.}
+\label{tab:official}
+\end{table}

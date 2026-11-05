@@ -1,0 +1,28 @@
+{
+  "pid": 2590596,
+  "started_at": "2026-11-01T13:19:44+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp",
+  "gpu_memory_fraction": 0.35,
+  "allocator_config": "expandable_segments:True",
+  "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_r147",
+  "gpus": [
+    0,
+    1
+  ],
+  "global_batch": 16,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 160,
+  "official_submissions": 0,
+  "submissions": {
+    "130": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e130.zip",
+    "160": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip"
+  },
+  "stage": "complete",
+  "updated_at": "2026-11-01T14:09:32+08:00",
+  "target_epoch": 160,
+  "resumed_epoch": 147,
+  "epoch": 160,
+  "iteration": 587,
+  "seconds_since_progress": 30.6,
+  "train_hours": 11.748667320145502
+}

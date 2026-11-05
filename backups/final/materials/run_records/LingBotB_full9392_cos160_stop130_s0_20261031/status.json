@@ -1,0 +1,27 @@
+{
+  "pid": 2066031,
+  "started_at": "2026-10-31T15:17:27+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "schedule_epochs": 160,
+  "stop_after_epoch": 130,
+  "training_images": 9392,
+  "maximum_new_training_runs": 1,
+  "official_submissions": 0,
+  "backbone": "lingbot_b",
+  "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+  "stage": "failed",
+  "updated_at": "2026-10-31T18:45:01+08:00",
+  "dependency_stage": "generating_submission",
+  "error": "CalledProcessError: Command '['/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python', '-m', 'torch.distributed.run', '--standalone', '--nproc_per_node', '2', 'train.py', '--data', '/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K', '--train-split', 'train+val+test', '--eval-splits', '', '--epochs', '160', '--save-every', '1', '--seed', '0', '--batch-size', '16', '--workers', '0', '--backbone', 'lingbot_b', '--init', 'pretrained', '--adapt', 'lora', '--lora-targets', 'attn.qkv,attn.proj,mlp.fc1,mlp.fc2', '--lora-rank', '80', '--lora-alpha', '160', '--cascade-rep', '1536', '--train-norms', '--backbone-lr', '0.0003', '--lr', '0.0001', '--weight-decay', '0.05', '--compile', '--cascade', '--aligned-roi', '--rpn-nwd', '8', '--anchor-offset', '0.5', '--anchor-sizes=6,8,11;16,19,23;32,38,45;64,76,91;128,152,181', '--cascade-size-iou', '--flip-bias', '-0.3', '--grad-ckpt', '--spatial-prior', '64', '--eval-every', '10', '--eval-batch-size', '4', '--warmup-epochs', '1', '--schedule-epochs', '160', '--save-training-state', '--reproducible-loader', '--out', '/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031/validation', '--name', 'smoke', '--stop-after-epoch', '1', '--limit', '48']' returned non-zero exit status 1."
+}

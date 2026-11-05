@@ -1,0 +1,20 @@
+{
+  "pid": 2136775,
+  "started_at": "2026-10-28T19:28:06+08:00",
+  "gpu": 0,
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "predecessor_pid": 3228225,
+  "experiments": [
+    "BP7_spatial64",
+    "BP8_ctx3_cls_only",
+    "BP9_ctx3_clsw3"
+  ],
+  "stage": "complete",
+  "updated_at": "2026-10-29T08:31:39+08:00",
+  "experiment": null
+}

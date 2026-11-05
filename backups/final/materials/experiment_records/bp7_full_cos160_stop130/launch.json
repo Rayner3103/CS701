@@ -1,0 +1,42 @@
+{
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+  "launch": {
+    "pid": 1543483,
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031/code/tools/run_bp7_full_stop130.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031"
+    ],
+    "cwd": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031/code"
+  },
+  "observed_status": {
+    "pid": 1543483,
+    "started_at": "2026-10-31T12:16:45+08:00",
+    "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+    "gpus": [
+      0,
+      1
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "global_batch": 16,
+    "schedule_epochs": 160,
+    "stop_after_epoch": 130,
+    "training_images": 9392,
+    "maximum_new_training_runs": 1,
+    "official_submissions": 0,
+    "stage": "training",
+    "updated_at": "2026-10-31T12:17:47+08:00",
+    "active_trial": "full_train",
+    "child_pid": 1543839
+  },
+  "smoke_passed": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031/validation/smoke_passed.json",
+  "cpu_tests": "10 passed",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos160_e130.zip",
+  "submission_generated": false
+}

@@ -1,0 +1,30 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/bbb.zip",
+  "sha256": "f754e45216b5cf4917276b9b99550257be97cc2603f2520e379c79d235caac42",
+  "prediction_images": 1426,
+  "boxes": 127460,
+  "bytes": 19785405,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false,
+  "time": "2026-10-31T15:31:04+08:00",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/zero_head_e50_bbb/model/model.pt",
+  "checkpoint_sha256": "033d4e0ee1b603d9a34dc4d8896331f90026b6523c48399d6ffe7a299914bb57",
+  "head_source_epoch": 50,
+  "new_training_steps": 0,
+  "head_source_training_images": 9392,
+  "post": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean",
+    "cls_lambda": 1.0
+  }
+}

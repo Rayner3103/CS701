@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-10-30T03:34:20+08:00",
+  "source": "User-provided leaderboard screenshot in this conversation; rounded displayed values.",
+  "phase": 1,
+  "run": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x",
+  "checkpoint_epoch": 130,
+  "training_images": 7512,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_local7512_lr1x_e130_val_shift-0.2.zip",
+  "submission_sha256": "08afca47bcb2e6bc5f12f5f7b718e63ccf703b4486a80c4c09a2b2d079da50fe",
+  "checkpoint_sha256": "7410670197909a8494f4ec9fb8e0ff16205dcae53474b20e09351a9d798fa0bd",
+  "post_shift": -0.2,
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false,
+  "scores_percent": {
+    "delta_m": 45.83,
+    "macro_f1": 94.8,
+    "mAP": 49.66,
+    "accuracy": 95.09,
+    "AP50": 72.07
+  },
+  "precision_note": "Preserve screenshot precision; delta_m is the reported leaderboard result, not recomputed from rounded metrics.",
+  "difference_from_full_bp7_e130_displayed": {
+    "delta_m": -5.93,
+    "macro_f1": -0.85,
+    "mAP": -2.87,
+    "accuracy": -0.84,
+    "AP50": -1.25
+  },
+  "local_submission_post": {
+    "delta_m": 68.69720718452555,
+    "macro_f1": 95.32130056042176,
+    "mAP": 52.27336379465727,
+    "accuracy": 94.8936170212766,
+    "AP50": 73.1243196165652
+  },
+  "comparison_note": "Local delta_m uses a different reference and evaluation image set from the leaderboard and is not directly comparable. This checkpoint trains on7512 images; prior full BP7 trains on9392, with more optimizer steps and a different augmentation random stream. This is not an isolated data-size ablation, nor a result of the pending lower-LR trials."
+}

@@ -1,0 +1,30 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/aaa.zip",
+  "sha256": "9718405062eba7e1a367ba4fef7198aca6141dbb61c00041b586fc5c99910275",
+  "prediction_images": 1426,
+  "boxes": 121485,
+  "bytes": 18778104,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false,
+  "time": "2026-10-31T14:50:11+08:00",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031/full_train/ckpt_e50.pt",
+  "checkpoint_sha256": "97ccaab7ef8879e46bade56f5932e46f7dc2f36f530d9e8c7d492fc7d0185fe7",
+  "checkpoint_epoch": 50,
+  "schedule_epochs": 160,
+  "training_images": 9392,
+  "post": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean",
+    "cls_lambda": 1.0
+  }
+}

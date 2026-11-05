@@ -1,0 +1,39 @@
+{
+  "recorded_at": "2026-11-01T17:23:47+08:00",
+  "source": "User-provided official JSON",
+  "submission_association": "Feedback immediately after BP7_e180_obj0_soft05_cls2.zip",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_obj0_soft05_cls2.zip",
+  "submission_sha256": "a249b7814642e631229e8a8f90c7e430db410685260e018b9bad101f905f0b9b",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e180.pt",
+  "checkpoint_sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a",
+  "epoch": 180,
+  "schedule_epochs": 200,
+  "seed": 0,
+  "training_images": 9392,
+  "classification_lambda": 2,
+  "stage_box": "mean",
+  "soft_sigma": 0.5,
+  "obj_pow": 0,
+  "metrics": {
+    "delta_m": 54.814733403957426,
+    "macro_f1": 95.09184780172882,
+    "mAP": 54.27942096343708,
+    "accuracy": 95.44179523141655,
+    "AP50": 74.1149489604344
+  },
+  "comparison_reference": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_softsigma05/official_result.json",
+  "differences_from_obj025": {
+    "delta_m": 1.0508186960688093,
+    "macro_f1": 0.0,
+    "mAP": 0.5491895374149962,
+    "accuracy": 0.0,
+    "AP50": 0.3560670526916567
+  },
+  "best_reported_project_delta_m": false,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "interpretation": "Removing objectness improves official mAP and delta_m; it changes ranking, threshold admission, Soft-NMS selection and truncation together. Mechanism and unseen-data benefit are not isolated.",
+  "best_at_report_time": true,
+  "superseded_by": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_rpn2000_obj0/official_result.json",
+  "superseded_at": "2026-11-01T17:37:13+08:00"
+}

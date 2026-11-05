@@ -1,0 +1,30 @@
+detections built for 10 variants in 11 s
+matching done in 18 s
+VALIDATION none: mine mAP 52.6223 AP50 74.3980 | pycocotools mAP 52.6223 AP50 74.3980
+
+val: full-set results (mAP / AP50), diff vs none and vs hard, in mAP points
+  none           mAP  52.622 AP50  74.398  d_none +0.000  d_hard -0.188
+  hard           mAP  52.811 AP50  74.447  d_none +0.188  d_hard +0.000
+  agn_k9         mAP  52.907 AP50  74.614  d_none +0.285  d_hard +0.096
+  agn_sw235      mAP  52.926 AP50  74.683  d_none +0.304  d_hard +0.116
+  agn_sw055      mAP  52.803 AP50  74.626  d_none +0.180  d_hard -0.008
+  agn_sw1125     mAP  52.906 AP50  74.637  d_none +0.284  d_hard +0.096
+  agn_sw532      mAP  52.607 AP50  74.548  d_none -0.016  d_hard -0.204
+  agn_sw121      mAP  52.843 AP50  74.613  d_none +0.221  d_hard +0.032
+  agn_sw01       mAP  52.606 AP50  74.580  d_none -0.017  d_hard -0.205
+  agn_sw_s04_235 mAP  52.942 AP50  74.837  d_none +0.320  d_hard +0.132
+  bootstrap 100/300 (27 s)
+  bootstrap 200/300 (33 s)
+  bootstrap 300/300 (40 s)
+
+val: paired bootstrap (300 resamples of 940 images), mAP points
+  --- difference vs agn_k9 ---
+  none           mean -0.262  95% CI [-0.472, -0.039]  P(>0) 0.007
+  hard           mean -0.092  95% CI [-0.176, -0.026]  P(>0) 0.007
+  agn_sw235      mean +0.015  95% CI [-0.076, +0.104]  P(>0) 0.627
+  agn_sw055      mean -0.099  95% CI [-0.224, +0.040]  P(>0) 0.070
+  agn_sw1125     mean +0.005  95% CI [-0.065, +0.087]  P(>0) 0.553
+  agn_sw532      mean -0.309  95% CI [-0.419, -0.203]  P(>0) 0.000
+  agn_sw121      mean -0.055  95% CI [-0.134, +0.011]  P(>0) 0.063
+  agn_sw01       mean -0.306  95% CI [-0.477, -0.138]  P(>0) 0.003
+  agn_sw_s04_235 mean +0.046  95% CI [-0.044, +0.148]  P(>0) 0.827

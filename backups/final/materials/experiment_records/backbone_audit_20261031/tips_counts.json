@@ -1,0 +1,25 @@
+{
+  "source": "https://github.com/google-deepmind/tips/blob/main/pytorch/image_encoder.py",
+  "method": "Official 448-position-grid architecture on meta device; no weights or forward pass. Drop path uniform=True at zero changes no weights.",
+  "limitation": "Combined totals assume the same number of head/neck parameters. A patch14-aware neck/anchor/RoI implementation is still required; no end-to-end model was verified.",
+  "rows": [
+    {
+      "channels": 1,
+      "backbone_parameters": 86015232,
+      "adapted_parameters": 97811712,
+      "trainable_backbone": 11834880,
+      "wrapped": 48,
+      "projected_total_with_sc2_head": 125633504,
+      "projected_trainable_with_sc2_head": 39656672
+    },
+    {
+      "channels": 3,
+      "backbone_parameters": 86316288,
+      "adapted_parameters": 98112768,
+      "trainable_backbone": 11834880,
+      "wrapped": 48,
+      "projected_total_with_sc2_head": 125934560,
+      "projected_trainable_with_sc2_head": 39656672
+    }
+  ]
+}

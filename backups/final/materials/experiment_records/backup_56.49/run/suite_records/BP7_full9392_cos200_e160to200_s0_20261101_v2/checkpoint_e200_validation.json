@@ -1,0 +1,20 @@
+{
+  "time": "2026-11-01T17:11:43+08:00",
+  "epoch": 200,
+  "global_step": 117400,
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/model.pt",
+  "sha256": "ee1c77af308a1ea5c1dd725f45c28ad02314e406f340689a0f9f1db463d996c7",
+  "lr_factor": 0.0,
+  "train_hours": 14.140532512731024,
+  "optimizer_and_rank_rng_saved": true,
+  "checkpoint_sha256": "fe7189c01819d4165d077e46524e77e56f3f9a5c540644aeb55c72d016eea50c",
+  "trained_tensors_match": true,
+  "persistent_buffers_match": true,
+  "parameters": 125076960,
+  "trainable_parameters": 39867360,
+  "buffer_values": 16,
+  "schedule_epochs": 200,
+  "training_images": 9392,
+  "training_state_sha256": "ee1c77af308a1ea5c1dd725f45c28ad02314e406f340689a0f9f1db463d996c7",
+  "final_metrics": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/metrics.json"
+}

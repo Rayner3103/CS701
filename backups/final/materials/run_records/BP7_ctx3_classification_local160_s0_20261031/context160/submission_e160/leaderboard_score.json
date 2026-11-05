@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-10-31T11:50:23.747753+08:00",
+  "source": "User-provided leaderboard screenshot; preserve displayed precision",
+  "checkpoint_epoch": 160,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "roi_context": 3,
+  "roi_context_mode": "classification",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_local7512_ctx3_cls_cos160_e160_val_shift-0.2.zip",
+  "submission_sha256": "7697bd042e72c6ccacd22f6230f00309408cb49870354d7befda5df7b4f76167",
+  "checkpoint_sha256": "74c95943ec7b898639c936490449f88f0ea894f0850eeb8769a065f3946695f9",
+  "scores_percent": {
+    "delta_m": 46.8,
+    "macro_f1": 94.89,
+    "mAP": 50.15,
+    "accuracy": 95.16,
+    "AP50": 72.02
+  },
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false,
+  "difference_from_no_context_cos160_e130": {
+    "delta_m": -0.32,
+    "macro_f1": 0.31,
+    "mAP": -0.26,
+    "accuracy": 0.21,
+    "AP50": 0.4
+  },
+  "difference_from_original_cos130_e130": {
+    "delta_m": 0.97,
+    "macro_f1": 0.09,
+    "mAP": 0.49,
+    "accuracy": 0.07,
+    "AP50": -0.05
+  },
+  "comparison_note": "Official comparison to no-context cos160 e130 also changes checkpoint epoch; cannot isolate context. Local matched e150 gain did not translate into an observed leaderboard advantage for this submitted e160. Single-seed rounded scores do not establish significance."
+}

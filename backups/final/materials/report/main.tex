@@ -1,0 +1,137 @@
+% CS701 team report. CVPR style (template taken from the team's draft on origin/jinling); the complete experiment log follows as an appendix.
+% Build: tectonic main.tex   (tables/ and figures/ are written by gen_report.py)
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[pagenumbers]{cvpr}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+\def\paperID{Team 7}
+\def\confName{CS701}
+\def\confYear{2026}
+\newcommand{\dm}{\ensuremath{\Delta m}}
+\usepackage{longtable}
+\usepackage{array}
+\input{appendix_macros.tex}
+
+\title{One Frozen DINOv3, Wide LoRA and a Tiny-Object Cascade:\\Multi-Task Learning on SAR Images under a 40\,M Budget}
+\author{CS701 Team 7 (\texttt{cs701-team07})\\
+Junkai Chen, \TEAMMATES\\
+Singapore Management University}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+One model must classify a SAR image into nine scene classes and detect its objects, half of which are smaller than a $16{\times}16$ ViT patch, under limits of 130\,M total and 40\,M trainable parameters. Our model keeps a DINOv3 ViT-B/16 frozen and spends the budget on LoRA rank 80 and a three-stage Cascade R-CNN built for tiny boxes. It reached $\dm=56.49$ on the Phase 1 validation board (macro-F1 95.27, mAP 55.10). The final Phase 2 entry uses the same weights plus two local-only post-processing additions. Almost all the gain over the reference comes from detection. We report what each part adds: leave-one-out ablations on a held-out split over several seeds, which we ran specifically for this report, and a post-processing ablation on full-length runs (seed 0 finished; further seeds TBD). We also report what failed, including results that won on a local split and vanished on the board.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+Each image has one class label and one or more boxes of that class. Teams are ranked by $\dm = 50\,[(F_1-F_1^{\text{ref}})/F_1^{\text{ref}} + (\text{mAP}-\text{mAP}^{\text{ref}})/\text{mAP}^{\text{ref}}]$, with reference scores 93.31 / 26.13 on val and 93.99 / 25.41 on test. On val, one mAP point is worth 1.91\,\dm{} and one F1 point 0.54\,\dm{}. A point of mAP therefore pays 3.6 times as much as a point of F1, so we spent nearly all our effort on detection.
+
+Three properties of the data shaped the design. (1) Boxes are tiny: at the 512\,px input, 18.4\,\% have side ${<}8$\,px and 50.5\,\% have side ${<}16$\,px. (2) Localisation is the bottleneck, not recall alone: our final local AP falls from about 75 at IoU 0.5 to 22 at IoU 0.9. (3) Annotations carry structure a model can exploit: a sub-pixel offset and, for some class--size cells, an integer coordinate lattice (\S\ref{sec:findings}).
+
+\section{Related work}
+LoRA~\cite{hu2022lora} and MTLoRA~\cite{agiza2024mtlora} adapt frozen weights at low cost; we use a single wide LoRA. For tiny objects, NWD~\cite{wang2021nwd} replaces IoU in assignment, Cascade R-CNN~\cite{cai2018cascade} refines boxes, ViTDet~\cite{li2022vitdet} builds a pyramid from one ViT map, and ViT-Adapter~\cite{chen2023vitadapter} adds a CNN spatial prior. Soft-NMS~\cite{bodla2017softnms} and weight averaging along a trajectory~\cite{izmailov2018swa} are the two ideas behind our largest zero-cost gains. \dm{} is the usual multi-task summary~\cite{maninis2019mtl,vandenhende2021mtl}.
+
+\section{Method}
+\label{sec:method}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/model.pdf}
+\caption{The final model. Only the blue blocks train (39.87\,M). Each image passes through once at $512{\times}512$.}
+\label{fig:model}
+\end{figure}
+
+\textbf{Backbone.} Timm \texttt{vit\_base\_patch16\_dinov3.lvd1689m}, frozen; the RGB patch kernel is summed to one gray channel. LoRA rank 80, $\alpha{=}160$ wraps \texttt{qkv}, \texttt{proj}, \texttt{fc1} and \texttt{fc2} of all 12 blocks, and LayerNorms train.
+
+\textbf{Neck.} A ViTDet pyramid gives strides 4--64 at 256 channels. A 64-channel randomly initialised CNN (210,688 parameters) reads the raw image and adds to strides 4 and 8 through zero-initialised $1{\times}1$ convolutions, restoring pixel detail a stride-16 token map lacks.
+
+\textbf{RPN.} Anchors of 6--181\,px at cell centres, matched by $\max(\text{IoU},\text{NWD})$ with $C{=}8$, because a 2\,px offset already sends the IoU of an 8\,px box close to zero.
+
+\textbf{Cascade.} Three class-agnostic stages of width 1536 with aligned RoIAlign. Fixed IoU thresholds of 0.5/0.6/0.7 leave tiny objects without positives at later stages, so thresholds depend on box side: .40/.45/.50 below 8\,px, .45/.50/.55 for 8--16\,px, .50/.55/.65 for 16--32\,px.
+
+\textbf{Flip bias.} Boxes carry a systematic offset of about $-0.3$\,px. A plain horizontal flip mirrors it, so targets swing by twice the bias; \texttt{--flip-bias -0.3} moves flipped boxes back.
+
+\textbf{Training.} Flips only; AdamW with head LR $10^{-4}$, backbone LR $3{\times}10^{-4}$, weight decay 0.05; one warm-up epoch, then a 200-epoch cosine; global batch 16; all 9,392 labelled images for the submitted model.
+
+\textbf{Checkpoint averaging.} The nine checkpoints at epochs 100, 110, \dots, 180 of one run are averaged tensor by tensor into one set of weights (234 tensors, FP64 accumulation). The result is one model with one forward pass, not a prediction ensemble. LoRA makes the average inexact, since $\overline{BA}\neq\bar B\bar A$; the measured gap between e180 and e200 was 0.002\,\%.
+
+\textbf{Post-processing} uses only that one forward pass. Boxes are the mean of the three stages, shifted by $-0.2$\,px. With $p$ the stage-averaged box probabilities and $p_{\text{img}}$ the image classifier, box scores use class-agnostic fusion $s_c=(1-p_{\text{bg}})\,p_{\text{img}}(c)$: objectness is dropped, and each image's class prior removes false positives of other classes without discarding true boxes in misclassified images. Then per-class Gaussian soft-NMS with $\sigma{=}0.5$, RPN top 2000, threshold $10^{-5}$, 100 boxes per image. The image label is $\arg\max_c[\log p_{\text{img}}(c)+2\log\max_i p_i(c)]$.
+
+\textbf{Final entry additions} (never scored on val). (a) \texttt{min\_keep} 100 keeps the best 100 boxes of an image when too few clear the threshold. (b) Lattice snapping: predicted corners of aircraft, car and all 256\,px images are rounded to integers in original pixels. For wind turbines, a per-image fractional offset is estimated as a circular mean over confident boxes and applied only when the concentration $R\ge0.5$. Scores and order do not change.
+
+\section{Experiments}
+\subsection{Validation and how we chose the entry}
+\label{sec:val}
+\textbf{Split.} \texttt{prepare\_course\_data.py} splits the train set by class with seed 0 into 7,512 / 940 / 940, used for screening up to 11-01. The ablations here use a second split that shares a pool with it: \texttt{vallike} (992 images from the old holdouts, sampled to match the (predicted class, image size) mix of the official val set) and \texttt{trainvl} (the other 8,400). Official val and test images were only ever predicted; their predicted class counts set the sampling mix.
+
+\textbf{Choosing the Phase 2 entry.} We took the Phase 1 recipe with the highest official val \dm{}, then added two steps each found positive on local holdouts by paired bootstrap, combined $+0.30$\,mAP [+0.20, +0.41]. A twin trained on \texttt{trainvl} confirmed that the averaging window sat within noise (0.1\,mAP) of the best alternatives. These selections reused the same data many times, and many Phase 1 choices were made on the val board itself, so our val score is optimistic.
+
+\textbf{Noise.} One run of the 36-epoch C36 configuration varies by $\pm0.70$ local \dm{} (37 seeds); sampling alone gives an SD of about 2\,\dm{} between test and val. Post-processing comparisons are paired on the same weights and images, so differences of 0.1--0.3\,\dm{} can be real there, while differences between runs below about 1\,\dm{} are not.
+
+\subsection{Official progression}
+Table~\ref{tab:official} lists the board milestones. Most steps change several things, so attribution comes from \S\ref{sec:abl}. Between F2 and SC2, wider adaptation and head account for the largest step; from there, a slower cosine helped twice, and the last 3.1\,\dm{} cost no training at all. We finished Phase 1 third of nine, behind Team 9 (67.16) and Team 6 (65.85). Team 6's AP50 was only 0.8 above ours while its mAP was 4.9 above, so its lead lies almost entirely at strict IoU.
+
+\input{tables/official.tex}
+
+\subsection{What each part adds}
+\label{sec:abl}
+\textbf{Model parts.} Table~\ref{tab:loo} removes one part at a time from the final recipe: 36-epoch cosine on \texttt{trainvl}, scored on \texttt{vallike} with the full FINAL post-processing on the last checkpoint. These runs were trained for this report. Short runs understate parts that pay late, as the slower-schedule gains below show, so they rank parts rather than predict the full-length gain.
+
+\input{tables/loo.tex}
+
+\textbf{Earlier ladder.} On the 7,512 split, raw local \dm{} against our own reference run rose: DINOv3 instead of ImageNet-21k $+8.1$; LoRA r32 on all linear layers plus norms $+18.1$; Cascade $+21.0$; NWD with small anchors $+19.7$ (both 24 epochs); both at 36 epochs $+31.3$; at 48 epochs $+38.6$. Against the C36 mean of 37 seeds with final post-processing, size-aware IoU added $+1.69$ ($z{=}2.4$; wind turbine AP $+6.5$; AP below 8\,px from 8.2 to 12.9), flip bias $+1.23$ ($z{=}1.75$), and both $+2.26$ ($z{=}3.2$). LoRA r80 with head 1536 added $+5.92$ on top. These screens are single-seed.
+
+\textbf{Schedule.} On official val, cosine length at a fixed stopping epoch gave $+1.29$ (130$\to$160, 7,512 images, e130) and $+1.02$ on the full data, the second also changing the data loader. Then 160$\to$200 gave $+0.63$ at e160 against e130 of cos160. Halving the LR lost 7.2 local \dm{}; e200 lost 0.12 to e180.
+
+\textbf{Post-processing and averaging.} Table~\ref{tab:pp} is a cumulative ablation on the full-length runs (seed 0 finished; seeds 1 and 2 TBD). It reproduces the order of the official steps, with one disagreement: the official gain for objectness power 0 was larger than the local one. Class-agnostic fusion beats hard filtering because hard filtering discards every true box in a misclassified image.
+
+\input{tables/pp.tex}
+
+\subsection{What did not work}
+Table~\ref{tab:neg} lists the main failures, single seed unless stated. The context result is the most instructive: $+2.26$ local \dm{} on one holdout, $-0.12$ on the other and $-0.03$ on the board, with harbor AP swinging from $+3.7$ to $-1.3$ between the two. It is why we stopped trusting one holdout. Several negative verdicts are also weaker than they read. The LR $\times1.25$ run was stopped at epoch 69, and E09b's fall was never attributed to one of its several changes.
+
+\input{tables/negative.tex}
+
+\subsection{Findings in the data}
+\label{sec:findings}
+\textbf{Annotation lattice.} All training boxes of aircraft and car, and of every 256\,px image, have integer $x,y,w,h$ in original pixels. About 40\,\% of wind-turbine images put all boxes on one lattice with a shared fractional offset. Snapping predictions is the only data-mining finding that survived testing: it adds $+0.20$ and $+0.36$\,mAP on the two holdouts (paired bootstrap $P\approx1$). We assume test shares this lattice; only the Phase 2 score tests it, and only indirectly.
+
+\textbf{Near-duplicates.} By frozen DINOv3 cosine, about 10\,\% of holdout images have a near-copy in train. Local mAP is 83 on these, against 40 for images with no close neighbour (similarity ${<}0.94$), and playground AP is 87 versus 12. This explains part of the local--official gap. Transferring a neighbour's boxes in a recall-only mode gained $+0.52$ / $+0.29$\,mAP locally, but it needs training images at test time and a second network, so we did not use it.
+
+\textbf{Weak classes.} Bridge stays at AP 8 and playground at 33 on \texttt{vallike} even after full training. On the earlier SC1 model, only 49\,\% of bridge boxes had a top-1000 proposal at IoU 0.5. Size alone does not explain it, since wind turbines are smaller and reach 79. Class weights, oversampling and partial-negative losses moved bridge by at most $+0.9$ and cost other classes more. Whether unlabelled same-class objects limit these classes is an unverified hypothesis from viewing 12 images.
+
+\section{Efficiency and required disclosures}
+\label{sec:terms}
+Table~\ref{tab:terms} gives the items the Terms ask for. We trade parameters for score: 39.87\,M of the 40\,M limit. The cheaper 23.8\,M F2 scored 44.84 at 3.6\,h on two GPUs, so about 7\,\dm{} of the path to 51.86 came with 16\,M more trainable parameters and more epochs together. Every zero-cost step after cos200 needed no extra training time.
+
+\input{tables/terms.tex}
+
+\section{Limitations and conclusion}
+Averaging, fusion, snapping and \texttt{min\_keep} gains are measured with seeds on one held-out split that also shaped earlier decisions. The 36-epoch ablations do not measure full-length effects, and neither GIoU with an IoU branch (stopped at epoch 145) nor photometric augmentation was evaluated at full length. We also measured no fix for the strict-IoU gap of about 5\,mAP to the leading teams.
+
+A strong generic backbone, frozen and adapted with wide LoRA, plus a detector rebuilt for sub-patch objects carried most of the gain; patient schedules and careful use of one forward pass supplied the rest. The most useful habit was to count a local gain only after a second holdout or the board agreed.
+
+\medskip\noindent\textbf{Use of AI tools.} Most code and experiment execution were done with AI coding assistants (Claude Code and OpenAI Codex), directed by the team. The complete experiment log is in the appendix.
+
+{\small
+\bibliographystyle{ieeenat_fullname}
+\bibliography{main}
+}
+
+\clearpage
+\onecolumn
+\appendix
+\begin{center}{\Large\bfseries Appendix: Complete Experiment Log}\end{center}
+\tableofcontents
+\clearpage
+\input{appendix_body.tex}
+\end{document}

@@ -1,0 +1,175 @@
+{
+  "snapshot": "/home/junkaichen@smu.edu.sg/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2",
+  "torch_version": "2.9.0+cu128",
+  "timm_version": "1.0.24",
+  "method": "meta device; no weights, forward, or GPU",
+  "notes": [
+    "SC2 Cascade representation 1536 and original RPN preserved.",
+    "Plain-ViT upsampling neck is replaced by the existing hierarchical FPN.",
+    "Trainable LayerNorm enabled as in SC2; ConvNeXtV2 GRN remains frozen.",
+    "Original ViT attention LoRA targets are replaced by mlp.fc1 and mlp.fc2.",
+    "ViT-specific grad_ckpt flag disabled only to permit counting; no forward run."
+  ],
+  "results": [
+    {
+      "backbone": "convnext_dinov3",
+      "timm_name": "convnext_base.dinov3_lvd1689m",
+      "rank": 64,
+      "input_channels": 1,
+      "backbone_without_lora": 87560320,
+      "feature_channels": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "adapted_linear_count": 72,
+      "lora_parameters": 11550720,
+      "total": 124228512,
+      "trainable": 36706336,
+      "within_budget": true,
+      "components": {
+        "backbone": {
+          "total": 99111040,
+          "trainable": 11588864
+        },
+        "cls_head": {
+          "total": 11273,
+          "trainable": 11273
+        },
+        "neck": {
+          "total": 2852864,
+          "trainable": 2852864
+        },
+        "rpn": {
+          "total": 601645,
+          "trainable": 601645
+        },
+        "roi_heads": {
+          "total": 21651690,
+          "trainable": 21651690
+        }
+      }
+    },
+    {
+      "backbone": "convnext_dinov3",
+      "timm_name": "convnext_base.dinov3_lvd1689m",
+      "rank": 80,
+      "input_channels": 1,
+      "backbone_without_lora": 87560320,
+      "feature_channels": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "adapted_linear_count": 72,
+      "lora_parameters": 14438400,
+      "total": 127116192,
+      "trainable": 39594016,
+      "within_budget": true,
+      "components": {
+        "backbone": {
+          "total": 101998720,
+          "trainable": 14476544
+        },
+        "cls_head": {
+          "total": 11273,
+          "trainable": 11273
+        },
+        "neck": {
+          "total": 2852864,
+          "trainable": 2852864
+        },
+        "rpn": {
+          "total": 601645,
+          "trainable": 601645
+        },
+        "roi_heads": {
+          "total": 21651690,
+          "trainable": 21651690
+        }
+      }
+    },
+    {
+      "backbone": "convnextv2_base",
+      "timm_name": "convnextv2_base.fcmae_ft_in22k_in1k",
+      "rank": 64,
+      "input_channels": 1,
+      "backbone_without_lora": 87686656,
+      "feature_channels": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "adapted_linear_count": 72,
+      "lora_parameters": 11550720,
+      "total": 124354848,
+      "trainable": 36706336,
+      "within_budget": true,
+      "components": {
+        "backbone": {
+          "total": 99237376,
+          "trainable": 11588864
+        },
+        "cls_head": {
+          "total": 11273,
+          "trainable": 11273
+        },
+        "neck": {
+          "total": 2852864,
+          "trainable": 2852864
+        },
+        "rpn": {
+          "total": 601645,
+          "trainable": 601645
+        },
+        "roi_heads": {
+          "total": 21651690,
+          "trainable": 21651690
+        }
+      }
+    },
+    {
+      "backbone": "convnextv2_base",
+      "timm_name": "convnextv2_base.fcmae_ft_in22k_in1k",
+      "rank": 80,
+      "input_channels": 1,
+      "backbone_without_lora": 87686656,
+      "feature_channels": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "adapted_linear_count": 72,
+      "lora_parameters": 14438400,
+      "total": 127242528,
+      "trainable": 39594016,
+      "within_budget": true,
+      "components": {
+        "backbone": {
+          "total": 102125056,
+          "trainable": 14476544
+        },
+        "cls_head": {
+          "total": 11273,
+          "trainable": 11273
+        },
+        "neck": {
+          "total": 2852864,
+          "trainable": 2852864
+        },
+        "rpn": {
+          "total": 601645,
+          "trainable": 601645
+        },
+        "roi_heads": {
+          "total": 21651690,
+          "trainable": 21651690
+        }
+      }
+    }
+  ]
+}

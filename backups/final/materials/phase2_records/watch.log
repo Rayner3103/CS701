@@ -1,0 +1,35 @@
+watcher start 2026-11-01 21:09:54
+test files visible on HF 2026-11-02 00:01:10
+downloading ['test.tar.gz']
+test dir /mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/test; images: 2065
+GPU_RESOURCE_LIMIT {"local_rank": 0, "allocator_fraction": 0.15, "script": "predict.py"}
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+2026-11-02 00:01:29,460 - INFO - Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_dinov3.lvd1689m)
+2026-11-02 00:01:30,328 - INFO - HTTP Request: HEAD https://huggingface.co/timm/vit_base_patch16_dinov3.lvd1689m/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+2026-11-02 00:01:30,329 - INFO - [timm/vit_base_patch16_dinov3.lvd1689m] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
+2026-11-02 00:01:30,331 - INFO - Converted input conv patch_embed.proj pretrained weights from 3 to 1 channel(s)
+parameters: 125,076,960 total
+wrote /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_shot1_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9.zip: 2065 images, 89110 boxes, 60.1 ms per image
+GPU_RESOURCE_PEAK {"local_rank": 0, "allocated_bytes": 1233135104, "reserved_bytes": 1447034880}
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+wrote /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_backup_avg100-180x9_rpn2000_obj0_soft05_cls2_hardfuse.zip from /mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180_test_raw.pt: 2065 images, 88203 boxes
+== /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_shot1_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9.zip
+OK: 2065 images, 89110 boxes, 0 images without boxes, at most 100 boxes per image and class (only the top 100 are scored), 0 boxes outside their image, 99.9% of boxes scored > 0.3 have category_id = label + 1
+799cfecbe0907e2f1500c94927efdaa465275289475623b46c6e4331f0b3af85  /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_shot1_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9.zip
+== /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_backup_avg100-180x9_rpn2000_obj0_soft05_cls2_hardfuse.zip
+OK: 2065 images, 88203 boxes, 0 images without boxes, at most 100 boxes per image and class (only the top 100 are scored), 0 boxes outside their image, 99.9% of boxes scored > 0.3 have category_id = label + 1
+da97370c283051795fbe39fc257736a6bb0f8a27e19ac87f58db649fa2adafe5  /mnt/hdd/junkaichen/CS701/CS701/submissions/PHASE2_backup_avg100-180x9_rpn2000_obj0_soft05_cls2_hardfuse.zip
+PHASE2 CANDIDATES READY 2026-11-02 00:03:56
+wrote submissions/PHASE2_shot1_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9_SNAP.zip: 89110 boxes, 28582 snapped to the integer grid, 11813 wind-turbine boxes snapped to a per-image lattice
+OK: 2065 images, 89110 boxes, 0 images without boxes, at most 100 boxes per image and class (only the top 100 are scored), 0 boxes outside their image, 99.9% of boxes scored > 0.3 have category_id = label + 1
+e1700e69bee7a1aca3419e65642e3ea987cee53f4f7d13917c261c23d7bd1d6d  submissions/PHASE2_shot1_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9_SNAP.zip
+PHASE2 SNAPPED READY 2026-11-02 00:04:09
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+wrote submissions/PHASE2_shot1_mk100.zip from .runtime/avg/avg_e100-180_test_raw.pt: 2065 images, 155989 boxes
+wrote submissions/PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip: 155989 boxes, 62708 snapped to the integer grid, 11812 wind-turbine boxes snapped to a per-image lattice
+OK: 2065 images, 155989 boxes, 0 images without boxes, at most 100 boxes per image and class (only the top 100 are scored), 0 boxes outside their image, 99.9% of boxes scored > 0.3 have category_id = label + 1
+c90b0d5b634ea6f5ddec6614dfc42c2df2add05417511af3dcb84ed92c084aab  submissions/PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip
+PHASE2 FINAL READY 2026-11-02 00:05:01

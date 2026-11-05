@@ -1,0 +1,13 @@
+{
+  "pid": 1650578,
+  "started_at": "2026-10-31T14:48:18+08:00",
+  "checkpoint_epoch": 50,
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/aaa.zip",
+  "uploaded": false,
+  "stage": "complete",
+  "updated_at": "2026-10-31T14:50:11+08:00",
+  "child_pid": 1650771,
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/aaa.zip",
+  "bytes": 18778104,
+  "boxes": 121485
+}

@@ -1,0 +1,282 @@
+{
+ "train": {
+  "images": 7512,
+  "boxes": 26015,
+  "per_class": {
+   "aircraft": {
+    "images": 946,
+    "boxes": 2051,
+    "median_side_512": 76.0,
+    "boxes_per_image": 2.17
+   },
+   "wind_turbine": {
+    "images": 734,
+    "boxes": 6848,
+    "median_side_512": 8.2,
+    "boxes_per_image": 9.33
+   },
+   "bridge": {
+    "images": 999,
+    "boxes": 3264,
+    "median_side_512": 9.9,
+    "boxes_per_image": 3.27
+   },
+   "ship": {
+    "images": 949,
+    "boxes": 1216,
+    "median_side_512": 55.7,
+    "boxes_per_image": 1.28
+   },
+   "harbor": {
+    "images": 1083,
+    "boxes": 2161,
+    "median_side_512": 43.2,
+    "boxes_per_image": 2.0
+   },
+   "oil_tank": {
+    "images": 987,
+    "boxes": 4484,
+    "median_side_512": 11.5,
+    "boxes_per_image": 4.54
+   },
+   "playground": {
+    "images": 939,
+    "boxes": 2027,
+    "median_side_512": 14.9,
+    "boxes_per_image": 2.16
+   },
+   "airport": {
+    "images": 520,
+    "boxes": 732,
+    "median_side_512": 146.1,
+    "boxes_per_image": 1.41
+   },
+   "car": {
+    "images": 355,
+    "boxes": 3232,
+    "median_side_512": 41.2,
+    "boxes_per_image": 9.1
+   }
+  },
+  "image_sizes": {
+   "512": 5578,
+   "256": 1873,
+   "224": 48,
+   "502": 1,
+   "505": 1,
+   "495": 1,
+   "273": 1,
+   "500": 2,
+   "336": 1,
+   "486": 1,
+   "506": 1,
+   "439": 1,
+   "503": 1,
+   "438": 1,
+   "501": 1
+  }
+ },
+ "val": {
+  "images": 940,
+  "boxes": 3323,
+  "per_class": {
+   "oil_tank": {
+    "images": 123,
+    "boxes": 542,
+    "median_side_512": 11.7,
+    "boxes_per_image": 4.41
+   },
+   "bridge": {
+    "images": 125,
+    "boxes": 357,
+    "median_side_512": 9.8,
+    "boxes_per_image": 2.86
+   },
+   "car": {
+    "images": 44,
+    "boxes": 430,
+    "median_side_512": 41.1,
+    "boxes_per_image": 9.77
+   },
+   "aircraft": {
+    "images": 118,
+    "boxes": 235,
+    "median_side_512": 77.0,
+    "boxes_per_image": 1.99
+   },
+   "airport": {
+    "images": 65,
+    "boxes": 94,
+    "median_side_512": 137.1,
+    "boxes_per_image": 1.45
+   },
+   "playground": {
+    "images": 118,
+    "boxes": 276,
+    "median_side_512": 14.5,
+    "boxes_per_image": 2.34
+   },
+   "wind_turbine": {
+    "images": 92,
+    "boxes": 957,
+    "median_side_512": 8.5,
+    "boxes_per_image": 10.4
+   },
+   "ship": {
+    "images": 119,
+    "boxes": 180,
+    "median_side_512": 51.6,
+    "boxes_per_image": 1.51
+   },
+   "harbor": {
+    "images": 136,
+    "boxes": 252,
+    "median_side_512": 40.6,
+    "boxes_per_image": 1.85
+   }
+  },
+  "image_sizes": {
+   "512": 712,
+   "256": 220,
+   "504": 1,
+   "500": 1,
+   "507": 1,
+   "224": 4,
+   "391": 1
+  }
+ },
+ "test": {
+  "images": 940,
+  "boxes": 3195,
+  "per_class": {
+   "oil_tank": {
+    "images": 123,
+    "boxes": 554,
+    "median_side_512": 11.2,
+    "boxes_per_image": 4.5
+   },
+   "airport": {
+    "images": 65,
+    "boxes": 93,
+    "median_side_512": 146.4,
+    "boxes_per_image": 1.43
+   },
+   "wind_turbine": {
+    "images": 92,
+    "boxes": 820,
+    "median_side_512": 8.9,
+    "boxes_per_image": 8.91
+   },
+   "ship": {
+    "images": 119,
+    "boxes": 148,
+    "median_side_512": 56.3,
+    "boxes_per_image": 1.24
+   },
+   "harbor": {
+    "images": 136,
+    "boxes": 237,
+    "median_side_512": 42.7,
+    "boxes_per_image": 1.74
+   },
+   "playground": {
+    "images": 118,
+    "boxes": 307,
+    "median_side_512": 14.8,
+    "boxes_per_image": 2.6
+   },
+   "aircraft": {
+    "images": 118,
+    "boxes": 246,
+    "median_side_512": 79.0,
+    "boxes_per_image": 2.08
+   },
+   "bridge": {
+    "images": 125,
+    "boxes": 363,
+    "median_side_512": 9.9,
+    "boxes_per_image": 2.9
+   },
+   "car": {
+    "images": 44,
+    "boxes": 427,
+    "median_side_512": 42.4,
+    "boxes_per_image": 9.7
+   }
+  },
+  "image_sizes": {
+   "256": 228,
+   "512": 705,
+   "224": 7
+  }
+ },
+ "all": {
+  "images": 9392,
+  "boxes": 32533,
+  "median_side_512": 15.9,
+  "frac_under_16": 0.5046,
+  "size_hist": {
+   "0-8": 5977,
+   "8-16": 10438,
+   "16-32": 3881,
+   "32-96": 10031,
+   "96-10000": 2206
+  },
+  "per_class": {
+   "aircraft": {
+    "images": 1182,
+    "boxes": 2532,
+    "median_side_512": 76.4,
+    "boxes_per_image": 2.14
+   },
+   "wind_turbine": {
+    "images": 918,
+    "boxes": 8625,
+    "median_side_512": 8.3,
+    "boxes_per_image": 9.4
+   },
+   "bridge": {
+    "images": 1249,
+    "boxes": 3984,
+    "median_side_512": 9.9,
+    "boxes_per_image": 3.19
+   },
+   "ship": {
+    "images": 1187,
+    "boxes": 1544,
+    "median_side_512": 55.1,
+    "boxes_per_image": 1.3
+   },
+   "harbor": {
+    "images": 1355,
+    "boxes": 2650,
+    "median_side_512": 42.9,
+    "boxes_per_image": 1.96
+   },
+   "oil_tank": {
+    "images": 1233,
+    "boxes": 5580,
+    "median_side_512": 11.5,
+    "boxes_per_image": 4.53
+   },
+   "playground": {
+    "images": 1175,
+    "boxes": 2610,
+    "median_side_512": 14.8,
+    "boxes_per_image": 2.22
+   },
+   "airport": {
+    "images": 650,
+    "boxes": 919,
+    "median_side_512": 146.0,
+    "boxes_per_image": 1.41
+   },
+   "car": {
+    "images": 443,
+    "boxes": 4089,
+    "median_side_512": 41.4,
+    "boxes_per_image": 9.23
+   }
+  }
+ }
+}

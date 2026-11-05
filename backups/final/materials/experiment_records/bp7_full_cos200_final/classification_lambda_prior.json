@@ -1,0 +1,271 @@
+{
+  "created_at": "2026-11-01T06:36:50.430547+00:00",
+  "purpose": "CPU-only read of historical local validation/test raw predictions. A weak prior for classification lambda, not calibration or validation of the current full9392 BP7.",
+  "formula": "argmax(log_softmax(image_logits) + lambda * log(max_proposal softmax(detector_logits)[foreground] + 1e-6))",
+  "lambdas": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "data": "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K",
+  "split_sizes": {
+    "train": 7512,
+    "val": 940,
+    "test": 940
+  },
+  "split_checks": {
+    "all_pairwise_image_ids_disjoint": true,
+    "training_filenames_disjoint_from_holdouts": true,
+    "holdouts_previously_used_for_evaluation": "yes; not fresh blind tests"
+  },
+  "data_sha256": {
+    "train": "10fcfba501363029e72e3b5d07114749995018ec7d2117189eed1191bbe57aa2",
+    "val": "fcb94bef79a0abf08882fa84ca948cf21c87b7c250f7807f4c7ee87ea9f314be",
+    "test": "9219e4789173e67341fd2b3db9cdeb9879f03fd4f02d0e1d9a1ae134d267b469"
+  },
+  "models": [
+    {
+      "name": "BP7_spatial64",
+      "run": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_spatial64",
+      "metadata_sha256": "9c5552b972b8849ca4abc91e488c1c72c9f646ceedfc4fd3e753bdc8ad8eb8d9",
+      "training_args": {
+        "train_split": "train",
+        "epochs": 36,
+        "lora_rank": 32,
+        "cascade_rep": 1024,
+        "spatial_prior": 64,
+        "seed": 0
+      },
+      "splits": {
+        "val": {
+          "raw_path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_spatial64/raw_val.pt",
+          "raw_sha256": "c8bc36aaf15dff0cffcf4376f74bd25f06cd4244707252da83498ba3fe7077c2",
+          "raw_bytes": 204332987,
+          "cache_image_ids_exactly_match_declared_holdout": true,
+          "cached_labels_match_classification_csv": true,
+          "cache_schema": {
+            "type": "dict",
+            "keys": [
+              "image_ids",
+              "orig_sizes",
+              "labels",
+              "cls_logits",
+              "raw_boxes",
+              "raw_logits",
+              "raw_obj",
+              "raw_iou",
+              "raw_stage"
+            ],
+            "n_images": 940,
+            "cls_logits": "list of 940 tensors float32[9]",
+            "raw_logits": "list of 940 tensors float16[1000,10]",
+            "labels": "list of 940 integer labels"
+          },
+          "scores": [
+            {
+              "lambda": 0.5,
+              "macro_f1_pct": 95.37559824094721,
+              "accuracy_pct": 94.7872340425532,
+              "changed_vs_1": 3,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 3
+            },
+            {
+              "lambda": 1.0,
+              "macro_f1_pct": 95.66974586769344,
+              "accuracy_pct": 95.1063829787234,
+              "changed_vs_1": 0,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 0
+            },
+            {
+              "lambda": 2.0,
+              "macro_f1_pct": 95.60632469002886,
+              "accuracy_pct": 95.1063829787234,
+              "changed_vs_1": 6,
+              "corrected_vs_1": 2,
+              "broken_vs_1": 2
+            }
+          ]
+        },
+        "test": {
+          "raw_path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_spatial64/raw_test.pt",
+          "raw_sha256": "18100d2b871598f5d3ee2b24f9313fcb60d46e51b8874e7ed3e9f8a132dfe9d1",
+          "raw_bytes": 204337693,
+          "cache_image_ids_exactly_match_declared_holdout": true,
+          "cached_labels_match_classification_csv": true,
+          "cache_schema": {
+            "type": "dict",
+            "keys": [
+              "image_ids",
+              "orig_sizes",
+              "labels",
+              "cls_logits",
+              "raw_boxes",
+              "raw_logits",
+              "raw_obj",
+              "raw_iou",
+              "raw_stage"
+            ],
+            "n_images": 940,
+            "cls_logits": "list of 940 tensors float32[9]",
+            "raw_logits": "list of 940 tensors float16[1000,10]",
+            "labels": "list of 940 integer labels"
+          },
+          "scores": [
+            {
+              "lambda": 0.5,
+              "macro_f1_pct": 94.85760957740462,
+              "accuracy_pct": 94.04255319148936,
+              "changed_vs_1": 1,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 1
+            },
+            {
+              "lambda": 1.0,
+              "macro_f1_pct": 94.95181949627569,
+              "accuracy_pct": 94.14893617021278,
+              "changed_vs_1": 0,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 0
+            },
+            {
+              "lambda": 2.0,
+              "macro_f1_pct": 94.94698565906981,
+              "accuracy_pct": 94.14893617021278,
+              "changed_vs_1": 4,
+              "corrected_vs_1": 2,
+              "broken_vs_1": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SC1_r80h1536",
+      "run": "/mnt/hdd/junkaichen/CS701/cs701_runs/SC1_r80h1536",
+      "metadata_sha256": "4e4efd9a0a9872a55eb65221e3d3b0a0ade7b92d2c535bbbf132f59065c56329",
+      "training_args": {
+        "train_split": "train",
+        "epochs": 36,
+        "lora_rank": 80,
+        "cascade_rep": 1536,
+        "spatial_prior": 0,
+        "seed": 0
+      },
+      "splits": {
+        "val": {
+          "raw_path": "/mnt/hdd/junkaichen/CS701/cs701_runs/SC1_r80h1536/raw_val.pt",
+          "raw_sha256": "344c5243e7a6a68edac64b19b83d04007a2c6db3cfe8b55a9662d66b69c894b4",
+          "raw_bytes": 204332987,
+          "cache_image_ids_exactly_match_declared_holdout": true,
+          "cached_labels_match_classification_csv": true,
+          "cache_schema": {
+            "type": "dict",
+            "keys": [
+              "image_ids",
+              "orig_sizes",
+              "labels",
+              "cls_logits",
+              "raw_boxes",
+              "raw_logits",
+              "raw_obj",
+              "raw_iou",
+              "raw_stage"
+            ],
+            "n_images": 940,
+            "cls_logits": "list of 940 tensors float32[9]",
+            "raw_logits": "list of 940 tensors float16[1000,10]",
+            "labels": "list of 940 integer labels"
+          },
+          "scores": [
+            {
+              "lambda": 0.5,
+              "macro_f1_pct": 95.51925766445179,
+              "accuracy_pct": 95.0,
+              "changed_vs_1": 3,
+              "corrected_vs_1": 1,
+              "broken_vs_1": 2
+            },
+            {
+              "lambda": 1.0,
+              "macro_f1_pct": 95.64682558169919,
+              "accuracy_pct": 95.1063829787234,
+              "changed_vs_1": 0,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 0
+            },
+            {
+              "lambda": 2.0,
+              "macro_f1_pct": 95.73821628125114,
+              "accuracy_pct": 95.2127659574468,
+              "changed_vs_1": 1,
+              "corrected_vs_1": 1,
+              "broken_vs_1": 0
+            }
+          ]
+        },
+        "test": {
+          "raw_path": "/mnt/hdd/junkaichen/CS701/cs701_runs/SC1_r80h1536/raw_test.pt",
+          "raw_sha256": "63e66520ed339ead55e15f797c7eca1799b9266d8720f61cc2c4617aa94ab6aa",
+          "raw_bytes": 204337693,
+          "cache_image_ids_exactly_match_declared_holdout": true,
+          "cached_labels_match_classification_csv": true,
+          "cache_schema": {
+            "type": "dict",
+            "keys": [
+              "image_ids",
+              "orig_sizes",
+              "labels",
+              "cls_logits",
+              "raw_boxes",
+              "raw_logits",
+              "raw_obj",
+              "raw_iou",
+              "raw_stage"
+            ],
+            "n_images": 940,
+            "cls_logits": "list of 940 tensors float32[9]",
+            "raw_logits": "list of 940 tensors float16[1000,10]",
+            "labels": "list of 940 integer labels"
+          },
+          "scores": [
+            {
+              "lambda": 0.5,
+              "macro_f1_pct": 94.6450527639336,
+              "accuracy_pct": 94.04255319148936,
+              "changed_vs_1": 6,
+              "corrected_vs_1": 1,
+              "broken_vs_1": 5
+            },
+            {
+              "lambda": 1.0,
+              "macro_f1_pct": 95.04922944321531,
+              "accuracy_pct": 94.46808510638299,
+              "changed_vs_1": 0,
+              "corrected_vs_1": 0,
+              "broken_vs_1": 0
+            },
+            {
+              "lambda": 2.0,
+              "macro_f1_pct": 95.37952137043884,
+              "accuracy_pct": 94.7872340425532,
+              "changed_vs_1": 5,
+              "corrected_vs_1": 4,
+              "broken_vs_1": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Historical models are 36 epoch local7512 models; current candidate is 160 epoch full9392 with different optimization history.",
+    "BP7 proxy is rank32/head1024; SC1 proxy is rank80/head1536 but has no spatial prior.",
+    "Official val caches have no labels and are not used in this study.",
+    "Latest rank80 local BP7 evaluations did not persist local raw logits, so they cannot be recalibrated without new inference.",
+    "No model training, GPU inference, detection postprocessing, or official submission occurred.",
+    "Class predictions from different checkpoints must not be combined."
+  ],
+  "recommendation": "Keep lambda=1 as default. Lambda=0.5 is worse on all four proxy holdouts. Lambda=2 improves SC1 val/test by 0.0914/0.3303 pp F1 but slightly worsens BP7 proxy val/test by 0.0634/0.0048 pp; at most one optional same-checkpoint classification-only lambda=2 candidate if spare official submissions remain. This does not establish improvement on the current full model."
+}

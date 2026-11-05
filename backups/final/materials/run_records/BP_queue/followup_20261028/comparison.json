@@ -1,0 +1,528 @@
+{
+  "updated_at": "2026-10-29T08:31:39+08:00",
+  "reference_percent": {
+    "val": [
+      91.5,
+      22.41
+    ],
+    "test": [
+      91.61,
+      23.31
+    ]
+  },
+  "note": "Local holdouts, not leaderboard scores. Compare only matching post configurations.",
+  "runs": [
+    {
+      "run": "AA_a4a2",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 37.82678505045333,
+      "val_macro_f1": 95.05263255717102,
+      "test_macro_f1": 95.5537870899557,
+      "val_mAP": 38.42883196649133,
+      "test_mAP": 40.00899858228662,
+      "per_class_AP_mean": {
+        "aircraft": 49.79298590522053,
+        "airport": 59.09826929169937,
+        "bridge": 1.6958193505821866,
+        "car": 59.082265073138565,
+        "harbor": 50.48913713156173,
+        "oil_tank": 45.78672675106689,
+        "playground": 3.724107270793523,
+        "ship": 40.224016792278384,
+        "wind_turbine": 43.07690990315959
+      }
+    },
+    {
+      "run": "BP1_ctx3",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 40.07753133470301,
+      "val_macro_f1": 95.74755175957834,
+      "test_macro_f1": 95.67778491703187,
+      "val_mAP": 39.44586398477843,
+      "test_mAP": 40.841133200780035,
+      "per_class_AP_mean": {
+        "aircraft": 50.16856632657619,
+        "airport": 61.80975406497156,
+        "bridge": 2.5383745400836455,
+        "car": 59.74561471627273,
+        "harbor": 50.71316393420561,
+        "oil_tank": 48.9310210479402,
+        "playground": 4.491822557244733,
+        "ship": 40.882070090476596,
+        "wind_turbine": 42.01110005724183
+      }
+    },
+    {
+      "run": "BP2_clsw3",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 38.291909967136064,
+      "val_macro_f1": 96.10050529016412,
+      "test_macro_f1": 95.56636589235083,
+      "val_mAP": 38.19396018571099,
+      "test_mAP": 40.416834910047086,
+      "per_class_AP_mean": {
+        "aircraft": 50.25967834260451,
+        "airport": 58.566149728592684,
+        "bridge": 2.599042973564272,
+        "car": 59.488551842226656,
+        "harbor": 48.967726061800704,
+        "oil_tank": 47.00663446990484,
+        "playground": 6.492877458050045,
+        "ship": 39.38300297789981,
+        "wind_turbine": 40.984914076267806
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 38.19396018571099,
+          "mAP_test": 40.416834910047086,
+          "per_class": {
+            "aircraft": 50.25967834260451,
+            "airport": 58.566149728592684,
+            "bridge": 2.599042973564272,
+            "car": 59.488551842226656,
+            "harbor": 48.967726061800704,
+            "oil_tank": 47.00663446990484,
+            "playground": 6.492877458050045,
+            "ship": 39.38300297789981,
+            "wind_turbine": 40.984914076267806
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 38.26620348446131,
+          "mAP_test": 40.41236242271331,
+          "per_class": {
+            "aircraft": 50.26831524792552,
+            "airport": 58.87289414789541,
+            "bridge": 2.4698943113832197,
+            "car": 59.50799112759051,
+            "harbor": 48.953783665691866,
+            "oil_tank": 47.04860386896732,
+            "playground": 6.487259233273127,
+            "ship": 39.464936437156496,
+            "wind_turbine": 40.97986854240233
+          }
+        }
+      }
+    },
+    {
+      "run": "BP4_partial",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 37.9410040737052,
+      "val_macro_f1": 95.49192965791917,
+      "test_macro_f1": 94.70051073794369,
+      "val_mAP": 38.52365335359625,
+      "test_mAP": 40.12206882339175,
+      "per_class_AP_mean": {
+        "aircraft": 49.643263356252675,
+        "airport": 58.1984543859088,
+        "bridge": 2.2698719064120363,
+        "car": 58.914911174935334,
+        "harbor": 50.185458797188865,
+        "oil_tank": 46.785755284155925,
+        "playground": 4.780093460993778,
+        "ship": 39.95196851640655,
+        "wind_turbine": 43.17597291419204
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 38.52365335359625,
+          "mAP_test": 40.12206882339175,
+          "per_class": {
+            "aircraft": 49.643263356252675,
+            "airport": 58.1984543859088,
+            "bridge": 2.2698719064120363,
+            "car": 58.914911174935334,
+            "harbor": 50.185458797188865,
+            "oil_tank": 46.785755284155925,
+            "playground": 4.780093460993778,
+            "ship": 39.95196851640655,
+            "wind_turbine": 43.17597291419204
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 39.18658871854656,
+          "mAP_test": 40.64932890495388,
+          "per_class": {
+            "aircraft": 50.353068737227325,
+            "airport": 59.87847041697544,
+            "bridge": 2.101509425344806,
+            "car": 59.48799374532096,
+            "harbor": 50.67606213799164,
+            "oil_tank": 47.4321747626478,
+            "playground": 4.897960851918387,
+            "ship": 41.01184105679488,
+            "wind_turbine": 43.42254817153079
+          }
+        }
+      }
+    },
+    {
+      "run": "BP5_partial_ctx3",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 39.135539457095646,
+      "val_macro_f1": 95.60822426828568,
+      "test_macro_f1": 94.87332341013118,
+      "val_mAP": 38.914137766868876,
+      "test_mAP": 40.75608869390746,
+      "per_class_AP_mean": {
+        "aircraft": 50.04007806791535,
+        "airport": 62.43625253072156,
+        "bridge": 2.310800145301111,
+        "car": 58.950801606495574,
+        "harbor": 52.74537281531335,
+        "oil_tank": 46.507481523320266,
+        "playground": 4.306006730057004,
+        "ship": 38.96894495896098,
+        "wind_turbine": 42.25028069540828
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 38.914137766868876,
+          "mAP_test": 40.75608869390746,
+          "per_class": {
+            "aircraft": 50.04007806791535,
+            "airport": 62.43625253072156,
+            "bridge": 2.310800145301111,
+            "car": 58.950801606495574,
+            "harbor": 52.74537281531335,
+            "oil_tank": 46.507481523320266,
+            "playground": 4.306006730057004,
+            "ship": 38.96894495896098,
+            "wind_turbine": 42.25028069540828
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 39.7061505808956,
+          "mAP_test": 41.32518918859708,
+          "per_class": {
+            "aircraft": 50.659787562158144,
+            "airport": 62.782417792196576,
+            "bridge": 2.3197940480269743,
+            "car": 59.765802272499045,
+            "harbor": 53.30513875502786,
+            "oil_tank": 48.40312085515859,
+            "playground": 4.380102516811936,
+            "ship": 40.369639348569855,
+            "wind_turbine": 42.65522581226811
+          }
+        }
+      }
+    },
+    {
+      "run": "BP3_os2",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 33.684266607847036,
+      "val_macro_f1": 95.81774247127449,
+      "test_macro_f1": 95.52491409862782,
+      "val_mAP": 36.72415922919465,
+      "test_mAP": 37.732079670682275,
+      "per_class_AP_mean": {
+        "aircraft": 50.071426065198146,
+        "airport": 54.426177836400925,
+        "bridge": 2.3300804854814934,
+        "car": 58.73618995401895,
+        "harbor": 45.789847009530305,
+        "oil_tank": 42.29285872184736,
+        "playground": 7.05885988960823,
+        "ship": 41.23844953320106,
+        "wind_turbine": 33.10918555415968
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 36.72415922919465,
+          "mAP_test": 37.732079670682275,
+          "per_class": {
+            "aircraft": 50.071426065198146,
+            "airport": 54.426177836400925,
+            "bridge": 2.3300804854814934,
+            "car": 58.73618995401895,
+            "harbor": 45.789847009530305,
+            "oil_tank": 42.29285872184736,
+            "playground": 7.05885988960823,
+            "ship": 41.23844953320106,
+            "wind_turbine": 33.10918555415968
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 36.73134632498177,
+          "mAP_test": 37.73389152344588,
+          "per_class": {
+            "aircraft": 50.09138660452651,
+            "airport": 54.49622824843087,
+            "bridge": 2.188200470699682,
+            "car": 58.74010911132515,
+            "harbor": 45.93235099765373,
+            "oil_tank": 42.197151850060585,
+            "playground": 7.163638252514424,
+            "ship": 41.194192385312306,
+            "wind_turbine": 33.09031239740118
+          }
+        }
+      }
+    },
+    {
+      "run": "BP7_spatial64",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 41.05879970451467,
+      "val_macro_f1": 95.66974586769345,
+      "test_macro_f1": 94.95181949627569,
+      "val_mAP": 40.0170389915026,
+      "test_mAP": 41.36649603434001,
+      "per_class_AP_mean": {
+        "aircraft": 50.23108408467365,
+        "airport": 62.70128051078379,
+        "bridge": 2.317480092057748,
+        "car": 60.284768584567175,
+        "harbor": 52.772501315773845,
+        "oil_tank": 48.89243802924451,
+        "playground": 5.250835805705554,
+        "ship": 40.19688210103878,
+        "wind_turbine": 43.57863709244674
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 40.0170389915026,
+          "mAP_test": 41.36649603434001,
+          "per_class": {
+            "aircraft": 50.23108408467365,
+            "airport": 62.70128051078379,
+            "bridge": 2.317480092057748,
+            "car": 60.284768584567175,
+            "harbor": 52.772501315773845,
+            "oil_tank": 48.89243802924451,
+            "playground": 5.250835805705554,
+            "ship": 40.19688210103878,
+            "wind_turbine": 43.57863709244674
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 40.005407459858695,
+          "mAP_test": 41.3646572912171,
+          "per_class": {
+            "aircraft": 50.25461749325415,
+            "airport": 62.80233024339268,
+            "bridge": 2.1588077298760715,
+            "car": 60.27823658184731,
+            "harbor": 52.8083861881402,
+            "oil_tank": 48.85033087333866,
+            "playground": 5.233977377878716,
+            "ship": 40.19793052596741,
+            "wind_turbine": 43.58067436614585
+          }
+        }
+      }
+    },
+    {
+      "run": "BP8_ctx3_cls_only",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 40.86042707998944,
+      "val_macro_f1": 95.55612958201442,
+      "test_macro_f1": 95.30895519176113,
+      "val_mAP": 39.815925456487754,
+      "test_mAP": 41.32879546103697,
+      "per_class_AP_mean": {
+        "aircraft": 51.35803205574341,
+        "airport": 61.06613820158336,
+        "bridge": 2.2869376384498827,
+        "car": 60.02780010531028,
+        "harbor": 51.12469017587302,
+        "oil_tank": 51.13869091447523,
+        "playground": 5.130294060927303,
+        "ship": 40.55697314016107,
+        "wind_turbine": 42.46168783633767
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 39.815925456487754,
+          "mAP_test": 41.32879546103697,
+          "per_class": {
+            "aircraft": 51.35803205574341,
+            "airport": 61.06613820158336,
+            "bridge": 2.2869376384498827,
+            "car": 60.02780010531028,
+            "harbor": 51.12469017587302,
+            "oil_tank": 51.13869091447523,
+            "playground": 5.130294060927303,
+            "ship": 40.55697314016107,
+            "wind_turbine": 42.46168783633767
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 39.81330252675384,
+          "mAP_test": 41.36336749846113,
+          "per_class": {
+            "aircraft": 51.3531640103504,
+            "airport": 61.16888804068811,
+            "bridge": 2.204309106305,
+            "car": 60.044229143235924,
+            "harbor": 51.24493217797287,
+            "oil_tank": 51.084843923917624,
+            "playground": 5.155612520284903,
+            "ship": 40.58633461913503,
+            "wind_turbine": 42.45270157157752
+          }
+        }
+      }
+    },
+    {
+      "run": "BP9_ctx3_clsw3",
+      "post": {
+        "score_thresh": 1e-05,
+        "min_keep": 30,
+        "per_class": 100,
+        "total": 100,
+        "fusion": "none",
+        "nms": "soft",
+        "soft_sigma": 0.75,
+        "obj_pow": 0.25,
+        "shift": 0.0,
+        "stage_box": "mean",
+        "cls_lambda": 1.0
+      },
+      "local_delta_m": 39.19410223972953,
+      "val_macro_f1": 95.48764688837818,
+      "test_macro_f1": 95.2347492169454,
+      "val_mAP": 39.33613245076384,
+      "test_mAP": 40.310503805027246,
+      "per_class_AP_mean": {
+        "aircraft": 50.55634542565479,
+        "airport": 59.74012436284397,
+        "bridge": 2.601192438057399,
+        "car": 58.922201896972446,
+        "harbor": 51.266675725244134,
+        "oil_tank": 47.21502837305587,
+        "playground": 6.311294206568525,
+        "ship": 40.82030877561683,
+        "wind_turbine": 40.97669194704591
+      },
+      "postprocessing_variants": {
+        "final": {
+          "mAP_val": 39.33613245076384,
+          "mAP_test": 40.310503805027246,
+          "per_class": {
+            "aircraft": 50.55634542565479,
+            "airport": 59.74012436284397,
+            "bridge": 2.601192438057399,
+            "car": 58.922201896972446,
+            "harbor": 51.266675725244134,
+            "oil_tank": 47.21502837305587,
+            "playground": 6.311294206568525,
+            "ship": 40.82030877561683,
+            "wind_turbine": 40.97669194704591
+          }
+        },
+        "fusion_mult": {
+          "mAP_val": 39.308088598777786,
+          "mAP_test": 40.28519343258901,
+          "per_class": {
+            "aircraft": 50.596743941566345,
+            "airport": 59.761087463530295,
+            "bridge": 2.5124530380222727,
+            "car": 58.94859500037164,
+            "harbor": 51.19155551427974,
+            "oil_tank": 47.009475928533895,
+            "playground": 6.349976788756245,
+            "ship": 40.83374478224642,
+            "wind_turbine": 40.96613668384376
+          }
+        }
+      }
+    }
+  ]
+}

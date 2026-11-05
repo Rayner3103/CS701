@@ -1,0 +1,13 @@
+{
+  "time": "2026-11-01T16:01:22+08:00",
+  "epoch": 180,
+  "global_step": 105660,
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e180.pt",
+  "sha256": "2e1b81714c611642359f07d3909c3e82c31f23e7eb9d096a95b3b3f795caae63",
+  "lr_factor": 0.024716255306108603,
+  "train_hours": 12.968767670260537,
+  "optimizer_and_rank_rng_saved": true,
+  "checkpoint_sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a",
+  "trained_tensors_match": true,
+  "persistent_buffers_match": true
+}

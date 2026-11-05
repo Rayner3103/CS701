@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}p{1.65cm}p{6.1cm}@{}}
+\toprule
+Item & Value\\
+\midrule
+Parameters & \textbf{125,076,960 total, 39,867,360 trainable}: frozen ViT 85.14\,M; LoRA 11.80\,M; norms 0.04\,M; neck 5.56\,M + prior 0.21\,M; RPN 0.60\,M; Cascade 21.65\,M; class head 0.01\,M\\
+GPU & 2 $\times$ NVIDIA RTX 6000 Ada (46,068\,MiB), shared with other users\\
+Final training & 12.97\,h to e180 on 2 GPUs (25.9 GPU-h); the run continued to e200 at 14.14\,h. Averaging: 30\,s CPU\\
+Project GPU-h & About \GPUH{} on this server, tuning included; RTX 3080 runs of teammates not counted\\
+Peak GPU memory & Train 12.07\,GiB per GPU (gradient checkpointing, 8 per GPU); inference 1.15\,GiB allocated\\
+Inference & 21--25\,ms per image at batch 16 (bf16, including post-processing, GPU shared); 60\,ms at batch 2 under load on the test run\\
+Input & One gray image, stretched to $512{\times}512$; train mean/std 0.2526/0.2133; one pass, no tiling, no TTA\\
+Pretrained & \textbf{Final:} DINOv3 ViT-B/16 LVD-1689M (timm). \textbf{Exploration only:} ImageNet-21k ViT-B/16; DINOv3 ConvNeXt-T; DINOv3 ViT-S/16 with YOLO; TerraMind; LingBot-Vision-B/16. None trained on SAR\\
+Code & Base: TA reference repo; torchvision, timm, pycocotools. Ours: LoRA extensions, Cascade with size-aware IoU, NWD matching, spatial prior, post-processing, averaging, snapping, evaluator\\
+Validation & \S\ref{sec:val}. Official val and test only predicted\\
+Seeds & Submitted model: 1 run. Final recipe, full length: 1 finished, 2 running (TBD) runs. Ablations: Table~\ref{tab:loo}. C36: 37 runs, $\pm0.70$\\
+\bottomrule
+\end{tabular}
+\caption{Items required by the Terms.}
+\label{tab:terms}
+\end{table}

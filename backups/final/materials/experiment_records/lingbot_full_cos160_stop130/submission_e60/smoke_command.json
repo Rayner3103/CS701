@@ -1,0 +1,22 @@
+[
+  "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+  "-u",
+  "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/limited_predict.py",
+  "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/code",
+  "--run",
+  "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train",
+  "--weights",
+  "ckpt_e60.pt",
+  "--images",
+  "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/val",
+  "--images-json",
+  "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/smoke_images.json",
+  "--batch-size",
+  "1",
+  "--workers",
+  "0",
+  "--shift",
+  "-0.2",
+  "--out",
+  "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/smoke.zip"
+]

@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Step (cumulative) & mAP & F1 & $\Delta$mAP & $\Delta$\dm\\
+\midrule
+e180, $\sigma$.75, obj$^{.25}$, RPN 1k, $\lambda$1 & 57.00 & 96.46 & --- & ---\\
+$\sigma$ 0.5 & 57.15 & 96.46 & +0.15 & +0.29\\
+objectness power 0 & 57.56 & 96.46 & +0.41 & +0.79\\
+RPN top 2000 & 57.60 & 96.46 & +0.04 & +0.07\\
+$\lambda$ 2 & 57.60 & 96.65 & +0.00 & +0.10\\
+\textbf{average e100--180} & 58.37 & 96.53 & +0.78 & +1.42\\
+hard fusion & 58.53 & 96.53 & +0.16 & +0.31\\
+class-agnostic (vs hard) & 58.59 & 96.53 & +0.06 & +0.11\\
+min\_keep 100 (vs class-agn.) & 58.61 & 96.53 & +0.02 & +0.03\\
+\textbf{snap = FINAL} & 58.81 & 96.53 & +0.20 & +0.39\\
+\bottomrule
+\end{tabular}
+\caption{Cumulative post-processing and averaging on full-length runs (n=1 seed; \texttt{trainvl} $\to$ \texttt{vallike}). Step gains are paired on one seed's weights; \dm{} uses the val reference, on a local split, so its absolute level is not comparable to the board.}
+\label{tab:pp}
+\end{table}

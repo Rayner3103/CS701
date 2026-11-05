@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-11-01T00:43:23+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train/ckpt_e60.pt",
+  "checkpoint_sha256": "debf8f5018d9d59fbe84e7aedaafbad4c46c282c9a070514f36b511b34c9a2b0",
+  "epoch": 60,
+  "training_images": 9392,
+  "schedule_epochs": 160,
+  "source_files_verified": 57,
+  "prediction_images": 1426,
+  "images_json_sha256": "04094e6315ee2ac408e812c57650b8b53a9d5f1d88f6e843e36eac495c0045c8",
+  "batch_size": 1,
+  "shift": -0.2,
+  "gpu": 1,
+  "allocator_fraction": 0.035,
+  "uploaded": false,
+  "inference": "single image once, frozen predict.py FINAL defaults; no TTA/ensemble"
+}

@@ -1,0 +1,13 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e180_e200/probe_only.zip",
+  "sha256": "e4132c4c9c264031e19955f5fc6b3e3ab9ab3339adc5000581a4db0ab9ca1ef8",
+  "prediction_images": 8,
+  "boxes": 250,
+  "bytes": 38642,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false,
+  "scope": "8-image load/inference/format smoke only; not a performance evaluation or official submission",
+  "eligible_for_official_submission": false
+}

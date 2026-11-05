@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-11-01T14:46:30+08:00",
+  "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp",
+  "source_epoch": 160,
+  "source_checkpoint_sha256": "8d4b5577d600aef6b7225bc1f103b36ee160a747ba4e8f288e5aa8c1c7d3c1dd",
+  "data": "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K",
+  "official_data": "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data",
+  "existing_e160_submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip",
+  "existing_e160_submission_sha256": "6df4c1cc49971afffff1a78da76a3533ea27031ec43732feee6e324ac190ed98",
+  "submission_paths": {
+    "180": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e180.zip",
+    "200": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e200.zip"
+  },
+  "source_files": 53,
+  "gpu_memory_fraction": 0.35,
+  "allocator_config": "expandable_segments:True",
+  "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_e160",
+  "epochs": 200,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 200,
+  "training_images": 9392,
+  "global_batch": 16,
+  "save_every": 10,
+  "expected_final_global_step": 117400,
+  "export_epochs": [
+    180,
+    200
+  ],
+  "remaining_submissions_user_reported": 8,
+  "best_reported_delta_m": 53.41,
+  "authorization": "Continue the user-authorized autonomous BP7 optimization; keep architecture and peak learning rates unchanged, LingBot paused.",
+  "decision": "Finish the existing cosine-200 trajectory, preserving e160 and its official best score; one training job, no restart of the cosine schedule.",
+  "prepared_not_launched": false,
+  "automatic_upload": false,
+  "watchdog_no_progress_seconds": 300,
+  "launched_at": "2026-11-01T14:47:25+08:00",
+  "cpu_tests_passed": 38,
+  "real_source_preflight_passed": true,
+  "driver_sha256": "7d4d7a63d95bc2b59393f723d0af392f0b321ce03629155860c3631ce4272f46"
+}

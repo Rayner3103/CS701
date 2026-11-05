@@ -1,0 +1,16 @@
+{
+  "recorded_at": "2026-10-29T19:15:32.765505+08:00",
+  "source": "User-provided leaderboard result JSON in this conversation; numeric precision preserved as supplied.",
+  "phase": 1,
+  "checkpoint_epoch": 80,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/SC2_full150_e80_val_shift-0.2.zip",
+  "submission_sha256": "f490622b2180c81cf02dafa12e3d7fafea760b77fed219ab1631bde48eba825b",
+  "post_shift": -0.2,
+  "scores_percent": {
+    "delta_m": 45.833085271309734,
+    "macro_f1": 95.86191152429468,
+    "mAP": 49.36967673283605,
+    "accuracy": 96.07293127629734,
+    "AP50": 72.78339945538022
+  }
+}

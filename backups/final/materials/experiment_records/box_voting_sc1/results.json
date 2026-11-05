@@ -1,0 +1,214 @@
+{
+  "run": "/home/junkaichen@smu.edu.sg/cs701_runs/SC1_r80h1536",
+  "data": "/home/junkaichen@smu.edu.sg/cs701_data/dataset/SARFact-Course-20K",
+  "snapshot": "/mnt/hdd/junkaichen/CS701/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2/code",
+  "baseline": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean"
+  },
+  "variants": [
+    {
+      "name": "vote_iou0.8_alpha0.10",
+      "iou_threshold": 0.8,
+      "alpha": 0.1
+    },
+    {
+      "name": "vote_iou0.8_alpha0.25",
+      "iou_threshold": 0.8,
+      "alpha": 0.25
+    },
+    {
+      "name": "vote_iou0.9_alpha0.10",
+      "iou_threshold": 0.9,
+      "alpha": 0.1
+    },
+    {
+      "name": "vote_iou0.9_alpha0.25",
+      "iou_threshold": 0.9,
+      "alpha": 0.25
+    }
+  ],
+  "selection": "highest val mAP; baseline wins ties",
+  "size_definition": "sqrt(box area) at 512x512 input; COCO area endpoints inclusive",
+  "classification": "unchanged, detector-informed lambda=1",
+  "script_sha256": "72dec26895e5850a5cb559ced6698a4e31333a80cadfbfb83f1364a4e4753ee7",
+  "snapshot_postprocess_sha256": "6928f6e0fabd538e76319d64c70787335013a1460f5ca3f58281e19bad629588",
+  "val": {
+    "metadata": {
+      "images": 940,
+      "detections": 78365,
+      "macro_f1": 0.9564682558169917,
+      "motion": {
+        "vote_iou0.8_alpha0.10": {
+          "abs_coordinate_sum": 17382.326098561287,
+          "coordinates": 313460,
+          "changed_boxes": 45643,
+          "boxes": 78365,
+          "max_coordinate_change": 4.4814453125,
+          "mean_abs_coordinate_change": 0.05545309161794579
+        },
+        "vote_iou0.8_alpha0.25": {
+          "abs_coordinate_sum": 43455.82887947559,
+          "coordinates": 313460,
+          "changed_boxes": 45643,
+          "boxes": 78365,
+          "max_coordinate_change": 11.203582763671875,
+          "mean_abs_coordinate_change": 0.13863277253708797
+        },
+        "vote_iou0.9_alpha0.10": {
+          "abs_coordinate_sum": 5052.1935331225395,
+          "coordinates": 313460,
+          "changed_boxes": 27924,
+          "boxes": 78365,
+          "max_coordinate_change": 1.5199356079101562,
+          "mean_abs_coordinate_change": 0.016117506326556945
+        },
+        "vote_iou0.9_alpha0.25": {
+          "abs_coordinate_sum": 12630.48344808817,
+          "coordinates": 313460,
+          "changed_boxes": 27924,
+          "boxes": 78365,
+          "max_coordinate_change": 3.7998275756835938,
+          "mean_abs_coordinate_change": 0.040293764589064536
+        }
+      },
+      "raw_sha256": "344c5243e7a6a68edac64b19b83d04007a2c6db3cfe8b55a9662d66b69c894b4",
+      "seconds": 15.94302640715614
+    },
+    "metrics": {
+      "baseline": {
+        "mAP": 0.41209804570170827,
+        "AP50": 0.6807079978394136,
+        "AP75": 0.4309891417395209,
+        "size_AP": {
+          "lt8": 0.23640039062682078,
+          "8to16": 0.21270526828087416,
+          "lt16": 0.1955046595148207,
+          "16to32": 0.31457559996272977,
+          "ge32": 0.5276045307569048
+        },
+        "per_class_AP": {
+          "aircraft": 0.5045708993376401,
+          "airport": 0.5921349352522903,
+          "bridge": 0.027114786422061533,
+          "car": 0.6141376072456652,
+          "harbor": 0.5339997397830881,
+          "oil_tank": 0.554995239457872,
+          "playground": 0.056590866768913464,
+          "ship": 0.3871004479719173,
+          "wind_turbine": 0.4382378890759265
+        },
+        "seconds": 3.8524848921224475
+      },
+      "vote_iou0.8_alpha0.10": {
+        "mAP": 0.4120395966470822,
+        "AP50": 0.6806723548091553,
+        "AP75": 0.431687338210736,
+        "size_AP": {
+          "lt8": 0.23676316043198614,
+          "8to16": 0.21629170540841278,
+          "lt16": 0.19927551632350227,
+          "16to32": 0.3142254680567943,
+          "ge32": 0.5275328158042103
+        },
+        "per_class_AP": {
+          "aircraft": 0.505311762403457,
+          "airport": 0.5900486467892913,
+          "bridge": 0.02696993098553045,
+          "car": 0.6140182520778071,
+          "harbor": 0.5344610335053532,
+          "oil_tank": 0.5551228490192227,
+          "playground": 0.0565193466388787,
+          "ship": 0.3879901282267285,
+          "wind_turbine": 0.4379144201774705
+        },
+        "seconds": 4.102307032328099
+      },
+      "vote_iou0.8_alpha0.25": {
+        "mAP": 0.4118103593043037,
+        "AP50": 0.6803557772215809,
+        "AP75": 0.4307222505559854,
+        "size_AP": {
+          "lt8": 0.23723263946264017,
+          "8to16": 0.21642586905666672,
+          "lt16": 0.19947738368676096,
+          "16to32": 0.3140880521323314,
+          "ge32": 0.5270366823019007
+        },
+        "per_class_AP": {
+          "aircraft": 0.5042707259240325,
+          "airport": 0.5881740511267186,
+          "bridge": 0.027194014598175463,
+          "car": 0.61286336916517,
+          "harbor": 0.5350793990347067,
+          "oil_tank": 0.5556393492205913,
+          "playground": 0.05611984918959411,
+          "ship": 0.3889838515647414,
+          "wind_turbine": 0.4379686239150032
+        },
+        "seconds": 3.6535328538157046
+      },
+      "vote_iou0.9_alpha0.10": {
+        "mAP": 0.4119930669581595,
+        "AP50": 0.6807653314565216,
+        "AP75": 0.4313255108656869,
+        "size_AP": {
+          "lt8": 0.2362079818415549,
+          "8to16": 0.21637111929369893,
+          "lt16": 0.19926238815992386,
+          "16to32": 0.3138281687236446,
+          "ge32": 0.5274976353336817
+        },
+        "per_class_AP": {
+          "aircraft": 0.5042798573186259,
+          "airport": 0.5926964330614644,
+          "bridge": 0.02710354286037337,
+          "car": 0.6133797207997137,
+          "harbor": 0.5339876972166756,
+          "oil_tank": 0.5548549491310802,
+          "playground": 0.05620395092715044,
+          "ship": 0.3869251910743796,
+          "wind_turbine": 0.4385062602339722
+        },
+        "seconds": 3.7813897328451276
+      },
+      "vote_iou0.9_alpha0.25": {
+        "mAP": 0.41202689970296136,
+        "AP50": 0.6807176584136055,
+        "AP75": 0.43255888766005673,
+        "size_AP": {
+          "lt8": 0.23601439990874787,
+          "8to16": 0.2164436907102401,
+          "lt16": 0.19928258411609218,
+          "16to32": 0.31351410971617605,
+          "ge32": 0.5275597264203631
+        },
+        "per_class_AP": {
+          "aircraft": 0.5041513102143031,
+          "airport": 0.5916625878416729,
+          "bridge": 0.02739532157107994,
+          "car": 0.6132658971591707,
+          "harbor": 0.5344200761638879,
+          "oil_tank": 0.5550188126607016,
+          "playground": 0.05615478411695585,
+          "ship": 0.3878300869871543,
+          "wind_turbine": 0.4383432206117266
+        },
+        "seconds": 3.6988005498424172
+      }
+    }
+  },
+  "selected_on_val": "baseline",
+  "improves_both_holdouts": false,
+  "test": {
+    "skipped": "No setting improved validation mAP; keep baseline."
+  }
+}

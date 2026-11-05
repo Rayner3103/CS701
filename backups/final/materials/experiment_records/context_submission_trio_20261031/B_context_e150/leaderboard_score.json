@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-10-31T12:01:12.571480+08:00",
+  "source": "User-provided screenshot labelled b; displayed rounded precision only",
+  "label": "B_context_e150",
+  "checkpoint_epoch": 150,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "roi_context": 3,
+  "roi_context_mode": "classification",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/b.zip",
+  "submission_sha256": "d57aa4ac3d222f22e12371078c0b54bfccdc23450135fb13d534d4281d6ca148",
+  "checkpoint_sha256": "9b0bcf96a1c9c653ae7f17b85df79d96877d4fa8122f815b98d65505e3749bc6",
+  "scores_percent": {
+    "delta_m": 46.89,
+    "macro_f1": 94.89,
+    "mAP": 50.19,
+    "accuracy": 95.16,
+    "AP50": 72.07
+  },
+  "difference_from_A_e150": {
+    "delta_m": -0.03,
+    "macro_f1": 0.41,
+    "mAP": -0.13,
+    "accuracy": 0.28,
+    "AP50": 0.42
+  },
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false,
+  "note": "Matched epoch150/schedule160/data comparison; single seed and architecture-dependent initialization stream. Tiny aggregate difference is not evidence of statistical significance."
+}

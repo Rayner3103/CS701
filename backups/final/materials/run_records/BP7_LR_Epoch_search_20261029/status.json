@@ -1,0 +1,32 @@
+{
+  "pid": 1528519,
+  "started_at": "2026-10-29T22:55:37+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR_Epoch_search_20261029",
+  "dependency_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "maximum_additional_training_runs": 2,
+  "completed_training_runs": [
+    "hybrid130"
+  ],
+  "official_submissions": 0,
+  "automatic_full_data_retrain": false,
+  "stage": "superseded",
+  "updated_at": "2026-10-30T18:47:55+08:00",
+  "dependency_stage": "complete",
+  "dependency_updated_at": "2026-10-30T09:27:45+08:00",
+  "active_trial": "hybrid130",
+  "child_pid": 553814,
+  "superseded_by": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030",
+  "deferred_trial": "schedule160",
+  "training_continues": false
+}

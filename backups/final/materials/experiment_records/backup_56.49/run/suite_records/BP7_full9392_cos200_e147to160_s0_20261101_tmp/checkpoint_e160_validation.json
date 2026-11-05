@@ -1,0 +1,20 @@
+{
+  "time": "2026-11-01T14:09:01+08:00",
+  "epoch": 160,
+  "schedule_epochs": 200,
+  "training_images": 9392,
+  "global_step": 93920,
+  "steps_per_epoch": 587,
+  "parameters": 125076960,
+  "trainable_parameters": 39867360,
+  "buffer_values": 16,
+  "persistent_buffer_values": 0,
+  "lr_factor": 0.09642144811900738,
+  "train_hours": 11.748667320145502,
+  "training_gpu_hours": 23.497334640291005,
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e160.pt",
+  "checkpoint_sha256": "a8de35f3209f2772b5f5c262c3b79a262a568ba570feb623e449157d98ded0de",
+  "training_state_sha256": "8d4b5577d600aef6b7225bc1f103b36ee160a747ba4e8f288e5aa8c1c7d3c1dd",
+  "trained_tensors_match": true,
+  "optimizer_and_rank_rng_saved": true
+}

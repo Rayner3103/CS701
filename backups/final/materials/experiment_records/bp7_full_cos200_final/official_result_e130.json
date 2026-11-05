@@ -1,0 +1,45 @@
+{
+  "reported_at": "2026-11-01T11:18:51+08:00",
+  "source": "User-provided five-metric table, displayed to two decimal places; trailing blank column ignored",
+  "metric_order": [
+    "delta_m",
+    "macro_f1",
+    "mAP",
+    "accuracy",
+    "AP50"
+  ],
+  "submission_association": "Associated with BP7_full_cos200_e130.zip supplied immediately before this feedback",
+  "submission": "submissions/BP7_full_cos200_e130.zip",
+  "submission_sha256": "a01bd0560fa441f4bbebadcb197d7781a2a7a30604fc6ea4f2f2279c6bdae20f",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e130.pt",
+  "checkpoint_sha256": "d0ed0d9c64af9d31f07b45cf4d79c9e2c0fae4fc026e5c8afbebe1b85f46f569",
+  "training_images": 9392,
+  "epoch": 130,
+  "schedule_epochs": 200,
+  "seed": 0,
+  "metrics": {
+    "delta_m": 52.76,
+    "macro_f1": 95.04,
+    "mAP": 53.22,
+    "accuracy": 95.37,
+    "AP50": 73.65
+  },
+  "comparison_reference": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos160_stop130/official_result.json",
+  "differences_from_BP7_cos160_e130_displayed_scores": {
+    "delta_m": -0.02,
+    "macro_f1": -0.31,
+    "mAP": 0.07,
+    "accuracy": -0.21,
+    "AP50": -0.11
+  },
+  "difference_units": "delta_m points; other metrics percentage points",
+  "best_reported_project_delta_m": false,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "interpretation": "Observed aggregate score is almost unchanged (-0.02). mAP increases0.07pp, with macro-F1 -0.31pp, accuracy -0.21pp, AP50 -0.11pp. No demonstrated aggregate improvement or statistical significance.",
+  "comparison_limitations": [
+    "Rounded metrics and one training run per configuration.",
+    "Worker counts and compilation/execution differ; this is not a pure LR-schedule causal comparison."
+  ],
+  "decision": "Keep existing cos160 e130 score52.78 as best observed submission; continue the already running cos200 trajectory to e160 for final feedback."
+}

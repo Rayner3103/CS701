@@ -1,0 +1,52 @@
+detections built for 13 variants in 18 s
+matching done in 26 s
+VALIDATION none: mine mAP 52.6223 AP50 74.3980 | pycocotools mAP 52.6223 AP50 74.3980
+VALIDATION hard: mine mAP 52.8107 AP50 74.4468 | pycocotools mAP 52.8107 AP50 74.4468
+
+val: full-set results (mAP / AP50), diff vs none and vs hard, in mAP points
+  none           mAP  52.622 AP50  74.398  d_none +0.000  d_hard -0.188
+  hard           mAP  52.811 AP50  74.447  d_none +0.188  d_hard +0.000
+  hard_fused     mAP  52.750 AP50  74.378  d_none +0.128  d_hard -0.060
+  agn_k2         mAP  52.907 AP50  74.609  d_none +0.285  d_hard +0.096
+  agn_k2_fused   mAP  52.819 AP50  74.473  d_none +0.197  d_hard +0.008
+  agn_k3         mAP  52.907 AP50  74.614  d_none +0.285  d_hard +0.096
+  agn_k9         mAP  52.907 AP50  74.614  d_none +0.285  d_hard +0.096
+  agn_g05_k2     mAP  52.877 AP50  74.590  d_none +0.255  d_hard +0.066
+  mult_g1        mAP  52.762 AP50  74.579  d_none +0.139  d_hard -0.049
+  hard_s04       mAP  52.816 AP50  74.576  d_none +0.194  d_hard +0.005
+  hard_s06       mAP  52.756 AP50  74.227  d_none +0.134  d_hard -0.055
+  hard_sh01      mAP  52.815 AP50  74.442  d_none +0.193  d_hard +0.004
+  hard_sh03      mAP  52.335 AP50  74.365  d_none -0.287  d_hard -0.476
+  bootstrap 100/500 (40 s)
+  bootstrap 200/500 (49 s)
+  bootstrap 300/500 (57 s)
+  bootstrap 400/500 (66 s)
+  bootstrap 500/500 (75 s)
+
+val: paired bootstrap (500 resamples of 940 images), mAP points
+  --- difference vs none ---
+  hard           mean +0.174  95% CI [-0.016, +0.373]  P(>0) 0.964
+  hard_fused     mean +0.119  95% CI [-0.089, +0.329]  P(>0) 0.880
+  agn_k2         mean +0.266  95% CI [+0.058, +0.479]  P(>0) 0.996
+  agn_k2_fused   mean +0.181  95% CI [-0.014, +0.380]  P(>0) 0.970
+  agn_k3         mean +0.266  95% CI [+0.057, +0.479]  P(>0) 0.996
+  agn_k9         mean +0.266  95% CI [+0.057, +0.479]  P(>0) 0.996
+  agn_g05_k2     mean +0.237  95% CI [+0.031, +0.447]  P(>0) 0.986
+  mult_g1        mean +0.142  95% CI [+0.047, +0.280]  P(>0) 1.000
+  hard_s04       mean +0.175  95% CI [-0.015, +0.379]  P(>0) 0.962
+  hard_s06       mean +0.122  95% CI [-0.075, +0.325]  P(>0) 0.878
+  hard_sh01      mean +0.181  95% CI [-0.026, +0.416]  P(>0) 0.956
+  hard_sh03      mean -0.294  95% CI [-0.533, -0.043]  P(>0) 0.008
+  --- difference vs hard ---
+  none           mean -0.174  95% CI [-0.373, +0.016]  P(>0) 0.036
+  hard_fused     mean -0.055  95% CI [-0.174, +0.008]  P(>0) 0.124
+  agn_k2         mean +0.092  95% CI [+0.020, +0.177]  P(>0) 0.996
+  agn_k2_fused   mean +0.007  95% CI [-0.033, +0.037]  P(>0) 0.684
+  agn_k3         mean +0.091  95% CI [+0.020, +0.177]  P(>0) 0.996
+  agn_k9         mean +0.091  95% CI [+0.019, +0.176]  P(>0) 0.996
+  agn_g05_k2     mean +0.063  95% CI [-0.000, +0.134]  P(>0) 0.972
+  mult_g1        mean -0.032  95% CI [-0.238, +0.172]  P(>0) 0.366
+  hard_s04       mean +0.001  95% CI [-0.042, +0.047]  P(>0) 0.500
+  hard_s06       mean -0.052  95% CI [-0.098, -0.003]  P(>0) 0.018
+  hard_sh01      mean +0.006  95% CI [-0.122, +0.134]  P(>0) 0.534
+  hard_sh03      mean -0.469  95% CI [-0.619, -0.330]  P(>0) 0.000

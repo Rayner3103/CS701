@@ -1,0 +1,30 @@
+{
+  "pid": 180836,
+  "started_at": "2026-11-01T00:43:22+08:00",
+  "epoch": 60,
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/lingb_e60.zip",
+  "gpu": 1,
+  "batch_size": 1,
+  "allocator_fraction": 0.035,
+  "uploaded": false,
+  "stage": "completed",
+  "updated_at": "2026-11-01T00:50:52+08:00",
+  "child_pid": null,
+  "submission": {
+    "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/lingb_e60.zip",
+    "sha256": "47d3437bfed91b56adf99cad282e43799a77c8526e69aa27a8c8973045905fda",
+    "prediction_images": 1426,
+    "boxes": 120104,
+    "bytes": 18550863,
+    "format_passed": true,
+    "boxes_within_images": true,
+    "shift": -0.2,
+    "uploaded": false,
+    "epoch": 60,
+    "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train/ckpt_e60.pt",
+    "checkpoint_sha256": "debf8f5018d9d59fbe84e7aedaafbad4c46c282c9a070514f36b511b34c9a2b0",
+    "backbone": "lingbot_b",
+    "finished_at": "2026-11-01T00:50:52+08:00"
+  }
+}

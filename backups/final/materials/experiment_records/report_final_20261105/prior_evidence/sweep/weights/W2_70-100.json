@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "epoch": 70,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/ckpt_e70.pt"
+    },
+    {
+      "epoch": 80,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/ckpt_e80.pt"
+    },
+    {
+      "epoch": 90,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/ckpt_e90.pt"
+    },
+    {
+      "epoch": 100,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/ckpt_e100.pt"
+    }
+  ],
+  "tensors": 234
+}

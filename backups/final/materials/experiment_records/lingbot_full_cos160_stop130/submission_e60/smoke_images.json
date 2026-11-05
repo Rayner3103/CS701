@@ -1,0 +1,52 @@
+{
+  "images": [
+    {
+      "id": 1,
+      "file_name": "images/00001.jpg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": 2,
+      "file_name": "images/00002.jpg",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": 3,
+      "file_name": "images/00003.jpg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": 4,
+      "file_name": "images/00004.jpg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": 5,
+      "file_name": "images/00005.jpg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": 6,
+      "file_name": "images/00006.jpg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": 7,
+      "file_name": "images/00007.png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": 8,
+      "file_name": "images/00008.jpg",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

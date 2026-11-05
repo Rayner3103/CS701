@@ -1,0 +1,33 @@
+{
+  "data": "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K",
+  "official_data": "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data",
+  "gpu_memory_fraction": 0.35,
+  "allocator_config": "expandable_segments:True",
+  "existing_e130_submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e130.zip",
+  "existing_e130_submission_sha256": "a01bd0560fa441f4bbebadcb197d7781a2a7a30604fc6ea4f2f2279c6bdae20f",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip",
+  "created_at": "2026-11-01T13:12:07+08:00",
+  "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+  "source_epoch": 147,
+  "source_checkpoint_sha256": "a5290d7a24bf4c8361a826b7e4bcc099aeb3758ebb97df86694e9a1c2082544c",
+  "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_r147",
+  "source_files": 50,
+  "prepared_not_launched": false,
+  "authorization": "Recover the existing authorized BP7 training to e160; keep LingBot paused.",
+  "change": "Move multiprocessing temporary directory to private HDD directory; preserve train configuration and complete e147 state.",
+  "stall_reason": "DataLoader resource_sharer failed creating /tmp/pymp-* with ENOSPC; main ranks waited without progress after e147.",
+  "stall_last_progress_sgt": "2026-11-01T12:15:17+08:00",
+  "training_images": 9392,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 160,
+  "automatic_upload": false,
+  "cpu_tests_passed": 17,
+  "independent_review": "passed with two cleanup fixes applied and retested",
+  "watchdog_no_progress_seconds": 300,
+  "driver_sha256": "05f4c7165ccc7ea4dacfa2be36a857247450de2a9265f0271d85888a19c5f11f",
+  "tests_sha256": "d3ecce49d876d9181f7e9adce122fdb5c523e61c0f6f86d8662df0f24d3341d7",
+  "free_gpu_memory_mib_at_launch": [
+    19868,
+    20505
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-11-01T20:11:39+08:00",
+  "method": "Elementwise equal parameter average of e100/e120/e140/e160, accumulated in float64 and stored float32",
+  "sources": [
+    {
+      "epoch": 100,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e100.pt",
+      "sha256": "623c2622fad60911a257592d374a2f26cb24ee5c56df36a623a1ff743f54b48f",
+      "coefficient": 0.25
+    },
+    {
+      "epoch": 120,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e120.pt",
+      "sha256": "8a18baad3e1a2034b9e0d4d76a8a5e420f4586356fefbc45c09d853120d3dde3",
+      "coefficient": 0.25
+    },
+    {
+      "epoch": 140,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/full_train_e160/ckpt_e140.pt",
+      "sha256": "2a0b51bb9ff9da2d398ef799a5e378bbd9518e267901ae4c88aea2659b25a1e3",
+      "coefficient": 0.25
+    },
+    {
+      "epoch": 160,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e160.pt",
+      "sha256": "a8de35f3209f2772b5f5c262c3b79a262a568ba570feb623e449157d98ded0de",
+      "coefficient": 0.25
+    }
+  ],
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e100_e120_e140_e160/averaged_model.pt",
+  "output_sha256": "2ac0c550f30d8d0bdf7887282930cc9bb097a2ebbe02065e0bce595da664f1d1",
+  "tensor_count": 234,
+  "stored_parameter_values": 39867360,
+  "total_model_parameters": 125076960,
+  "nonpersistent_float_buffers": 16,
+  "all_finite": true,
+  "identical_keys_shapes_dtypes": true,
+  "verified_roundtrip": true,
+  "optimizer_compatible": false,
+  "rule_status": "User explicitly confirmed TA permits single-model checkpoint parameter averaging",
+  "rule_confirmation_source": "User answer: 已明确允许; clarification: 不是先分别预测，而是平均参数",
+  "official_submission_ready": true,
+  "automatic_upload": false,
+  "lora_note": "Averages actual down/up parameters separately; one model and one forward per image, no prediction fusion or rank expansion.",
+  "trajectory_audit": "Independent CPU audit: same cos200 trajectory; source manifests and e130/e147 continuation hashes checked; core train/predict/model code hashes identical.",
+  "full_prediction_validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e100_e120_e140_e160/submission_validation.json"
+}

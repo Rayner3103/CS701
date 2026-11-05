@@ -1,0 +1,12 @@
+test: importance weights min 0.21 max 1.90; effective sample size 740 of 940
+  cells (class,size): local n -> val share / local share: {(0, '256'): (7, 0.57), (0, '512'): (111, 0.84), (1, '512'): (65, 1.9), (2, '256'): (27, 0.34), (2, '512'): (98, 0.71), (3, '512'): (44, 1.38), (4, '256'): (31, 1.81), (4, '512'): (105, 0.21), (5, '256'): (55, 1.17), (5, '512'): (68, 0.53), (6, '512'): (118, 1.05), (7, '256'): (115, 0.88), (7, '512'): (4, 1.15), (8, '512'): (92, 1.86)}
+
+test: post-processing deltas (mAP points): official val vs local uniform vs local val-like reweighting
+  sigma075->05 (obj.25,rpn1k)                official +0.153 | local full +0.157 | uniform boot +0.151 [+0.085,+0.229] | val-like boot +0.143 [+0.086,+0.210]
+  obj.25->0 (sigma.5,rpn1k)                  official +0.549 | local full +0.226 | uniform boot +0.234 [+0.028,+0.417] | val-like boot +0.188 [-0.021,+0.350]
+  rpn1k->2k (obj0,sigma.5)                   official +0.010 | local full +0.011 | uniform boot +0.003 [-0.033,+0.045] | val-like boot -0.012 [-0.044,+0.022]
+  stage last vs mean (sigma.75,obj.25,rpn1k) official -0.353 | local full -0.484 | uniform boot -0.485 [-0.651,-0.336] | val-like boot -0.452 [-0.594,-0.322]
+  agn vs hard (rpn2k,obj0,sigma.5)           official +0.040 | local full +0.162 | uniform boot +0.148 [+0.017,+0.379] | val-like boot +0.160 [+0.032,+0.351]
+  agreement with official: local full    corr 0.853  MAE 0.116  sign agreement 1.00
+  agreement with official: uniform boot  corr 0.867  MAE 0.113  sign agreement 1.00
+  agreement with official: val-like boot corr 0.834  MAE 0.122  sign agreement 0.80

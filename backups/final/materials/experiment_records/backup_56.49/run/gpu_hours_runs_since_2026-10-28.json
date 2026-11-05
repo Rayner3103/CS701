@@ -1,0 +1,371 @@
+[
+ {
+  "run": "BP1_ctx3",
+  "start": "10-28 12:54",
+  "end": "10-28 12:54",
+  "wall_h": 0.0,
+  "train_h": 2.89,
+  "gpus": 1,
+  "gpu_h": 2.89
+ },
+ {
+  "run": "BP2_clsw3",
+  "start": "10-28 15:21",
+  "end": "10-28 15:21",
+  "wall_h": 0.0,
+  "train_h": 2.4,
+  "gpus": 1,
+  "gpu_h": 2.4
+ },
+ {
+  "run": "BP4_partial",
+  "start": "10-28 17:55",
+  "end": "10-28 17:55",
+  "wall_h": 0.0,
+  "train_h": 2.47,
+  "gpus": 1,
+  "gpu_h": 2.47
+ },
+ {
+  "run": "BP5_partial_ctx3",
+  "start": "10-28 20:53",
+  "end": "10-28 20:53",
+  "wall_h": 0.0,
+  "train_h": 2.89,
+  "gpus": 1,
+  "gpu_h": 2.89
+ },
+ {
+  "run": "BP3_os2",
+  "start": "10-28 23:20",
+  "end": "10-28 23:21",
+  "wall_h": 0.0,
+  "train_h": 2.4,
+  "gpus": 1,
+  "gpu_h": 2.4
+ },
+ {
+  "run": "BP_queue/followup_20261028/smoke/BP7_spatial64",
+  "start": "10-28 23:22",
+  "end": "10-28 23:22",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 1,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_spatial64",
+  "start": "10-28 23:24",
+  "end": "10-29 02:04",
+  "wall_h": 2.66,
+  "train_h": 2.65,
+  "gpus": 1,
+  "gpu_h": 2.65
+ },
+ {
+  "run": "BP_queue/followup_20261028/smoke/BP8_ctx3_cls_only",
+  "start": "10-29 02:10",
+  "end": "10-29 02:10",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 1,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP8_ctx3_cls_only",
+  "start": "10-29 02:12",
+  "end": "10-29 05:22",
+  "wall_h": 3.17,
+  "train_h": 3.16,
+  "gpus": 1,
+  "gpu_h": 3.16
+ },
+ {
+  "run": "BP_queue/followup_20261028/smoke/BP9_ctx3_clsw3",
+  "start": "10-29 05:28",
+  "end": "10-29 05:28",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 1,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP9_ctx3_clsw3",
+  "start": "10-29 05:30",
+  "end": "10-29 08:26",
+  "wall_h": 2.94,
+  "train_h": 2.93,
+  "gpus": 1,
+  "gpu_h": 2.93
+ },
+ {
+  "run": "BP7_full130_r80h1536_spatial64",
+  "start": "10-29 14:48",
+  "end": "10-29 20:57",
+  "wall_h": 6.15,
+  "train_h": 6.13,
+  "gpus": 2,
+  "gpu_h": 12.26
+ },
+ {
+  "run": "BP7_full130_r80h1536_spatial64/validation/smoke/ddp_smoke",
+  "start": "10-29 14:49",
+  "end": "10-29 14:49",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029/validation/full",
+  "start": "10-29 21:24",
+  "end": "10-29 21:26",
+  "wall_h": 0.03,
+  "train_h": 0.03,
+  "gpus": 2,
+  "gpu_h": 0.06
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029/validation/resumed",
+  "start": "10-29 21:26",
+  "end": "10-29 21:27",
+  "wall_h": 0.01,
+  "train_h": 0.0,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029_v2/validation/full",
+  "start": "10-29 21:32",
+  "end": "10-29 21:33",
+  "wall_h": 0.01,
+  "train_h": 0.01,
+  "gpus": 2,
+  "gpu_h": 0.02
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029_v2/validation/resumed",
+  "start": "10-29 21:33",
+  "end": "10-29 21:34",
+  "wall_h": 0.01,
+  "train_h": 0.0,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029_v2/lr1x",
+  "start": "10-29 22:04",
+  "end": "10-30 03:23",
+  "wall_h": 5.32,
+  "train_h": 5.79,
+  "gpus": 2,
+  "gpu_h": 11.58
+ },
+ {
+  "run": "BP7_LR130_local_s0_20261029_v2/lr05x",
+  "start": "10-30 03:51",
+  "end": "10-30 09:26",
+  "wall_h": 5.59,
+  "train_h": 6.03,
+  "gpus": 2,
+  "gpu_h": 12.06
+ },
+ {
+  "run": "BP7_LR_Epoch_search_20261029/hybrid130",
+  "start": "10-30 10:49",
+  "end": "10-30 18:47",
+  "wall_h": 7.96,
+  "train_h": 9.31,
+  "gpus": 2,
+  "gpu_h": 18.62
+ },
+ {
+  "run": "BP7_LR125_local_s0_20261030/lr125x",
+  "start": "10-30 19:11",
+  "end": "10-30 21:30",
+  "wall_h": 2.32,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 4.64
+ },
+ {
+  "run": "BP7_fixedLR160_local_s0_20261030_direct/schedule160",
+  "start": "10-30 21:54",
+  "end": "10-31 03:45",
+  "wall_h": 5.84,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 11.68
+ },
+ {
+  "run": "BP7_ctx3_classification_local160_s0_20261031/validation/smoke",
+  "start": "10-31 03:48",
+  "end": "10-31 03:48",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_ctx3_classification_local160_s0_20261031/context160",
+  "start": "10-31 04:25",
+  "end": "10-31 11:45",
+  "wall_h": 7.34,
+  "train_h": 7.93,
+  "gpus": 2,
+  "gpu_h": 15.86
+ },
+ {
+  "run": "BP7_full9392_cos160_stop130_s0_20261031/validation/smoke",
+  "start": "10-31 12:16",
+  "end": "10-31 12:17",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_full9392_cos160_stop130_s0_20261031/full_train",
+  "start": "10-31 12:46",
+  "end": "10-31 18:43",
+  "wall_h": 5.95,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 11.9
+ },
+ {
+  "run": "LingBotB_full9392_cos160_stop130_s0_20261031/validation/smoke",
+  "start": "10-31 18:44",
+  "end": "10-31 18:44",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/validation/smoke",
+  "start": "10-31 19:06",
+  "end": "10-31 19:06",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train",
+  "start": "10-31 19:41",
+  "end": "11-01 00:58",
+  "wall_h": 5.3,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 10.6
+ },
+ {
+  "run": "BP7_full9392_cos200_stop160_s0_20261031/validation/smoke",
+  "start": "10-31 19:42",
+  "end": "10-31 19:42",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_full9392_cos200_stop160_s0_20261031/full_train",
+  "start": "10-31 19:49",
+  "end": "10-31 19:50",
+  "wall_h": 0.02,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.04
+ },
+ {
+  "run": "BP7_full9392_cos200_stop160_s0_20261031_expandable/validation/resume_probe",
+  "start": "10-31 21:44",
+  "end": "10-31 21:45",
+  "wall_h": 0.02,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.04
+ },
+ {
+  "run": "BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train",
+  "start": "10-31 22:44",
+  "end": "11-01 07:26",
+  "wall_h": 8.7,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 17.4
+ },
+ {
+  "run": "BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train_e160",
+  "start": "11-01 07:29",
+  "end": "11-01 07:29",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "BP7_full9392_cos200_e130to160_s0_20261101_mem35/validation/resume_e131",
+  "start": "11-01 11:15",
+  "end": "11-01 11:16",
+  "wall_h": 0.01,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.02
+ },
+ {
+  "run": "BP7_full9392_cos200_e130to160_s0_20261101_mem35/full_train_e160",
+  "start": "11-01 11:49",
+  "end": "11-01 12:15",
+  "wall_h": 0.43,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.86
+ },
+ {
+  "run": "BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160",
+  "start": "11-01 13:31",
+  "end": "11-01 14:08",
+  "wall_h": 0.63,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 1.26
+ },
+ {
+  "run": "BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200",
+  "start": "11-01 15:25",
+  "end": "11-01 17:11",
+  "wall_h": 1.77,
+  "train_h": 14.14,
+  "gpus": 2,
+  "gpu_h": 28.28
+ },
+ {
+  "run": "AUG1_speckle_gamma_local7512_cos160_s0_20261101/smoke",
+  "start": "11-01 21:09",
+  "end": "11-01 21:09",
+  "wall_h": 0.0,
+  "train_h": 0.0,
+  "gpus": 1,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "AUG1_speckle_gamma_local7512_cos160_s0_20261101/schedule160",
+  "start": "11-01 21:09",
+  "end": "11-01 21:09",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ },
+ {
+  "run": "DP1_droppath01_local7512_cos160_s0_20261102/schedule160",
+  "start": "11-01 21:21",
+  "end": "11-01 21:21",
+  "wall_h": 0.0,
+  "train_h": null,
+  "gpus": 2,
+  "gpu_h": 0.0
+ }
+]

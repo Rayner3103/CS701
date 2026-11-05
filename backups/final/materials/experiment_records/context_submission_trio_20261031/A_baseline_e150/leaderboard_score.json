@@ -1,0 +1,29 @@
+{
+  "recorded_at": "2026-10-31T12:00:43.523849+08:00",
+  "source": "User-provided screenshot labelled a; displayed precision only",
+  "scored_time_shown": "12:00:00 SGT",
+  "label": "A_baseline_e150",
+  "checkpoint_epoch": 150,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/a.zip",
+  "submission_sha256": "3dcc91ffb6ade82ee4ff12d0398ab1bc2f7aeb985d728d6a6fc746ab64a65d93",
+  "checkpoint_sha256": "1492d89693ceff680dd12a4480fb44fc9f2ad870c946b29788c63b298edfb480",
+  "scores_percent": {
+    "delta_m": 46.92,
+    "macro_f1": 94.48,
+    "mAP": 50.32,
+    "accuracy": 94.88,
+    "AP50": 71.65
+  },
+  "difference_from_same_run_e130": {
+    "delta_m": -0.2,
+    "macro_f1": -0.1,
+    "mAP": -0.09,
+    "accuracy": -0.07,
+    "AP50": 0.03
+  },
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false,
+  "note": "Screenshot +1.09 is relative to currently posted entry, not absolute delta_m. Matched context e150 score pending."
+}

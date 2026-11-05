@@ -1,0 +1,1 @@
+TWIN2_giou3_iou1_trainvl8400_cos200_s0_20261102 extra flags: --giou 3.0 --iou-branch 1.0

@@ -1,0 +1,97 @@
+{
+  "created_at": "2026-10-31T21:28:57+08:00",
+  "authorization": "User: skip control groups; prioritize the best candidate and increase GPU use with one day left.",
+  "source": "/mnt/hdd/junkaichen/CS701/CS701",
+  "git_head": "8445d584257ea8af99734f4ff18b890dcd1ba749",
+  "source_files": 46,
+  "dependency_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+  "data": "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K",
+  "data_sha256": {
+    "classification/train.csv": "02c22e60e05ff9e806418c40b5ad15a35f134c73490709717c450bf497cab969",
+    "detection/instances_train.json": "10fcfba501363029e72e3b5d07114749995018ec7d2117189eed1191bbe57aa2",
+    "classification/val.csv": "7d68b715807b92c8d22fcf29df4e2fecb194ac5851187d187b947af27d9014c5",
+    "detection/instances_val.json": "fcb94bef79a0abf08882fa84ca948cf21c87b7c250f7807f4c7ee87ea9f314be",
+    "classification/test.csv": "2e4f37b6c651557f16e13dfd34a03e284114a460a5bcca911cc987ad9fc01aaa",
+    "detection/instances_test.json": "9219e4789173e67341fd2b3db9cdeb9879f03fd4f02d0e1d9a1ae134d267b469"
+  },
+  "official_data": "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data",
+  "expected_parameters": 125076960,
+  "expected_trainable_parameters": 39867360,
+  "expected_floating_buffers": 16,
+  "policy_margin": 1.0,
+  "policy_margin_note": "Required by shared snapshot validator only; no dynamic candidate selection in this run.",
+  "architecture": "Original BP7 DINOv3 LoRA80 alpha160 Cascade1536 SpatialPrior64, roi_context=0",
+  "epochs": 200,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 160,
+  "head_lr": 0.0001,
+  "backbone_lr": 0.0003,
+  "warmup_epochs": 1,
+  "seed": 0,
+  "training_split": "train+val+test",
+  "training_images": 9392,
+  "eval_splits": "",
+  "steps_per_epoch": 587,
+  "expected_updates_at_stop": 93920,
+  "initialization": "Fresh generic DINOv3 pretrained; task modules and LoRA initialized afresh; smoke weights discarded.",
+  "resources": {
+    "gpus": [
+      0,
+      1
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "nice": 10,
+    "global_batch": 16,
+    "workers_per_rank": 1,
+    "threads_per_rank": 1,
+    "prediction_batch": 2,
+    "prediction_workers": 0,
+    "gpu_memory_fraction": 0.2
+  },
+  "prediction_shift": -0.2,
+  "failure_policy": "Stop and preserve logs/checkpoints, no blind retries.",
+  "maximum_full_runs": 1,
+  "automatic_continue_after_epoch130": true,
+  "official_submissions": 0,
+  "comparison_targets": {
+    "best_reported_project_delta_m": 52.78
+  },
+  "smoke": {
+    "training_images": 48,
+    "epochs": 200,
+    "schedule_epochs": 200,
+    "stop_after_epoch": 1,
+    "workers": 0,
+    "inference_images": 8
+  },
+  "export_epochs": [
+    130,
+    160
+  ],
+  "expected_updates_at_exports": {
+    "130": 76310,
+    "160": 93920
+  },
+  "submission_paths": {
+    "130": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e130.zip",
+    "160": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip"
+  },
+  "compile": false,
+  "gpu_memory_fraction": 0.2,
+  "execution": "Recover e1 with expandable CUDA segments; original model, optimizer, LR, batch, workers and 20 percent cap",
+  "decision": "Keep BP7 and peak LR; slower cosine, export e130 and e160 on one trajectory",
+  "recovery": {
+    "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031",
+    "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031/full_train/training_state.pt",
+    "checkpoint_sha256": "734596be8ec3657a1362479f17b162c62da6232288b8bc9e2f6d84e76e4c7774",
+    "epoch": 1,
+    "global_step": 587,
+    "allocator_config": "expandable_segments:True"
+  },
+  "recovery_cpu_tests_passed": 25
+}
