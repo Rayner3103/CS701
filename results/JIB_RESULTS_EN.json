@@ -1,0 +1,186 @@
+{
+  "status": "COMPLETED",
+  "updated_utc": "2026-10-31T00:50:40.578953+00:00",
+  "requested_epochs": 100,
+  "completed_epochs": 100,
+  "optimizer_updates": 49900,
+  "best_evaluated_epoch": 88,
+  "macroF1": 0.9502930437446175,
+  "mAP": 0.47497959428350395,
+  "AP50": 0.7125351397440436,
+  "AP75": 0.5036087533369814,
+  "internal_delta_m_percent": 41.80907695277234,
+  "official_delta_m": null,
+  "selected_checkpoint": "D:\\CS701_junkai_ib\\runs\\JIB_seed701\\best_epochs\\epoch_0088.pt",
+  "selected_weight_sha256": "1d7ce4ebaa6723aaf99e5d72a053b4480ea82efbff486f68ddd5a224d6f3dbf7",
+  "scope": "Fixed internal 1408-image holdout; best among26 planned evaluated epochs; one seed.",
+  "history": [
+    {
+      "epoch": 1,
+      "macroF1": 0.8388634492478312,
+      "mAP": 0.012324524263832808,
+      "internal_delta_m_percent": -52.69133978610269
+    },
+    {
+      "epoch": 4,
+      "macroF1": 0.9107406045304324,
+      "mAP": 0.13885103066040366,
+      "internal_delta_m_percent": -24.628849382055076
+    },
+    {
+      "epoch": 8,
+      "macroF1": 0.935433321047203,
+      "mAP": 0.21506879048437963,
+      "internal_delta_m_percent": -8.721354688637554
+    },
+    {
+      "epoch": 12,
+      "macroF1": 0.9112344627451225,
+      "mAP": 0.2388249998823474,
+      "internal_delta_m_percent": -5.472273327984512
+    },
+    {
+      "epoch": 16,
+      "macroF1": 0.9316359408835793,
+      "mAP": 0.27222133211316385,
+      "internal_delta_m_percent": 2.0113557886914037
+    },
+    {
+      "epoch": 20,
+      "macroF1": 0.9337665462476613,
+      "mAP": 0.30494373512432543,
+      "internal_delta_m_percent": 8.386986401148011
+    },
+    {
+      "epoch": 24,
+      "macroF1": 0.9443132823621383,
+      "mAP": 0.337384916901315,
+      "internal_delta_m_percent": 15.15978195833274
+    },
+    {
+      "epoch": 28,
+      "macroF1": 0.9300725801798649,
+      "mAP": 0.32070651454195015,
+      "internal_delta_m_percent": 11.20526849772399
+    },
+    {
+      "epoch": 32,
+      "macroF1": 0.9479449393388705,
+      "mAP": 0.37915431497687296,
+      "internal_delta_m_percent": 23.34699714664746
+    },
+    {
+      "epoch": 36,
+      "macroF1": 0.9537646275837959,
+      "mAP": 0.3978449227627822,
+      "internal_delta_m_percent": 27.235309446026008
+    },
+    {
+      "epoch": 40,
+      "macroF1": 0.9520543476320688,
+      "mAP": 0.4029594143973138,
+      "internal_delta_m_percent": 28.122327164207217
+    },
+    {
+      "epoch": 44,
+      "macroF1": 0.9531775493827221,
+      "mAP": 0.42046618253979345,
+      "internal_delta_m_percent": 31.532450231958226
+    },
+    {
+      "epoch": 48,
+      "macroF1": 0.9537059772887733,
+      "mAP": 0.42952239480091087,
+      "internal_delta_m_percent": 33.29368065615847
+    },
+    {
+      "epoch": 52,
+      "macroF1": 0.9489128611486003,
+      "mAP": 0.44097764383462934,
+      "internal_delta_m_percent": 35.22881501091648
+    },
+    {
+      "epoch": 56,
+      "macroF1": 0.9509582779610403,
+      "mAP": 0.44612754769131036,
+      "internal_delta_m_percent": 36.323857244034954
+    },
+    {
+      "epoch": 60,
+      "macroF1": 0.9511013288664011,
+      "mAP": 0.4547620621894593,
+      "internal_delta_m_percent": 37.98374504684378
+    },
+    {
+      "epoch": 64,
+      "macroF1": 0.9492405177449577,
+      "mAP": 0.45718639105174863,
+      "internal_delta_m_percent": 38.34793140985429
+    },
+    {
+      "epoch": 68,
+      "macroF1": 0.9472468531266696,
+      "mAP": 0.46046106001245757,
+      "internal_delta_m_percent": 38.86771221664341
+    },
+    {
+      "epoch": 72,
+      "macroF1": 0.9508245753607364,
+      "mAP": 0.46863277465189157,
+      "internal_delta_m_percent": 40.623089093874356
+    },
+    {
+      "epoch": 76,
+      "macroF1": 0.9491248311193543,
+      "mAP": 0.4704448815386706,
+      "internal_delta_m_percent": 40.87875694838521
+    },
+    {
+      "epoch": 80,
+      "macroF1": 0.9490552839032893,
+      "mAP": 0.4739188366851496,
+      "internal_delta_m_percent": 41.53977484752577
+    },
+    {
+      "epoch": 84,
+      "macroF1": 0.9496251313720383,
+      "mAP": 0.473130951782185,
+      "internal_delta_m_percent": 41.419547509370055
+    },
+    {
+      "epoch": 88,
+      "macroF1": 0.9502930437446175,
+      "mAP": 0.47497959428350395,
+      "internal_delta_m_percent": 41.80907695277234
+    },
+    {
+      "epoch": 92,
+      "macroF1": 0.9496988400311268,
+      "mAP": 0.47467176557699037,
+      "internal_delta_m_percent": 41.718333339285124
+    },
+    {
+      "epoch": 96,
+      "macroF1": 0.950281058480702,
+      "mAP": 0.4748512288291002,
+      "internal_delta_m_percent": 41.78387187444738
+    },
+    {
+      "epoch": 100,
+      "macroF1": 0.9509030060271352,
+      "mAP": 0.4744137795564387,
+      "internal_delta_m_percent": 41.73349249625909
+    }
+  ],
+  "per_class_AP": {
+    "aircraft": 0.49455813254608183,
+    "airport": 0.7357824624436738,
+    "bridge": 0.019141652322219413,
+    "car": 0.5743369913120895,
+    "harbor": 0.6306728286306414,
+    "oil_tank": 0.6224760385676046,
+    "playground": 0.15766338168268687,
+    "ship": 0.3923723434250753,
+    "wind_turbine": 0.6478125176214623
+  }
+}
