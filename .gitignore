@@ -2,3 +2,14 @@ runs/
 __pycache__/
 .pytest_cache/
 submissions/
+
+dataset/
+cs701-sar-course-data/
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+report/main.pdf
+report/page*.png
