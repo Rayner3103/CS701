@@ -1,0 +1,176 @@
+[
+  {
+    "file": "make_submission.py",
+    "status": "unchanged",
+    "delivered_sha256": "f74fd379d5d489c78e12481080f29f4a9599da1fc40f050977506438b60723e1",
+    "upstream_sha256": "f74fd379d5d489c78e12481080f29f4a9599da1fc40f050977506438b60723e1"
+  },
+  {
+    "file": "native_postprocessing.py",
+    "status": "added",
+    "delivered_sha256": "f1880ba1698abade6438355831906769585ffe703733bea71235b31d14882565",
+    "upstream_sha256": null
+  },
+  {
+    "file": "pp_eval.py",
+    "status": "unchanged",
+    "delivered_sha256": "097d5bc0d00d669ce9c0ca7a1e552cf8042b99507904afa7212539586894e378",
+    "upstream_sha256": "097d5bc0d00d669ce9c0ca7a1e552cf8042b99507904afa7212539586894e378"
+  },
+  {
+    "file": "pp_study.py",
+    "status": "unchanged",
+    "delivered_sha256": "e31f5f380d164c7e7a3f857f20be13b60ccb21e7a293694e22e2a8efc0498a34",
+    "upstream_sha256": "e31f5f380d164c7e7a3f857f20be13b60ccb21e7a293694e22e2a8efc0498a34"
+  },
+  {
+    "file": "predict.py",
+    "status": "unchanged",
+    "delivered_sha256": "a82c3fd1a480107989fe2e3e9fbbf0510e94d3cf0644924b76d9b75cc37da6d2",
+    "upstream_sha256": "a82c3fd1a480107989fe2e3e9fbbf0510e94d3cf0644924b76d9b75cc37da6d2"
+  },
+  {
+    "file": "predict_native.py",
+    "status": "added",
+    "delivered_sha256": "6f6fca98f300b90fac465d2051251042c7d747e97ab8c19bd9e5ee16ae0070e9",
+    "upstream_sha256": null
+  },
+  {
+    "file": "prepare_course_data.py",
+    "status": "unchanged",
+    "delivered_sha256": "7b66c0ba02d77dc1a871f53d15d6ff3f38c709a20db1a7b77100b4ea190e4e74",
+    "upstream_sha256": "7b66c0ba02d77dc1a871f53d15d6ff3f38c709a20db1a7b77100b4ea190e4e74"
+  },
+  {
+    "file": "prepare_native_data.py",
+    "status": "added",
+    "delivered_sha256": "9f9a64bdf075f2154e2eb7c96decb9a9a310affce89667615aa26240e069341b",
+    "upstream_sha256": null
+  },
+  {
+    "file": "qualify.py",
+    "status": "added",
+    "delivered_sha256": "1d8e6478b040de109368ce9eca3bffc4260ba0353c36b71458f94960c262a541",
+    "upstream_sha256": null
+  },
+  {
+    "file": "qualify_pipeline.py",
+    "status": "added",
+    "delivered_sha256": "11e0e2cf0b013d5e33634d23f8f3a1e73c1e8c3ecd2eb640267817286bd06cb6",
+    "upstream_sha256": null
+  },
+  {
+    "file": "recipe.py",
+    "status": "added",
+    "delivered_sha256": "f3a34c52208fb0b8e78815ea706167ed41d6b60ff9c70e5be60d988bebc19446",
+    "upstream_sha256": null
+  },
+  {
+    "file": "run_project.py",
+    "status": "added",
+    "delivered_sha256": "70a372f770ee289ae46b59e0ea16c08e9b1ab1880c4994eba421dccd6bb4b43e",
+    "upstream_sha256": null
+  },
+  {
+    "file": "run_safety.py",
+    "status": "added",
+    "delivered_sha256": "121e08ef05d143757fa93ae63afad5cda61d624aa7e0c8af542e44e70c2ed4dd",
+    "upstream_sha256": null
+  },
+  {
+    "file": "sarbench/__init__.py",
+    "status": "unchanged",
+    "delivered_sha256": "c2354feaff0cf9b9a0c37d221815b638ca2ca6fc96bd66331451370dd9c9627c",
+    "upstream_sha256": "c2354feaff0cf9b9a0c37d221815b638ca2ca6fc96bd66331451370dd9c9627c"
+  },
+  {
+    "file": "sarbench/adapters.py",
+    "status": "unchanged",
+    "delivered_sha256": "9e762d2981bcc15bfce661d8f357224caafe6b8f96445623867a2b7e8d41b860",
+    "upstream_sha256": "9e762d2981bcc15bfce661d8f357224caafe6b8f96445623867a2b7e8d41b860"
+  },
+  {
+    "file": "sarbench/backbones.py",
+    "status": "modified",
+    "delivered_sha256": "eab8600d493c7d68e9884d2b93c510bf3ce927e65cf2a31955d802d576514147",
+    "upstream_sha256": "ffed43f9cf3b0fdfb1327f97d7d5da25ce8d656d94c687227548ecdc35a00fc1"
+  },
+  {
+    "file": "sarbench/data.py",
+    "status": "modified",
+    "delivered_sha256": "cd3620365f6424a2ad4dbc8222510e917d87bcf6e8d8a3019cf1d75bc9bca1fb",
+    "upstream_sha256": "2fb7d51e97f9d3da9d08eafe5ac3c98ff97e4f05340202e596bc3908442bb9e0"
+  },
+  {
+    "file": "sarbench/instance_sampling.py",
+    "status": "added",
+    "delivered_sha256": "4c3fea6bf1f24406f312caf1e4ceb11971c816c4cdbffc7d6d6c493688e2543f",
+    "upstream_sha256": null
+  },
+  {
+    "file": "sarbench/metrics.py",
+    "status": "unchanged",
+    "delivered_sha256": "ca4db1af236447964f03dbe85bfe3e723faa66ba68a829a62cb7ceb3f2e42e67",
+    "upstream_sha256": "ca4db1af236447964f03dbe85bfe3e723faa66ba68a829a62cb7ceb3f2e42e67"
+  },
+  {
+    "file": "sarbench/model.py",
+    "status": "modified",
+    "delivered_sha256": "f1017d65aca148ef4444b8544dab5b3eec5763a5fcfdb4349e13a6aa7873d6bb",
+    "upstream_sha256": "b7b575559f84c7a1f7a997f6f8cb3c724a377c05fda61f33e8b3b086e549e7cf"
+  },
+  {
+    "file": "sarbench/postprocess.py",
+    "status": "unchanged",
+    "delivered_sha256": "ade498bb6c8ca94d2101d3b07e74ee92472517847cc1f912a09e31ed1b16de61",
+    "upstream_sha256": "ade498bb6c8ca94d2101d3b07e74ee92472517847cc1f912a09e31ed1b16de61"
+  },
+  {
+    "file": "sarbench/tiny.py",
+    "status": "unchanged",
+    "delivered_sha256": "1d3e5d071121c7c35f3b9e14940c3ead426325caa122c4747ec3abb0a007f26a",
+    "upstream_sha256": "1d3e5d071121c7c35f3b9e14940c3ead426325caa122c4747ec3abb0a007f26a"
+  },
+  {
+    "file": "score_submission.py",
+    "status": "unchanged",
+    "delivered_sha256": "92b02ad33ac52a8480ed599e390c4b5c7cdf8c626ccd975392c4dc7d40b52989",
+    "upstream_sha256": "92b02ad33ac52a8480ed599e390c4b5c7cdf8c626ccd975392c4dc7d40b52989"
+  },
+  {
+    "file": "supervise.py",
+    "status": "added",
+    "delivered_sha256": "365c8bc5a3eeb07064a700b7c722de43db1d140187c83867ab67a4b19cd342d0",
+    "upstream_sha256": null
+  },
+  {
+    "file": "tools/check_submission.py",
+    "status": "unchanged",
+    "delivered_sha256": "568f1b8957e5dc532e422764f28011c365232b91da9972bd5039ec1d62835761",
+    "upstream_sha256": "568f1b8957e5dc532e422764f28011c365232b91da9972bd5039ec1d62835761"
+  },
+  {
+    "file": "tools/make_folds.py",
+    "status": "unchanged",
+    "delivered_sha256": "7f514cb16ad944a670171e777b21fe4386af433bd555679de35b22fe0eee5480",
+    "upstream_sha256": "7f514cb16ad944a670171e777b21fe4386af433bd555679de35b22fe0eee5480"
+  },
+  {
+    "file": "tools/size_ap.py",
+    "status": "unchanged",
+    "delivered_sha256": "ddec6c41d3e21bf496a7e0861eb2d5c548e0ca04b523f2c8ce4360b925d28370",
+    "upstream_sha256": "ddec6c41d3e21bf496a7e0861eb2d5c548e0ca04b523f2c8ce4360b925d28370"
+  },
+  {
+    "file": "tools/summarize_runs.py",
+    "status": "unchanged",
+    "delivered_sha256": "58ba17e21205a7905c20f234174942fa68407a82f77084b385604e718522b8cc",
+    "upstream_sha256": "58ba17e21205a7905c20f234174942fa68407a82f77084b385604e718522b8cc"
+  },
+  {
+    "file": "train.py",
+    "status": "modified",
+    "delivered_sha256": "b72772b8ecd3d8d2df2abaa582ffb8dbd046ee010e63ba6b5f0268d7bf039a88",
+    "upstream_sha256": "54cc01857a3dfc49114a3d5016d3dd72ea7d7adee1a1dde6075c42448e56e167"
+  }
+]

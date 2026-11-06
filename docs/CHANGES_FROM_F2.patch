@@ -1,0 +1,1176 @@
+--- upstream_F2/native_postprocessing.py
++++ delivered/native_postprocessing.py
+@@ -0,0 +1,16 @@
++"""F2 inference settings with no transferred coordinate shift on native-size inputs.
++
++Objectness weighting, soft-NMS, stage-box means and classifier/detector fusion
++come from the copied F2 code. They are not the sampler contribution.
++"""
++import torch
++
++FINAL_POST={'score_thresh':1e-5,'min_keep':30,'per_class':100,'total':100,'fusion':'none',
++            'nms':'soft','soft_sigma':.75,'obj_pow':.25,'shift':0.,'stage_box':'mean'}
++
++
++def fused_class(logits, output):
++    raw=output['raw_logits']
++    if not len(raw):return int(logits.argmax())
++    log_quality=torch.log(raw.float().softmax(-1)[:,1:].amax(0)+1e-6)
++    return int((logits.float().log_softmax(0)+log_quality).argmax())
+--- upstream_F2/predict_native.py
++++ delivered/predict_native.py
+@@ -0,0 +1,72 @@
++"""Infer from this project's full checkpoint and write a local upload-ready ZIP.
++
++Does not upload to a competition. Use this entry instead of the unchanged upstream
++predict.py, which expects a different checkpoint format and square-resize inputs.
++"""
++import argparse
++import csv
++import json
++import math
++from pathlib import Path
++from types import SimpleNamespace
++import zipfile
++
++import torch
++from torch.utils.data import DataLoader
++
++import train
++from native_postprocessing import FINAL_POST, fused_class
++from run_safety import atomic_json, sha256
++from sarbench.data import SARImages, to_original_xywh
++
++
++def collate_images(batch):
++    images,metadata=zip(*batch)
++    return torch.stack(images),list(metadata)
++
++
++def main():
++    parser=argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--checkpoint',type=Path,required=True)
++    parser.add_argument('--images',type=Path,required=True)
++    parser.add_argument('--out',type=Path,required=True)
++    parser.add_argument('--batch-size',type=int,default=4)
++    opts=parser.parse_args()
++    opts.out.mkdir(parents=True,exist_ok=False)
++    payload=torch.load(opts.checkpoint,map_location='cpu',weights_only=False)
++    saved=dict(payload['config']);saved['init']='scratch'
++    model=train.build_model(SimpleNamespace(**saved));model.load_state_dict(payload['model'],strict=True)
++    model.cuda().eval();model.roi_heads.post.update(FINAL_POST)
++    info=json.loads((opts.images/'images.json').read_text(encoding='utf-8'))
++    images=info['images'] if isinstance(info,dict) else info
++    assert len({int(i['id']) for i in images})==len(images)
++    dataset=SARImages(opts.images,images,native_size=True,mean=saved['mean'],std=saved['std'])
++    loader=DataLoader(dataset,batch_size=opts.batch_size,shuffle=False,num_workers=0,collate_fn=collate_images)
++    predictions=[];seen=[]
++    with (opts.out/'classification.csv').open('w',newline='',encoding='utf-8') as stream:
++        writer=csv.writer(stream);writer.writerow(['image_id','label'])
++        with torch.inference_mode():
++            for batch,metadata in loader:
++                with torch.autocast('cuda',dtype=torch.bfloat16):
++                    logits,outputs,_=model(batch.cuda(),image_sizes=[m['valid_size'] for m in metadata],return_raw=True)
++                for lg,output,meta in zip(logits,outputs,metadata):
++                    image_id=int(meta['image_id']);seen.append(image_id);writer.writerow([image_id,fused_class(lg,output)])
++                    boxes=to_original_xywh(output['boxes'],meta['orig_size'],valid_size=meta['valid_size'],
++                                           scale_xy=meta['scale_xy']).tolist()
++                    assert len(boxes)<=100
++                    for box,label,score in zip(boxes,output['labels'].tolist(),output['scores'].tolist()):
++                        if not (all(math.isfinite(v) for v in box) and math.isfinite(score)):
++                            raise ValueError('Nonfinite prediction')
++                        if box[2]>0 and box[3]>0:
++                            assert 1<=label<=9 and 0<=score<=1
++                            predictions.append({'image_id':image_id,'category_id':label,'bbox':box,'score':score})
++    assert seen==[int(i['id']) for i in images]
++    (opts.out/'detection.json').write_text(json.dumps(predictions),encoding='utf-8')
++    with zipfile.ZipFile(opts.out/'submission.zip','w',compression=zipfile.ZIP_DEFLATED) as archive:
++        for name in ('classification.csv','detection.json'):archive.write(opts.out/name,name)
++    atomic_json(opts.out/'INFERENCE_PROVENANCE.json',{'checkpoint':str(opts.checkpoint),
++                'checkpoint_sha256':sha256(opts.checkpoint),'source_epoch':payload['completed_epoch'],
++                'postprocessing':FINAL_POST,'images':len(images),'detections':len(predictions),'uploaded':False})
++
++
++if __name__=='__main__':main()
+--- upstream_F2/prepare_native_data.py
++++ delivered/prepare_native_data.py
+@@ -0,0 +1,49 @@
++"""Create F2's CSV/COCO layout without duplicating course images or changing the split."""
++import argparse
++import csv
++import json
++from pathlib import Path
++
++from run_safety import atomic_json, sha256, validate_partition
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--course-train', type=Path, required=True)
++    parser.add_argument('--manifest', type=Path, required=True)
++    parser.add_argument('--out', type=Path, required=True)
++    args = parser.parse_args()
++    coco_path = args.course_train/'instances.json'
++    coco = json.loads(coco_path.read_text(encoding='utf-8'))
++    manifest = json.loads(args.manifest.read_text(encoding='utf-8'))
++    validate_partition(manifest, coco)
++    assert len(manifest['train']) == 7984 and len(manifest['val']) == 1408
++    image_map = {int(i['id']): i for i in coco['images']}
++    if args.out.exists():
++        raise FileExistsError('Use a new output directory')
++    (args.out/'classification').mkdir(parents=True)
++    (args.out/'detection').mkdir()
++    for part in ('train','val'):
++        ids = {int(r['image_id']) for r in manifest[part]}
++        new_images = []
++        with (args.out/'classification'/f'{part}.csv').open('w', newline='', encoding='utf-8') as stream:
++            writer = csv.writer(stream); writer.writerow(['image','label'])
++            for row in manifest[part]:
++                image = dict(image_map[int(row['image_id'])])
++                path = (args.course_train/image['file_name']).resolve()
++                if not path.is_file():
++                    raise FileNotFoundError(path)
++                image['file_name'] = path.as_posix()
++                writer.writerow([path.as_posix(), int(row['label'])]); new_images.append(image)
++        atomic_json(args.out/'detection'/f'instances_{part}.json',
++                    {**coco, 'images': new_images,
++                     'annotations': [a for a in coco['annotations'] if int(a['image_id']) in ids]})
++    atomic_json(args.out/'DATA_PROVENANCE.json', {'course_metadata_sha256': sha256(coco_path),
++                'manifest_file_sha256': sha256(args.manifest), 'audited_partition_sha256': manifest['split_sha256'],
++                'train_images': 7984, 'val_images': 1408,
++                'images': 'Original files referenced by absolute path; no copies, tiling or upscaling.'})
++    print(json.dumps({'status':'PREPARED','output':str(args.out),'train':7984,'val':1408}))
++
++
++if __name__ == '__main__':
++    main()
+--- upstream_F2/qualify.py
++++ delivered/qualify.py
+@@ -0,0 +1,97 @@
++"""Bounded real-data checks for the independent F2-based model. No accuracy claims."""
++import copy
++import argparse
++import gc
++import json
++import time
++from pathlib import Path
++
++import torch
++import torch.nn.functional as F
++
++import train
++from recipe import args as recipe_args, PRETRAINED, PRETRAINED_SHA256
++from run_safety import atomic_json, sha256
++from sarbench.data import SARMultiTask, collate
++
++
++def main():
++    torch.set_num_threads(4); torch.manual_seed(701)
++    torch.backends.cuda.matmul.allow_tf32=True;torch.backends.cudnn.allow_tf32=True
++    parser=argparse.ArgumentParser();parser.add_argument('--batch-size',type=int,choices=(2,4),default=4)
++    opts=parser.parse_args()
++    args=recipe_args(batch_size=opts.batch_size,accumulation=16//opts.batch_size)
++    assert sha256(PRETRAINED)==PRETRAINED_SHA256
++    dataset=SARMultiTask(args.data,'train',native_size=True,mean=args.mean,std=args.std)
++    indexes=[]
++    for size in (256,512):
++        indexes.extend([i for i,row in enumerate(dataset.rows)
++                            if dataset.coco_images[row['image']]['width']==size
++                            and dataset.coco_images[row['image']]['height']==size][:opts.batch_size//2])
++    images,labels,targets=collate([dataset[i] for i in indexes]); sizes=[t['valid_size'] for t in targets]
++    images,labels=images.cuda(),labels.cuda()
++    boxes=[{'boxes':t['boxes'].cuda(),'labels':t['labels'].cuda()} for t in targets]
++    model=train.build_model(args).cuda()
++    counts={'total':sum(p.numel() for p in model.parameters()),
++            'trainable':sum(p.numel() for p in model.parameters() if p.requires_grad),
++            'buffers':sum(b.numel() for b in model.buffers() if b.is_floating_point())}
++    assert counts['total']+counts['buffers']<=130_000_000 and counts['trainable']<=40_000_000
++    optimizer=torch.optim.AdamW(train.param_groups(model,args),lr=args.lr,weight_decay=args.weight_decay)
++    torch.cuda.reset_peak_memory_stats();begin=time.perf_counter();loss_values=[]
++    for _ in range(2):
++        model.train();optimizer.zero_grad(set_to_none=True)
++        with torch.autocast('cuda',dtype=torch.bfloat16):
++            logits,_,losses=model(images,targets=boxes,image_sizes=sizes)
++            loss=F.cross_entropy(logits.float(),labels)+sum(losses.values())
++        assert torch.isfinite(loss);loss.backward()
++        assert all(p.grad is None or torch.isfinite(p.grad).all() for p in model.parameters())
++        for head in model.roi_heads.stage_preds:
++            assert head.cls_score.weight.grad is not None and head.cls_score.weight.grad.abs().sum()>0
++        assert all(p.grad is None for p in model.parameters() if not p.requires_grad)
++        optimizer.step();loss_values.append(float(loss.detach()))
++    worst=sorted(range(len(dataset)),key=lambda i:len(dataset.annotations[dataset.coco_images[dataset.rows[i]['image']]['id']]),
++                 reverse=True)[:opts.batch_size]
++    wi,wl,wt=collate([dataset[i] for i in worst]);wi,wl=wi.cuda(),wl.cuda()
++    wboxes=[{'boxes':t['boxes'].cuda(),'labels':t['labels'].cuda()} for t in wt]
++    model.train();optimizer.zero_grad(set_to_none=True)
++    with torch.autocast('cuda',dtype=torch.bfloat16):
++        wz,_,wlosses=model(wi,targets=wboxes,image_sizes=[t['valid_size'] for t in wt])
++        wloss=F.cross_entropy(wz.float(),wl)+sum(wlosses.values())
++    assert torch.isfinite(wloss);wloss.backward()
++    assert all(p.grad is None or torch.isfinite(p.grad).all() for p in model.parameters())
++    optimizer.zero_grad(set_to_none=True)
++    model.eval()
++    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):
++        expected,detections,_=model(images,image_sizes=sizes)
++    expected=expected.cpu(); expected_dets=[{k:d[k].cpu() for k in ('boxes','scores','labels')} for d in detections]
++    for d,(h,w) in zip(expected_dets,sizes):
++        assert len(d['boxes'])<=100 and torch.isfinite(d['boxes']).all()
++        assert (d['boxes'][:,0::2]<=w).all() and (d['boxes'][:,1::2]<=h).all()
++    memory={'allocated_gib':torch.cuda.max_memory_allocated()/2**30,
++            'reserved_gib':torch.cuda.max_memory_reserved()/2**30}
++    file=Path('D:/CS701_junkai_ib/qualification_checkpoint.pt');file.parent.mkdir(parents=True,exist_ok=True)
++    torch.save({'model':model.state_dict(),'optimizer':optimizer.state_dict(),'args':vars(args),
++                'config':vars(args),'completed_epoch':0},file)
++    del model,optimizer,losses,loss,logits,detections,wi,wl,wboxes,wz,wlosses,wloss
++    gc.collect();torch.cuda.empty_cache()
++    payload=torch.load(file,map_location='cpu',weights_only=False)
++    restore_args=copy.copy(args);restore_args.init='scratch'
++    restored=train.build_model(restore_args);restored.load_state_dict(payload['model'],strict=True);restored.cuda().eval()
++    restored_optimizer=torch.optim.AdamW(train.param_groups(restored,args),lr=args.lr,weight_decay=args.weight_decay)
++    restored_optimizer.load_state_dict(payload['optimizer']);assert restored_optimizer.state
++    del payload
++    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):
++        actual,actual_dets,_=restored(images,image_sizes=sizes)
++    torch.testing.assert_close(actual.cpu(),expected,atol=1e-5,rtol=1e-5)
++    for actual_det,expected_det in zip(actual_dets,expected_dets):
++        for k in ('boxes','scores','labels'):
++            torch.testing.assert_close(actual_det[k].cpu(),expected_det[k],atol=1e-5,rtol=1e-5)
++    result={'status':'PASSED','scope':'two optimizer steps, worst-GT batch backward, full model/optimizer restoration; no accuracy evidence',
++            'model':'Junkai F2 + instance-balanced Cascade, native-size input','counts':counts,'microbatch':opts.batch_size,
++            'mixed_valid_sizes':sizes,'losses':loss_values,'worst_gt_counts':[len(t['boxes']) for t in wt],
++            'peak_memory':memory,'elapsed_seconds':time.perf_counter()-begin,'pretrained_sha256':PRETRAINED_SHA256,
++            'trained_old_model_weights_used':False,'sc2_configuration_used':False}
++    atomic_json(Path('D:/CS701_junkai_ib/qualification.json'),result);print(json.dumps(result,indent=2))
++
++
++if __name__=='__main__':main()
+--- upstream_F2/qualify_pipeline.py
++++ delivered/qualify_pipeline.py
+@@ -0,0 +1,42 @@
++"""Exercise full F2-style validation and native submission export on nine TRAIN images only."""
++import json
++from pathlib import Path
++from types import SimpleNamespace
++
++import torch
++from torch.utils.data import DataLoader, Subset
++import train
++from run_project import evaluate_native
++from run_safety import atomic_json
++from sarbench.data import SARMultiTask, collate
++
++
++def main():
++    torch.set_num_threads(4)
++    root=Path('D:/CS701_junkai_ib')
++    payload=torch.load(root/'qualification_checkpoint.pt',map_location='cpu',weights_only=False)
++    config=payload.get('config',payload['args']);args=SimpleNamespace(**config);args.init='scratch'
++    model=train.build_model(args);model.load_state_dict(payload['model'],strict=True);model.cuda().eval()
++    dataset=SARMultiTask(args.data,'train',native_size=True,mean=args.mean,std=args.std)
++    indices=[next(i for i,row in enumerate(dataset.rows) if int(row['label'])==label) for label in range(9)]
++    ids={int(dataset.coco_images[dataset.rows[i]['image']]['id']) for i in indices}
++    coco=json.loads((Path(args.data)/'detection/instances_train.json').read_text(encoding='utf-8'))
++    small={**coco,'images':[i for i in coco['images'] if int(i['id']) in ids],
++           'annotations':[a for a in coco['annotations'] if int(a['image_id']) in ids]}
++    gt=root/'pipeline_check_gt.json';atomic_json(gt,small)
++    loader=DataLoader(Subset(dataset,indices),batch_size=4,shuffle=False,num_workers=0,collate_fn=collate)
++    metrics,predictions=evaluate_native(model,loader,gt,torch.device('cuda'))
++    assert 0<=metrics['macro_f1']<=1 and 0<=metrics['mAP']<=1
++    inputs=root/'pipeline_check_inputs';inputs.mkdir(exist_ok=True)
++    atomic_json(inputs/'images.json',{'images':small['images']})
++    # Upgrade this bounded qualification artifact to the standalone full-checkpoint inference interface.
++    payload['config']=config;payload['completed_epoch']=0
++    torch.save(payload,root/'qualification_checkpoint.pt')
++    report={'status':'PASSED','scope':'nine train-only images; validation/COCO/postprocessing execution check, not accuracy evidence',
++            'images':9,'predictions':len(predictions),'metric_fields_finite':True,
++            'postprocessing':'F2 soft-NMS/objectness/stage mean/class fusion, coordinate shift0',
++            'model_epoch':0}
++    atomic_json(root/'pipeline_qualification.json',report);print(json.dumps(report))
++
++
++if __name__=='__main__':main()
+--- upstream_F2/recipe.py
++++ delivered/recipe.py
+@@ -0,0 +1,25 @@
++"""The earlier F2 architecture with the new instance-balanced sampling change."""
++from pathlib import Path
++import train
++
++PRETRAINED = Path('D:/CS701_scoring_correction/pretrained/dinov3_b16/model.safetensors')
++PRETRAINED_SHA256 = '1f9ed8a2378d65e24bb710ba522ac9fa7be4e036d7aefb4384ce022833926332'
++
++
++def arguments(data='D:/CS701_junkai_ib/data', out='D:/CS701_junkai_ib/runs', name='JIB_seed701',
++              epochs=100, batch_size=4, accumulation=4):
++    return ['--data',str(data),'--out',str(out),'--name',name,'--epochs',str(epochs),
++            '--batch-size',str(batch_size),'--accumulation',str(accumulation),'--workers','0','--seed','701',
++            '--backbone','dinov3','--init','pretrained','--adapt','lora',
++            '--pretrained-file',str(PRETRAINED),'--lora-targets','attn.qkv,attn.proj,mlp.fc1,mlp.fc2',
++            '--lora-rank','32','--lora-alpha','64','--train-norms',
++            '--backbone-lr','0.0003','--lr','0.0001','--cls-weight','1.0','--weight-decay','0.05',
++            '--cascade','--cascade-rep','1024','--cascade-beta','0','--cascade-size-iou','--size-iou-table','a4',
++            '--aligned-roi','--rpn-nwd','8','--anchor-offset','0.5',
++            '--anchor-sizes','6,8,11;16,19,23;32,38,45;64,76,91;128,152,181',
++            '--flip-bias','-0.3','--native-size','--instance-balanced','--train-split','train',
++            '--eval-splits','val','--eval-every','4']
++
++
++def args(**kwargs):
++    return train.parse_args(arguments(**kwargs))
+--- upstream_F2/run_project.py
++++ delivered/run_project.py
+@@ -0,0 +1,222 @@
++"""Run the independent F2-based model with accumulation and full epoch-boundary recovery.
++
++This entry imports only the copied F2 project and standard research libraries.
++It does not import the previous local project's model or training implementation.
++"""
++import contextlib
++import copy
++import json
++import math
++import os
++import random
++import time
++from pathlib import Path
++
++import numpy as np
++import torch
++import torch.nn.functional as F
++from torch.utils.data import DataLoader
++
++import train as f2
++from run_safety import (atomic_json, check_resume, data_fingerprint, group_length,
++                        internal_delta, sha256, source_hashes)
++from sarbench.data import SARMultiTask, collate, to_original_xywh
++from sarbench.metrics import classification_metrics, detection_metrics
++from native_postprocessing import FINAL_POST, fused_class
++
++
++def emit(out, row):
++    row = {'time_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), **row}
++    line = json.dumps(row, default=str)
++    print(line, flush=True)
++    with (Path(out)/'progress.jsonl').open('a', encoding='utf-8') as stream:
++        stream.write(line + '\n')
++
++
++def train_epoch(model, loader, optimizer, schedule, epoch, args, out, step0, device=None):
++    device = device or torch.device('cuda')
++    model.train(); optimizer.zero_grad(set_to_none=True)
++    begin = time.perf_counter(); updates = step0
++    for index, (images, labels, targets) in enumerate(loader):
++        boxes = [{'boxes':t['boxes'].to(device), 'labels':t['labels'].to(device)} for t in targets]
++        sizes = [t['valid_size'] for t in targets]
++        autocast = torch.autocast('cuda', dtype=torch.bfloat16) if device.type=='cuda' else contextlib.nullcontext()
++        with autocast:
++            logits, _, losses = model(images.to(device), targets=boxes, image_sizes=sizes)
++            loss = args.cls_weight * F.cross_entropy(logits.float(), labels.to(device),
++                                                     label_smoothing=args.label_smoothing) + sum(losses.values())
++        if not torch.isfinite(loss):
++            raise RuntimeError(f'Nonfinite loss at epoch {epoch}, microbatch {index+1}')
++        (loss / group_length(index, len(loader), args.accumulation)).backward()
++        if (index+1) % args.accumulation == 0 or index+1 == len(loader):
++            optimizer.step(); schedule.step(); optimizer.zero_grad(set_to_none=True); updates += 1
++            if updates % 25 == 0 or index+1 == len(loader):
++                emit(out, {'status':'TRAINING', 'epoch':epoch, 'microbatch':index+1,
++                           'microbatches_per_epoch':len(loader), 'optimizer_update':updates,
++                           'loss':float(loss.detach()), 'epoch_seconds':round(time.perf_counter()-begin,1),
++                           'learning_rates':[g['lr'] for g in optimizer.param_groups],
++                           'gpu_reserved_gib':torch.cuda.max_memory_reserved()/2**30 if device.type=='cuda' else 0})
++    return updates
++
++
++@torch.no_grad()
++def evaluate_native(model, loader, gt_json, device):
++    model.eval(); truth=[]; predicted=[]; ids=[]; detections=[]
++    model.roi_heads.post.update(FINAL_POST)
++    for images, labels, targets in loader:
++        with torch.autocast('cuda', dtype=torch.bfloat16):
++            logits, outputs, _ = model(images.to(device), image_sizes=[t['valid_size'] for t in targets], return_raw=True)
++        truth.extend(labels.tolist()); predicted.extend(fused_class(lg,out) for lg,out in zip(logits,outputs))
++        for target, output in zip(targets,outputs):
++            image_id=int(target['image_id']); ids.append(image_id)
++            boxes=to_original_xywh(output['boxes'], target['orig_size'],
++                                   valid_size=target['valid_size'], scale_xy=target['scale_xy']).tolist()
++            for box, label, score in zip(boxes, output['labels'].tolist(),output['scores'].tolist()):
++                if box[2] > 0 and box[3] > 0:
++                    detections.append({'image_id':image_id,'category_id':int(label),'bbox':box,'score':float(score)})
++    metrics={**classification_metrics(truth,predicted),**detection_metrics(str(gt_json),detections,ids)}
++    metrics['internal_delta_m_percent']=internal_delta(metrics['macro_f1'],metrics['mAP'])
++    metrics['official_delta_m']=None
++    return metrics,detections
++
++
++def capture_rng():
++    return {'python':random.getstate(),'numpy':np.random.get_state(),'torch':torch.get_rng_state(),
++            'cuda':torch.cuda.get_rng_state_all()}
++
++
++def restore_rng(state):
++    random.setstate(state['python']); np.random.set_state(state['numpy'])
++    torch.set_rng_state(state['torch']); torch.cuda.set_rng_state_all(state['cuda'])
++
++
++def save_checkpoint(path, payload):
++    path=Path(path); tmp=path.with_suffix('.tmp')
++    torch.save(payload,tmp); os.replace(tmp,path)
++
++
++def main():
++    args=f2.parse_args(); root=Path(__file__).resolve().parent
++    if not args.native_size or args.backbone!='dinov3' or not args.cascade or not args.instance_balanced:
++        raise ValueError('This run requires native DINOv3, cascade and instance-balanced sampling')
++    if args.accumulation<1 or args.batch_size<1 or args.batch_size*args.accumulation!=16:
++        raise ValueError('Use positive microbatch and accumulation, effective batch16')
++    if args.workers!=0 or args.compile or args.ema or args.copy_paste or args.zoom_p or args.limit:
++        raise ValueError('Use workers0, eager execution, no EMA/copy-paste/zoom/limit for this audited run')
++    if args.eval_splits!='val' or args.train_split!='train':
++        raise ValueError('The current run uses the fixed internal train/val partition')
++    if not args.name:raise ValueError('Provide --name for an auditable standalone run')
++    out=args.out/args.name
++    if not args.resume:
++        if out.exists() and any(out.iterdir()):raise FileExistsError(out)
++        out.mkdir(parents=True,exist_ok=True)
++    elif args.resume.resolve()!=(out/'last_checkpoint.pt').resolve():
++        raise ValueError('Resume must use the same run latest completed-epoch checkpoint')
++    random.seed(args.seed);np.random.seed(args.seed);torch.manual_seed(args.seed);torch.cuda.manual_seed_all(args.seed)
++    torch.set_num_threads(4)
++    torch.backends.cudnn.benchmark=True
++    # F2 enabled TF32 indirectly through a TerraTorch import. Keep that setting explicit for DINO only.
++    torch.backends.cuda.matmul.allow_tf32=True;torch.backends.cudnn.allow_tf32=True
++    if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():raise RuntimeError('CUDA BF16 required')
++    emit(out,{'status':'VERIFYING_DATA','model':'Junkai F2 + instance-balanced cascade','epochs':args.epochs})
++    fingerprint=data_fingerprint(args.data)
++    config={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()}
++    config.update(data_fingerprint=fingerprint, source_hashes=source_hashes(root),
++                  pretrained_sha256=sha256(args.pretrained_file), torch_version=torch.__version__,
++                  cuda_runtime=torch.version.cuda, gpu=torch.cuda.get_device_name(),
++                  evaluation_postprocessing=FINAL_POST, classification_fusion_lambda=1.,
++                  selection='maximum internal Delta_m over planned evaluated epochs; official score unknown')
++    previous=torch.load(args.resume,map_location='cpu',weights_only=False) if args.resume else None
++    if previous:
++        check_resume(previous['config'],config)
++        if not previous['at_epoch_boundary']:raise ValueError('Not an epoch-boundary checkpoint')
++    else:atomic_json(out/'config.json',config)
++    train_data=SARMultiTask(args.data,'train',train=True,aug=args.aug,flip_bias=args.flip_bias,
++                           native_size=True,mean=args.mean,std=args.std)
++    val_data=SARMultiTask(args.data,'val',native_size=True,mean=args.mean,std=args.std)
++    train_loader=DataLoader(train_data,batch_size=args.batch_size,shuffle=True,num_workers=0,
++                            collate_fn=collate,pin_memory=True)
++    val_loader=DataLoader(val_data,batch_size=args.batch_size,shuffle=False,num_workers=0,
++                          collate_fn=collate,pin_memory=True)
++    if len(train_data) % (args.batch_size*args.accumulation):
++        raise ValueError('Audited run requires complete effective batches; re-plan sample weighting for other data counts')
++    build_args=copy.copy(args)
++    if previous:build_args.init='scratch'
++    model=f2.build_model(build_args)
++    if previous:model.load_state_dict(previous['model'],strict=True)
++    parameters=sum(p.numel() for p in model.parameters())
++    trainable=sum(p.numel() for p in model.parameters() if p.requires_grad)
++    buffers=sum(b.numel() for b in model.buffers() if b.is_floating_point())
++    if parameters+buffers>130_000_000 or trainable>40_000_000:raise RuntimeError('Parameter cap exceeded')
++    model.cuda(); device=torch.device('cuda')
++    optimizer=torch.optim.AdamW(f2.param_groups(model,args),lr=args.lr,weight_decay=args.weight_decay)
++    updates_per_epoch=math.ceil(len(train_loader)/args.accumulation)
++    scheduler=torch.optim.lr_scheduler.LambdaLR(optimizer,lambda step:f2.lr_factor(step,updates_per_epoch,
++                                                                                 args.epochs*updates_per_epoch))
++    history=[]; completed=0; updates=0; best=-float('inf'); elapsed=0.; best_epoch=0; best_sha=None
++    if previous:
++        optimizer.load_state_dict(previous['optimizer']);scheduler.load_state_dict(previous['scheduler'])
++        history=previous['history'];completed=previous['completed_epoch'];updates=previous['updates']
++        best=previous['best_internal_delta'];elapsed=previous['elapsed_seconds'];restore_rng(previous['rng'])
++        best_epoch=previous['best_epoch'];best_sha=previous['best_checkpoint_sha256']
++        if best_epoch:
++            best_path=out/'best_epochs'/f'epoch_{best_epoch:04d}.pt'
++            assert sha256(best_path)==best_sha
++            atomic_json(out/'best_selection.json',{'status':'PROVISIONAL','selected_epoch':best_epoch,
++                        'internal_delta_m_percent':best,'official_delta_m':None,
++                        'checkpoint_file':str(best_path),'checkpoint_sha256':best_sha,
++                        'scope':'best among planned evaluated epochs, not all training epochs'})
++        assert updates==completed*updates_per_epoch
++        del previous
++    emit(out,{'status':'READY','parameters':parameters,'trainable_parameters':trainable,'buffers':buffers,
++               'train_images':len(train_data),'val_images':len(val_data),'updates_per_epoch':updates_per_epoch,
++               'completed_epochs':completed,'instance_balanced':True})
++    start=time.perf_counter()
++    for epoch in range(completed+1,args.epochs+1):
++        updates=train_epoch(model,train_loader,optimizer,scheduler,epoch,args,out,updates,device)
++        improved=False
++        if epoch==1 or epoch%args.eval_every==0 or epoch==args.epochs:
++            metrics,detections=evaluate_native(model,val_loader,args.data/'detection/instances_val.json',device)
++            row={'epoch':epoch,'optimizer_updates':updates,**metrics};history.append(row)
++            improved=metrics['internal_delta_m_percent']>best
++            if improved:best=metrics['internal_delta_m_percent']
++            if improved:best_epoch=epoch
++            atomic_json(out/'evaluation_history.json',history)
++            if improved:atomic_json(out/'best_predictions_val.json',detections)
++            emit(out,{'status':'VALIDATED','is_best':improved,**row})
++        payload={'format':'junkai_ib_full_v1','completed_epoch':epoch,'at_epoch_boundary':True,
++                 'updates':updates,'model':model.state_dict(),'optimizer':optimizer.state_dict(),
++                 'scheduler':scheduler.state_dict(),'rng':capture_rng(),'history':history,
++                 'best_internal_delta':best,'config':config,'elapsed_seconds':elapsed+time.perf_counter()-start,
++                 'best_epoch':best_epoch,'best_checkpoint_sha256':best_sha,
++                 'parameters':parameters,'trainable_parameters':trainable}
++        if improved:
++            (out/'best_epochs').mkdir(exist_ok=True)
++            best_path=out/'best_epochs'/f'epoch_{epoch:04d}.pt'
++            save_checkpoint(best_path,payload)
++            best_sha=sha256(best_path)
++            payload['best_checkpoint_sha256']=best_sha
++        # Commit the epoch only after its improved weights are retained. Earlier best epochs remain available.
++        save_checkpoint(out/'last_checkpoint.pt',payload)
++        if improved:
++            atomic_json(out/'best_selection.json',{'status':'PROVISIONAL' if epoch<args.epochs else 'PENDING_RUN_FINALIZATION',
++                        'selected_epoch':epoch,'internal_delta_m_percent':best,'official_delta_m':None,
++                        'checkpoint_file':str(best_path),'checkpoint_sha256':best_sha,
++                        'scope':'best among planned evaluated epochs, not all training epochs'})
++        emit(out,{'status':'EPOCH_SAVED','epoch':epoch,'updates':updates,
++                   'elapsed_seconds':round(elapsed+time.perf_counter()-start,1)})
++        del payload
++    summary={'status':'COMPLETED','completed_epochs':args.epochs,'optimizer_updates':updates,
++             'elapsed_seconds':elapsed+time.perf_counter()-start,'best_internal_delta_m_percent':best,
++             'planned_evaluated_epochs':[1]+[i for i in range(2,args.epochs+1) if i%args.eval_every==0 or i==args.epochs],
++             'evaluated_epochs':[x['epoch'] for x in history],'official_delta_m':None}
++    assert summary['planned_evaluated_epochs']==summary['evaluated_epochs']
++    atomic_json(out/'run_summary.json',summary)
++    selection=json.loads((out/'best_selection.json').read_text(encoding='utf-8'))
++    assert sha256(selection['checkpoint_file'])==selection['checkpoint_sha256']
++    selection.update(status='COMPLETED',completed_epochs=args.epochs,
++                     verified_over_planned_evaluated_epochs=True)
++    atomic_json(out/'best_selection.json',selection);emit(out,summary)
++
++
++if __name__=='__main__':main()
+--- upstream_F2/run_safety.py
++++ delivered/run_safety.py
+@@ -0,0 +1,77 @@
++"""Standalone run provenance and scoring for the F2-based experiment."""
++import csv
++import hashlib
++import json
++import math
++import os
++from collections import defaultdict
++from pathlib import Path
++
++
++def internal_delta(f1, ap):
++    if not all(math.isfinite(v) and 0 <= v <= 1 for v in (f1, ap)):
++        raise ValueError('Metrics must be finite fractions in [0,1]')
++    return 50 * ((f1 - .9331) / .9331 + (ap - .2613) / .2613)
++
++
++def group_length(index, batches, accumulation):
++    start = (index // accumulation) * accumulation
++    return min(accumulation, batches - start)
++
++
++def check_resume(saved, requested):
++    ignored = {'resume', 'out', 'name'}
++    changed = [k for k in set(saved) | set(requested)
++               if k not in ignored and saved.get(k) != requested.get(k)]
++    if changed:
++        raise ValueError('Resume configuration changed: ' + ', '.join(sorted(changed)))
++
++
++def sha256(path):
++    with Path(path).open('rb') as stream:
++        return hashlib.file_digest(stream, 'sha256').hexdigest()
++
++
++def atomic_json(path, value):
++    path = Path(path)
++    tmp = path.with_suffix(path.suffix + '.tmp')
++    tmp.write_text(json.dumps(value, indent=2, default=str) + '\n', encoding='utf-8')
++    os.replace(tmp, path)
++
++
++def validate_partition(manifest, coco):
++    train = {int(r['image_id']) for r in manifest['train']}
++    val = {int(r['image_id']) for r in manifest['val']}
++    if train & val:
++        raise ValueError('Train/validation overlap')
++    images = {int(i['id']) for i in coco['images']}
++    if train | val != images:
++        raise ValueError('Partition does not cover labeled images')
++    labels = {int(r['image_id']): int(r['label']) for part in ('train','val') for r in manifest[part]}
++    counts = defaultdict(int)
++    for a in coco['annotations']:
++        image = int(a['image_id'])
++        if int(a['category_id']) != labels[image] + 1:
++            raise ValueError('Annotation class disagrees with image class')
++        counts[image] += 1
++    if any(not counts[i] for i in images):
++        raise ValueError('Labeled image has no boxes')
++
++
++def source_hashes(root):
++    root = Path(root)
++    return {p.relative_to(root).as_posix(): sha256(p) for p in sorted(root.rglob('*.py'))
++            if '__pycache__' not in p.parts and 'tests' not in p.parts}
++
++
++def data_fingerprint(root):
++    root = Path(root)
++    files = sorted((root/'classification').glob('*.csv')) + sorted((root/'detection').glob('*.json'))
++    value = {'metadata': {p.relative_to(root).as_posix(): sha256(p) for p in files}, 'images': {}}
++    for csv_path in (root/'classification').glob('*.csv'):
++        with csv_path.open(encoding='utf-8', newline='') as stream:
++            for row in csv.DictReader(stream):
++                path = root / row['image']
++                value['images'][str(path)] = sha256(path)
++    canonical = json.dumps(value, sort_keys=True, separators=(',',':')).encode('utf-8')
++    return hashlib.sha256(canonical).hexdigest()
+--- upstream_F2/sarbench/backbones.py
++++ delivered/sarbench/backbones.py
+@@ -1,7 +1,6 @@
+ """The backbones, built for 512 px input. Plain ViTs map images [B, 1, 512, 512] -> patch tokens [B, N, D];
+ the ConvNeXt maps them to four feature maps at strides 4, 8, 16 and 32."""
+ import timm
+-from terratorch.registry import BACKBONE_REGISTRY  # as in the reference: this import also switches fp32 matmuls to TF32
+ from torch import nn
+ 
+ 
+@@ -18,10 +17,12 @@
+ class ViT(nn.Module):
+     """timm ViT-B/16 pretrained on ImageNet-21k."""
+ 
+-    def __init__(self, pretrained: bool, drop_path=0.0):
++    def __init__(self, pretrained: bool, drop_path=0.0, pretrained_file=None):
+         super().__init__()
+         # in_chans=1: timm sums the RGB patch-embedding weights; img_size=512: it resamples the position embedding
+         extra = {'drop_path_rate': drop_path} if drop_path else {}  # the reference passes nothing
++        if pretrained_file is not None:
++            extra['pretrained_cfg_overlay'] = {'file': pretrained_file}
+         self.vit = timm.create_model('vit_base_patch16_224.augreg_in21k', pretrained=pretrained,
+                                      img_size=512, in_chans=1, num_classes=0, **extra)
+         self.embed_dim = 768
+@@ -43,10 +44,11 @@
+     """Any timm plain ViT (DINOv3, DINOv2, EVA-02, CLIP, ...) at img_size px with a 1-channel patch embedding.
+     The prefix tokens (CLS, registers) are dropped from the output and kept in self.prefix_tokens."""
+ 
+-    def __init__(self, name: str, pretrained: bool, img_size=512, drop_path=0.0):
++    def __init__(self, name: str, pretrained: bool, img_size=512, drop_path=0.0, pretrained_file=None):
+         super().__init__()
++        extra = {'pretrained_cfg_overlay': {'file': pretrained_file}} if pretrained_file is not None else {}
+         self.vit = timm.create_model(name, pretrained=pretrained, img_size=img_size, in_chans=1, num_classes=0,
+-                                     drop_path_rate=drop_path)
++                                     drop_path_rate=drop_path, **extra)
+         self.embed_dim = self.vit.embed_dim
+         self.patch_size = self.vit.patch_embed.patch_size[0]
+ 
+@@ -80,10 +82,11 @@
+ 
+     hierarchical = True
+ 
+-    def __init__(self, name: str, pretrained: bool, drop_path=0.0):
++    def __init__(self, name: str, pretrained: bool, drop_path=0.0, pretrained_file=None):
+         super().__init__()
++        extra = {'pretrained_cfg_overlay': {'file': pretrained_file}} if pretrained_file is not None else {}
+         self.body = timm.create_model(name, pretrained=pretrained, in_chans=1, features_only=True,
+-                                      out_indices=(0, 1, 2, 3), drop_path_rate=drop_path)
++                                      out_indices=(0, 1, 2, 3), drop_path_rate=drop_path, **extra)
+         self.channels = self.body.feature_info.channels()
+         self.embed_dim = self.channels[-1]
+         # With terratorch imported (TF32 settings), cuDNN rejects the depthwise conv on the channels-last-strided
+@@ -105,6 +108,9 @@
+ 
+     def __init__(self, pretrained: bool):
+         super().__init__()
++        # Keep the optional TerraTorch dependency out of the import path for timm-only backbones.
++        from terratorch.registry import BACKBONE_REGISTRY
++
+         self.terramind = BACKBONE_REGISTRY.build('terratorch_terramind_v1_base', pretrained=pretrained,
+                                                  modalities=['S1GRD'])
+         self.embed_dim = 768
+@@ -136,12 +142,14 @@
+ BACKBONES = ['vit', 'terramind', *TIMM_VITS, *TIMM_CONVNEXTS]
+ 
+ 
+-def build_backbone(name, pretrained, img_size=512, drop_path=0.0):
++def build_backbone(name, pretrained, img_size=512, drop_path=0.0, pretrained_file=None):
+     """name: one of BACKBONES. pretrained=False builds the same architecture with random weights."""
+     if name == 'vit':
+-        return ViT(pretrained, drop_path)
++        return ViT(pretrained, drop_path, pretrained_file)
+     if name == 'terramind':
++        if pretrained_file is not None:
++            raise ValueError('pretrained_file is supported for timm backbones, not TerraMind')
+         return TerraMind(pretrained)
+     if name in TIMM_VITS:
+-        return TimmViT(TIMM_VITS[name], pretrained, img_size, drop_path)
+-    return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained, drop_path)
++        return TimmViT(TIMM_VITS[name], pretrained, img_size, drop_path, pretrained_file)
++    return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained, drop_path, pretrained_file)
+--- upstream_F2/sarbench/data.py
++++ delivered/sarbench/data.py
+@@ -26,6 +26,22 @@
+         x1, y1, x2, y2 = boxes.unbind(-1)
+         boxes = torch.stack([y1, size - x2, y2, size - x1], dim=-1)
+     return boxes
++
++
++def native_image(image, orig_size, size, mean, std):
++    """Normalize valid source pixels, downscale only, and place them at the top-left of a zero-padded canvas."""
++    orig_h, orig_w = orig_size
++    scale = min(1.0, size / max(orig_h, orig_w))
++    valid_h = min(size, max(1, int(round(orig_h * scale))))
++    valid_w = min(size, max(1, int(round(orig_w * scale))))
++    scale_x, scale_y = valid_w / orig_w, valid_h / orig_h
++    if image.size != (valid_w, valid_h):
++        image = image.resize((valid_w, valid_h), Image.Resampling.BILINEAR)
++    pixels = v2.ToDtype(torch.float32, scale=True)(v2.ToImage()(image))
++    pixels = (pixels - mean) / std
++    canvas = pixels.new_zeros((1, size, size))
++    canvas[:, :valid_h, :valid_w] = pixels
++    return canvas, (valid_h, valid_w), (scale_x, scale_y)
+ 
+ 
+ class SARMultiTask(Dataset):
+@@ -40,7 +56,7 @@
+     turns it into -b, so flipped boxes are moved by 2b to keep every target on the same convention."""
+ 
+     def __init__(self, root, split, train=False, size=512, limit=None, aug='flip', zoom_p=0.0, zoom_max=1.5,
+-                 flip_bias=0.0):
++                 flip_bias=0.0, native_size=False, mean=MEAN, std=STD):
+         self.root = Path(root)
+         self.rows, self.coco_images, self.annotations = [], {}, defaultdict(list)
+         for part in split.split('+'):
+@@ -51,7 +67,10 @@
+             for ann in coco['annotations']:
+                 self.annotations[ann['image_id']].append(ann)
+         self.rows = self.rows[:limit]
++        if native_size and zoom_p > 0:
++            raise ValueError('zoom augmentation is not supported with native_size=True')
+         self.size, self.train, self.aug = size, train, aug if train else 'none'
++        self.native_size, self.mean, self.std = native_size, float(mean), float(std)
+         self.zoom_p, self.zoom_max = (zoom_p, zoom_max) if train else (0.0, 1.0)
+         self.flip_bias = flip_bias if train and aug == 'flip' else 0.0
+         flips = [v2.RandomHorizontalFlip(), v2.RandomVerticalFlip()] if train and aug in ('flip', 'd4') else []
+@@ -63,7 +82,7 @@
+             v2.Resize((size, size)),  # stretches non-square images; boxes are scaled with the pixels
+             *flips,  # overhead imagery has no canonical "up"
+             v2.ToDtype(torch.float32, scale=True),
+-            v2.Normalize([MEAN], [STD]),
++            v2.Normalize([self.mean], [self.std]),
+         ])
+ 
+     def __len__(self):
+@@ -93,6 +112,8 @@
+         info = self.coco_images[row['image']]
+         anns = self.annotations[info['id']]
+         orig_size = (info['height'], info['width'])
++        if self.native_size:
++            return self._native_item(row, info, anns, orig_size)
+         boxes = tv_tensors.BoundingBoxes([a['bbox'] for a in anns], format='XYWH', canvas_size=orig_size,
+                                          dtype=torch.float32)  # integer boxes would be truncated by Resize
+         image = Image.open(self.root / row['image']).convert('L')  # PIL: torchvision.io cannot read .bmp
+@@ -120,23 +141,70 @@
+         target = {'boxes': boxes, 'labels': labels, 'image_id': info['id'], 'orig_size': orig_size}
+         return image, int(row['label']), target
+ 
++    def _native_item(self, row, info, anns, orig_size):
++        """Resize down only, preserve aspect ratio, then normalize and pad at the bottom/right."""
++        image = Image.open(self.root / row['image']).convert('L')
++        canvas, (valid_h, valid_w), (scale_x, scale_y) = native_image(
++            image, orig_size, self.size, self.mean, self.std)
++
++        boxes = box_convert(torch.tensor([a['bbox'] for a in anns], dtype=torch.float32), 'xywh', 'xyxy')
++        boxes *= boxes.new_tensor([scale_x, scale_y, scale_x, scale_y])
++        labels = torch.tensor([a['category_id'] for a in anns], dtype=torch.int64)
++        boxes[:, 0::2].clamp_(0, valid_w)
++        boxes[:, 1::2].clamp_(0, valid_h)
++        keep = (boxes[:, 2] > boxes[:, 0]) & (boxes[:, 3] > boxes[:, 1])
++        boxes, labels = boxes[keep], labels[keep]
++
++        if self.train and self.aug in ('flip', 'd4'):
++            for axis, extent, axis_scale in ((0, valid_w, scale_x), (1, valid_h, scale_y)):
++                if random.random() < 0.5:
++                    region = canvas[:, :valid_h, :valid_w]
++                    canvas[:, :valid_h, :valid_w] = region.flip(-1 if axis == 0 else -2)
++                    offset = 2 * self.flip_bias * axis_scale if self.aug == 'flip' else 0.0
++                    lo, hi = boxes[:, axis].clone(), boxes[:, axis + 2].clone()
++                    boxes[:, axis] = (extent - hi + offset).clamp(0, extent)
++                    boxes[:, axis + 2] = (extent - lo + offset).clamp(0, extent)
++            if self.aug == 'd4':
++                k = random.randrange(4)
++                for _ in range(k):
++                    old_w = valid_w
++                    x1, y1, x2, y2 = boxes.unbind(-1)
++                    boxes = torch.stack([y1, old_w - x2, y2, old_w - x1], dim=-1)
++                    rotated = torch.rot90(canvas[:, :valid_h, :valid_w], 1, dims=(-2, -1))
++                    canvas.zero_()
++                    valid_h, valid_w = valid_w, valid_h
++                    canvas[:, :valid_h, :valid_w] = rotated
++
++        keep = (boxes[:, 2] > boxes[:, 0]) & (boxes[:, 3] > boxes[:, 1])
++        boxes, labels = boxes[keep], labels[keep]
++        target = {'boxes': boxes, 'labels': labels, 'image_id': info['id'], 'orig_size': orig_size,
++                  'valid_size': (valid_h, valid_w), 'scale_xy': (scale_x, scale_y)}
++        return canvas, int(row['label']), target
++
+ 
+ class SARImages(Dataset):
+     """Unlabelled images listed in an images.json (Codabench val/test), preprocessed exactly as the eval path of
+     SARMultiTask. An item is (image [1, size, size], {'image_id', 'orig_size'})."""
+ 
+-    def __init__(self, root, images, size=512):
++    def __init__(self, root, images, size=512, native_size=False, mean=MEAN, std=STD):
+         self.root, self.images = Path(root), images
++        self.size, self.native_size, self.mean, self.std = size, native_size, float(mean), float(std)
+         self.transform = v2.Compose([v2.ToImage(), v2.Resize((size, size)), v2.ToDtype(torch.float32, scale=True),
+-                                     v2.Normalize([MEAN], [STD])])
++                                     v2.Normalize([self.mean], [self.std])])
+ 
+     def __len__(self):
+         return len(self.images)
+ 
+     def __getitem__(self, i):
+         info = self.images[i]
+-        image = self.transform(Image.open(self.root / info['file_name']).convert('L'))
+-        return image, {'image_id': info['id'], 'orig_size': (info['height'], info['width'])}
++        orig_size = (info['height'], info['width'])
++        source = Image.open(self.root / info['file_name']).convert('L')
++        if self.native_size:
++            image, valid_size, scale_xy = native_image(source, orig_size, self.size, self.mean, self.std)
++            return image, {'image_id': info['id'], 'orig_size': orig_size, 'valid_size': valid_size,
++                           'scale_xy': scale_xy}
++        image = self.transform(source)
++        return image, {'image_id': info['id'], 'orig_size': orig_size}
+ 
+ 
+ def collate(batch):
+@@ -145,7 +213,18 @@
+     return torch.stack(images), torch.tensor(labels), list(targets)
+ 
+ 
+-def to_original_xywh(boxes_xyxy, orig_size, size=512):
+-    """Undo the resize: XYXY boxes on the size x size input -> COCO [x, y, w, h] in original pixels."""
++def to_original_xywh(boxes_xyxy, orig_size, size=512, valid_size=None, scale_xy=None):
++    """Undo input geometry: XYXY boxes -> COCO [x, y, w, h] in original pixels.
++
++    Native-size samples pass their actual per-axis scale. ``valid_size`` can derive that scale for callers that
++    only have the resized dimensions. Omitting both preserves the legacy square-resize conversion.
++    """
+     h, w = orig_size
++    if scale_xy is None and valid_size is not None:
++        valid_h, valid_w = valid_size
++        scale_xy = (valid_w / w, valid_h / h)
++    if scale_xy is not None:
++        scale_x, scale_y = scale_xy
++        scale = boxes_xyxy.new_tensor([scale_x, scale_y, scale_x, scale_y])
++        return box_convert(boxes_xyxy / scale, 'xyxy', 'xywh')
+     return box_convert(boxes_xyxy * boxes_xyxy.new_tensor([w, h, w, h]) / size, 'xyxy', 'xywh')
+--- upstream_F2/sarbench/instance_sampling.py
++++ delivered/sarbench/instance_sampling.py
+@@ -0,0 +1,86 @@
++"""Instance-balanced sampling for the copied Cascade R-CNN implementation."""
++
++import torch
++
++from .tiny import CascadeRoIHeads
++
++
++def instance_balanced_indices(labels, matched_gt, batch_size, positive_fraction):
++    """Return sorted sampled proposal rows with positives selected round-robin by matched GT.
++
++    Positives within each GT bucket and background proposals are randomized with PyTorch's
++    active RNG, so normal training checkpoints retain the usual save/resume reproducibility.
++    Labels below zero are ignored, zero is background, and labels above zero are foreground.
++    """
++    if labels.ndim != 1 or matched_gt.ndim != 1 or labels.shape != matched_gt.shape:
++        raise ValueError("labels and matched_gt must be one-dimensional tensors of equal length")
++    if batch_size < 0:
++        raise ValueError("batch_size must be non-negative")
++    if not 0.0 <= positive_fraction <= 1.0:
++        raise ValueError("positive_fraction must be between zero and one")
++
++    positive_budget = int(batch_size * positive_fraction)
++    positive_indices = torch.where(labels > 0)[0]
++    num_positive = min(positive_indices.numel(), positive_budget)
++
++    if num_positive:
++        # Randomize proposal order first. A stable grouping then keeps that random order
++        # within each GT while allowing the rows to be interleaved one rank at a time.
++        random_order = torch.randperm(positive_indices.numel(), device=positive_indices.device)
++        randomized = positive_indices[random_order]
++        matched = matched_gt[randomized]
++        group_order = torch.argsort(matched, stable=True)
++        grouped = randomized[group_order]
++        grouped_gt = matched[group_order]
++
++        positions = torch.arange(grouped.numel(), device=labels.device)
++        starts_group = torch.ones_like(grouped_gt, dtype=torch.bool)
++        starts_group[1:] = grouped_gt[1:] != grouped_gt[:-1]
++        group_ids = starts_group.to(torch.int64).cumsum(dim=0) - 1
++        group_starts = torch.where(starts_group, positions, torch.zeros_like(positions)).cummax(dim=0).values
++        group_ranks = positions - group_starts
++        # Assign a random priority to each bucket. The positive-row count is a safe
++        # permutation size and avoids reading a CUDA scalar for the dynamic bucket count.
++        group_priority = torch.randperm(grouped.numel(), device=labels.device)[group_ids]
++        round_robin_order = torch.argsort(
++            group_ranks * grouped.numel() + group_priority, stable=True
++        )
++        selected_positive = grouped[round_robin_order[:num_positive]]
++    else:
++        selected_positive = positive_indices[:0]
++
++    negative_indices = torch.where(labels == 0)[0]
++    num_negative = min(negative_indices.numel(), batch_size - num_positive)
++    if num_negative:
++        random_order = torch.randperm(negative_indices.numel(), device=negative_indices.device)
++        selected_negative = negative_indices[random_order[:num_negative]]
++    else:
++        selected_negative = negative_indices[:0]
++
++    return torch.cat((selected_positive, selected_negative)).sort().values
++
++
++class InstanceBalancedCascadeRoIHeads(CascadeRoIHeads):
++    """Original Cascade RoI heads with GT-balanced positive proposal sampling.
++
++    The parent cascade still owns proposal assignment, heads, prediction, and inference.
++    This subclass only carries the current proposals' matched-GT indices into its sampler.
++    """
++
++    def assign_targets_to_proposals(self, proposals, gt_boxes, gt_labels):
++        matched_gt, labels = super().assign_targets_to_proposals(proposals, gt_boxes, gt_labels)
++        self._matched_gt_indices = matched_gt
++        return matched_gt, labels
++
++    def subsample(self, labels):
++        sampler = self.fg_bg_sampler
++        self._sampled = [
++            instance_balanced_indices(
++                image_labels,
++                image_matched_gt,
++                sampler.batch_size_per_image,
++                sampler.positive_fraction,
++            )
++            for image_labels, image_matched_gt in zip(labels, self._matched_gt_indices)
++        ]
++        return self._sampled
+--- upstream_F2/sarbench/model.py
++++ delivered/sarbench/model.py
+@@ -121,6 +121,39 @@
+         boxes, scores = super().filter_proposals(*args, **kwargs)
+         self.last_scores = scores
+         return boxes, scores
++
++
++class NativeCanvasRoIAlign(nn.Module):
++    """Keep RoIAlign scale inference tied to the padded feature canvas, while heads use valid image extents."""
++
++    def __init__(self, pool, canvas_size=None):
++        super().__init__()
++        self.pool = pool
++        self.canvas_size = tuple(canvas_size) if canvas_size is not None else None
++
++    def forward(self, features, boxes, image_shapes):
++        canvas_size = self.canvas_size
++        if canvas_size is None:
++            canvas_size = (max(h for h, _ in image_shapes), max(w for _, w in image_shapes))
++        return self.pool(features, boxes, [canvas_size] * len(boxes))
++
++
++def configure_native_geometry(model, canvas_size=(512, 512)):
++    """Configure the current box RoI pool to infer feature strides from the padded canvas.
++
++    Call after replacing the model's RoI heads (for example, after installing CascadeRoIHeads). The forward method
++    also calls this lazily when ``image_sizes`` is supplied, so plain MultiTaskModel use remains safe.
++    """
++    roi_heads = getattr(model, 'roi_heads', None)
++    if roi_heads is not None and hasattr(roi_heads, 'box_roi_pool'):
++        pool = roi_heads.box_roi_pool
++        if isinstance(pool, NativeCanvasRoIAlign):
++            pool.canvas_size = tuple(canvas_size) if canvas_size is not None else None
++        else:
++            roi_heads.box_roi_pool = NativeCanvasRoIAlign(pool, canvas_size)
++    model._native_geometry_configured = True
++    model.native_canvas_size = tuple(canvas_size) if canvas_size is not None else None
++    return model
+ 
+ 
+ class RoIHeadsPlus(RoIHeads):
+@@ -209,7 +242,21 @@
+             bbox_reg_weights=None, score_thresh=0.05, nms_thresh=0.5, detections_per_img=100)
+         self.roi_heads.post = dict(RoIHeadsPlus.post)  # per-instance copy, set by train.py / predict.py
+ 
+-    def pool(self, tokens):
++    def pool(self, tokens, image_sizes=None, canvas_size=None):
++        if image_sizes is not None:
++            count = tokens.shape[1]
++            stride = getattr(self.backbone, 'token_stride', self.backbone.patch_size)
++            canvas_size = canvas_size or (int(count ** 0.5) * stride, int(count ** 0.5) * stride)
++            canvas_h, canvas_w = canvas_size
++            grid_h, grid_w = canvas_h // stride, canvas_w // stride
++            if grid_h * grid_w != count:
++                raise ValueError(f'{count} tokens do not match canvas {canvas_h}x{canvas_w} at stride {stride}')
++            weights = MultiTaskModel._valid_grid_weights(image_sizes, grid_h, grid_w, canvas_size, tokens.device,
++                                                          tokens.dtype).flatten(1)
++            pooled = (tokens * weights.unsqueeze(-1)).sum(dim=1) / weights.sum(dim=1, keepdim=True).clamp_min(1e-12)
++            # Native geometry deliberately excludes prefix-token pooling. Preserve the configured classifier input
++            # width for legacy clsmean/attn checkpoints by supplying the same valid-patch mean in each slot.
++            return pooled if self.cls_pool == 'mean' else torch.cat([pooled, pooled], dim=1)
+         mean = tokens.mean(dim=1)
+         if self.cls_pool == 'mean':
+             return mean
+@@ -219,16 +266,46 @@
+         attended, _ = self.pool_attn(q, tokens, tokens, need_weights=False)
+         return torch.cat([attended[:, 0], mean], dim=1)
+ 
+-    def forward(self, images, targets=None, return_raw=False):
++    @staticmethod
++    def _valid_grid_weights(image_sizes, grid_h, grid_w, canvas_size, device, dtype):
++        canvas_h, canvas_w = canvas_size
++        cell_h, cell_w = canvas_h / grid_h, canvas_w / grid_w
++        y0 = torch.arange(grid_h, device=device, dtype=torch.float32) * cell_h
++        x0 = torch.arange(grid_w, device=device, dtype=torch.float32) * cell_w
++        weights = []
++        for valid_h, valid_w in image_sizes:
++            wy = ((float(valid_h) - y0).clamp(0, cell_h) / cell_h)
++            wx = ((float(valid_w) - x0).clamp(0, cell_w) / cell_w)
++            weights.append(wy[:, None] * wx[None, :])
++        return torch.stack(weights).to(device=device, dtype=dtype)
++
++    @staticmethod
++    def _pool_valid_map(features, image_sizes, canvas_size):
++        weights = MultiTaskModel._valid_grid_weights(image_sizes, features.shape[-2], features.shape[-1], canvas_size,
++                                                     features.device, features.dtype)
++        total = (features * weights[:, None]).sum(dim=(-2, -1))
++        normalizer = weights.flatten(1).sum(1, keepdim=True).clamp_min(1e-12)
++        return total / normalizer
++
++    def forward(self, images, targets=None, return_raw=False, image_sizes=None):
+         """images [B, 1, H, W], targets: per-image {'boxes' XYXY, 'labels' 1..9} (training only) ->
+         (logits [B, num_classes], per-image detections (eval mode), the four Faster R-CNN losses (training mode))."""
++        if image_sizes is not None:
++            if len(image_sizes) != len(images):
++                raise ValueError('image_sizes must contain one valid (height, width) pair per image')
++            canvas_size = tuple(images.shape[-2:])
++            image_sizes = [tuple(int(v) for v in size) for size in image_sizes]
++            if any(h < 1 or w < 1 or h > canvas_size[0] or w > canvas_size[1] for h, w in image_sizes):
++                raise ValueError(f'valid image sizes must be within the padded canvas {canvas_size}')
++            configure_native_geometry(self, canvas_size)
+         set_task(self.backbone, 0)  # 0 = classification, 1 = detection; a no-op without MoE-LoRA
+         out = self.backbone(images)
+         if self.hierarchical:
+-            logits = self.cls_head(out[-1].mean(dim=(2, 3)))
++            pooled = self._pool_valid_map(out[-1], image_sizes, tuple(images.shape[-2:])) if image_sizes is not None else out[-1].mean(dim=(2, 3))
++            logits = self.cls_head(pooled)
+             features = self.neck(out, images)
+         else:
+-            logits = self.cls_head(self.pool(out))
++            logits = self.cls_head(self.pool(out, image_sizes, tuple(images.shape[-2:]) if image_sizes is not None else None))
+             if self.task_routing:
+                 set_task(self.backbone, 1)
+                 out = self.backbone(images)
+@@ -240,7 +317,8 @@
+         # coordinate near 512 would snap to a 2 px grid. RPN and RoIHeads therefore run in fp32.
+         with torch.autocast(images.device.type, enabled=False):
+             features = {name: f.float() for name, f in features.items()}
+-            image_list = ImageList(images, [tuple(images.shape[-2:])] * len(images))
++            detector_sizes = image_sizes if image_sizes is not None else [tuple(images.shape[-2:])] * len(images)
++            image_list = ImageList(images, detector_sizes)
+             proposals, rpn_losses = self.rpn(image_list, features, targets)
+             if self.training:
+                 detections, roi_losses = self.roi_heads(features, proposals, image_list.image_sizes, targets)
+--- upstream_F2/supervise.py
++++ delivered/supervise.py
+@@ -0,0 +1,44 @@
++"""Keep the standalone trainer attached to an exit-status record and a local log."""
++import argparse
++import ctypes
++from datetime import datetime, timezone
++from pathlib import Path
++import subprocess
++import sys
++
++from run_safety import atomic_json
++
++
++def now():return datetime.now(timezone.utc).isoformat()
++
++
++def main():
++    parser=argparse.ArgumentParser();parser.add_argument('--job-dir',type=Path,required=True)
++    parser.add_argument('training_args',nargs=argparse.REMAINDER);opts=parser.parse_args()
++    arguments=opts.training_args[1:] if opts.training_args[:1]==['--'] else opts.training_args
++    opts.job_dir.mkdir(parents=True,exist_ok=True)
++    status=opts.job_dir/'job_status.json'
++    if status.exists():raise FileExistsError('Use a new job directory')
++    command=[sys.executable,'-X','utf8','-u',str(Path(__file__).with_name('run_project.py')),*arguments]
++    state={'status':'STARTING','started_utc':now(),'supervisor_pid':__import__('os').getpid(),'command':command}
++    atomic_json(status,state)
++    awake=ctypes.windll.kernel32.SetThreadExecutionState if sys.platform=='win32' else None
++    if awake:state['wake_request']=bool(awake(0x80000001))
++    child=None
++    try:
++        with (opts.job_dir/'stdout.log').open('x',encoding='utf-8') as log:
++            child=subprocess.Popen(command,cwd=Path(__file__).resolve().parent,stdout=log,stderr=subprocess.STDOUT)
++            state.update(status='RUNNING',training_pid=child.pid);atomic_json(status,state)
++            code=child.wait()
++        state.update(status='COMPLETED' if code==0 else 'FAILED',exit_code=code,finished_utc=now())
++        atomic_json(status,state);return code
++    except BaseException as exc:
++        if child and child.poll() is None:
++            subprocess.run(['taskkill','/PID',str(child.pid),'/T','/F'],capture_output=True,check=False,timeout=15)
++        state.update(status='SUPERVISOR_ERROR',error=repr(exc),finished_utc=now());atomic_json(status,state)
++        raise
++    finally:
++        if awake:awake(0x80000000)
++
++
++if __name__=='__main__':raise SystemExit(main())
+--- upstream_F2/train.py
++++ delivered/train.py
+@@ -37,6 +37,13 @@
+     p.add_argument('--lora-alpha', type=float, default=32)
+     p.add_argument('--unfreeze-last', type=int, default=0, help='fully train the last N blocks (no LoRA on them)')
+     p.add_argument('--train-norms', action='store_true', help='train the backbone LayerNorm weights and biases')
++    p.add_argument('--pretrained-file', type=Path, help='Pinned local generic DINO checkpoint')
++    p.add_argument('--native-size', action='store_true', help='Downscale only, preserve aspect ratio and pad')
++    p.add_argument('--instance-balanced', action='store_true', help='Balance positive cascade RoIs over GT instances')
++    p.add_argument('--accumulation', type=int, default=1)
++    p.add_argument('--resume', type=Path, help='Full completed-epoch checkpoint for run_project.py')
++    p.add_argument('--mean', type=float, default=0.2658373163241711)
++    p.add_argument('--std', type=float, default=0.2054887053166856)
+     p.add_argument('--train-bias', action='store_true', help='train every bias of the backbone')
+     p.add_argument('--train-patch-embed', action='store_true')
+     p.add_argument('--train-ls', action='store_true', help='train layer-scale gammas')
+@@ -145,7 +152,9 @@
+ 
+ def build_model(args):
+     """The model as configured by args (also used by predict.py, with pretrained=False plus a checkpoint)."""
+-    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained', drop_path=getattr(args, 'drop_path', 0.0))
++    backbone_kwargs = {'pretrained_file': args.pretrained_file} if getattr(args, 'pretrained_file', None) else {}
++    backbone = build_backbone(args.backbone, pretrained=args.init == 'pretrained',
++                              drop_path=getattr(args, 'drop_path', 0.0), **backbone_kwargs)
+     if getattr(args, 'token_stride', 0):
+         set_token_stride(backbone, args.token_stride)
+     if getattr(args, 'grad_ckpt', False):
+@@ -201,13 +210,22 @@
+         model.roi_heads.box_roi_pool = pool
+     if getattr(args, 'cascade', False):
+         assert not args.giou, '--giou is not implemented for --cascade'
+-        model.roi_heads = CascadeRoIHeads(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
++        cascade_class = CascadeRoIHeads
++        if getattr(args, 'instance_balanced', False):
++            from sarbench.instance_sampling import InstanceBalancedCascadeRoIHeads
++            cascade_class = InstanceBalancedCascadeRoIHeads
++        model.roi_heads = cascade_class(pool, num_classes=10, reduced=64, representation=args.cascade_rep,
+                                           beta=args.cascade_beta, batch_size_per_image=args.roi_batch,
+                                           size_iou=(getattr(args, 'size_iou_table', 'a4') if getattr(args, 'cascade_size_iou', False) else False),
+                                           iou_weight=getattr(args, 'iou_branch', 0.0))
+     if getattr(args, 'pretrained_prior', False):
+         assert args.spatial_prior == 64, '--pretrained-prior needs --spatial-prior 64 (64/128-channel laterals)'
+         model.neck.prior = PretrainedPrior()
++    if getattr(args, 'instance_balanced', False) and not args.cascade:
++        raise ValueError('Instance balancing requires --cascade')
++    if getattr(args, 'native_size', False):
++        from sarbench.model import configure_native_geometry
++        configure_native_geometry(model)
+     return model
+ 
+ 
