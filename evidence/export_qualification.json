@@ -1,0 +1,8 @@
+{
+  "status": "PASSED",
+  "scope": "nine train-only images; full-checkpoint native inference and local ZIP format check",
+  "images": 9,
+  "detections": 900,
+  "uploaded": false,
+  "original_coordinate_bounds_valid": true
+}

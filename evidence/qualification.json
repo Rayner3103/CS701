@@ -1,0 +1,47 @@
+{
+  "status": "PASSED",
+  "scope": "two optimizer steps, worst-GT batch backward, full model/optimizer restoration; no accuracy evidence",
+  "model": "Junkai F2 + instance-balanced Cascade, native-size input",
+  "counts": {
+    "total": 109014752,
+    "trainable": 23805152,
+    "buffers": 16
+  },
+  "microbatch": 4,
+  "mixed_valid_sizes": [
+    [
+      256,
+      256
+    ],
+    [
+      256,
+      256
+    ],
+    [
+      512,
+      512
+    ],
+    [
+      512,
+      512
+    ]
+  ],
+  "losses": [
+    6.92584228515625,
+    6.1935248374938965
+  ],
+  "worst_gt_counts": [
+    41,
+    41,
+    41,
+    41
+  ],
+  "peak_memory": {
+    "allocated_gib": 3.2969164848327637,
+    "reserved_gib": 4.0859375
+  },
+  "elapsed_seconds": 9.314418900001328,
+  "pretrained_sha256": "1f9ed8a2378d65e24bb710ba522ac9fa7be4e036d7aefb4384ce022833926332",
+  "trained_old_model_weights_used": false,
+  "sc2_configuration_used": false
+}

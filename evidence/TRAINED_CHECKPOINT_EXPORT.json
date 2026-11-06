@@ -1,0 +1,20 @@
+{
+  "checkpoint": "D:\\CS701_junkai_ib\\runs\\JIB_seed701\\best_epochs\\epoch_0088.pt",
+  "checkpoint_sha256": "1d7ce4ebaa6723aaf99e5d72a053b4480ea82efbff486f68ddd5a224d6f3dbf7",
+  "source_epoch": 88,
+  "postprocessing": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": 0.0,
+    "stage_box": "mean"
+  },
+  "images": 9,
+  "detections": 417,
+  "uploaded": false
+}
