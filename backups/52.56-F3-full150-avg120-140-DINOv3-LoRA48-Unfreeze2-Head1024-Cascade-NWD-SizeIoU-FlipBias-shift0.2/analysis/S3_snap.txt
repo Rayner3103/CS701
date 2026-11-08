@@ -1,0 +1,10 @@
+== val base 41.98
+  int classes                    42.03 (+0.05)  per-class d {'aircra': -0.1, 'ship': 0.6}
+  int classes + all 256px imgs   42.07 (+0.09)  per-class d {'aircra': -0.1, 'harbor': -0.1, 'oil_ta': 0.5, 'ship': 0.6}
+  everything                     41.62 (-0.36)  per-class d {'aircra': -0.1, 'airpor': -0.2, 'harbor': -1.1, 'oil_ta': -0.3, 'playgr': -0.1, 'ship': 0.6, 'wind_t': -1.9}
+  wind wh only                   41.92 (-0.06)  per-class d {'wind_t': -0.5}
+== test base 43.44
+  int classes                    43.51 (+0.07)  per-class d {'aircra': 0.2, 'car': 0.1, 'ship': 0.3}
+  int classes + all 256px imgs   43.58 (+0.13)  per-class d {'aircra': 0.2, 'car': 0.1, 'oil_ta': 0.6, 'ship': 0.3}
+  everything                     43.28 (-0.17)  per-class d {'aircra': 0.2, 'airpor': -0.1, 'bridge': -0.1, 'car': 0.1, 'harbor': -0.4, 'oil_ta': -0.5, 'playgr': 0.1, 'ship': 0.3, 'wind_t': -1.1}
+  wind wh only                   43.34 (-0.10)  per-class d {'wind_t': -0.9}

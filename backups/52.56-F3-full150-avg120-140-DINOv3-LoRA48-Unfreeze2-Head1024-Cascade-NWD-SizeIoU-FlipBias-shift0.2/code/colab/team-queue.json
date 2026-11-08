@@ -1,0 +1,209 @@
+[
+  {
+    "name": "team-smoke",
+    "worker": "T1",
+    "cmd": [
+      "bash",
+      "team/smoke.sh"
+    ],
+    "run_dir": "runs/team-smoke",
+    "max_hours": 1.5,
+    "resumable": false,
+    "collect": [
+      "runs/team-smoke/params.txt",
+      "runs/team-smoke/B0/log.txt"
+    ]
+  },
+  {
+    "name": "team-B0",
+    "worker": "T1",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "B0"
+    ],
+    "run_dir": "runs/team/B0",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/B0/log.txt",
+      "runs/team/B0/metrics.json",
+      "runs/team/B0/metrics_pp.json"
+    ]
+  },
+  {
+    "name": "team-S1",
+    "worker": "T2",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "S1",
+      "--spatial-prior",
+      "64"
+    ],
+    "run_dir": "runs/team/S1",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/S1/log.txt",
+      "runs/team/S1/metrics.json",
+      "runs/team/S1/metrics_pp.json"
+    ]
+  },
+  {
+    "name": "team-S2",
+    "worker": "T1",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "S2",
+      "--lr",
+      "2e-4",
+      "--backbone-lr",
+      "6e-4"
+    ],
+    "run_dir": "runs/team/S2",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/S2/log.txt",
+      "runs/team/S2/metrics.json",
+      "runs/team/S2/metrics_pp.json"
+    ],
+    "enabled": false
+  },
+  {
+    "name": "team-S3",
+    "worker": "T2",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "S3",
+      "--lora-rank",
+      "48",
+      "--lora-alpha",
+      "96",
+      "--cascade-rep",
+      "1024",
+      "--unfreeze-last",
+      "2"
+    ],
+    "run_dir": "runs/team/S3",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/S3/log.txt",
+      "runs/team/S3/metrics.json",
+      "runs/team/S3/metrics_pp.json"
+    ]
+  },
+  {
+    "name": "team-S4",
+    "worker": "T1",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "S4",
+      "--spatial-prior",
+      "64",
+      "--pretrained-prior",
+      "--lora-rank",
+      "77",
+      "--lora-alpha",
+      "154"
+    ],
+    "run_dir": "runs/team/S4",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/S4/log.txt",
+      "runs/team/S4/metrics.json",
+      "runs/team/S4/metrics_pp.json"
+    ]
+  },
+  {
+    "name": "team-smoke-full",
+    "worker": "T2",
+    "cmd": [
+      "bash",
+      "team/smoke_full.sh"
+    ],
+    "run_dir": "runs/team-smoke/full",
+    "max_hours": 1,
+    "resumable": false,
+    "collect": [
+      "runs/team-smoke/full/log.txt"
+    ]
+  },
+  {
+    "name": "team-F3-S3-full150",
+    "worker": "T2",
+    "requires": [
+      "team-smoke-full"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_full.sh",
+      "F3-S3-full150",
+      "--lora-rank",
+      "48",
+      "--lora-alpha",
+      "96",
+      "--cascade-rep",
+      "1024",
+      "--unfreeze-last",
+      "2"
+    ],
+    "run_dir": "runs/team/F3-S3-full150",
+    "max_hours": 12,
+    "collect": [
+      "runs/team/F3-S3-full150/log.txt",
+      "runs/team/F3-S3-full150/metrics.json"
+    ]
+  },
+  {
+    "name": "team-S5",
+    "worker": "T1",
+    "requires": [
+      "team-smoke"
+    ],
+    "cmd": [
+      "bash",
+      "team/run_screen.sh",
+      "S5",
+      "--lora-rank",
+      "48",
+      "--lora-alpha",
+      "96",
+      "--cascade-rep",
+      "1024",
+      "--unfreeze-last",
+      "2",
+      "--spatial-prior",
+      "64"
+    ],
+    "run_dir": "runs/team/S5",
+    "max_hours": 6,
+    "resumable": false,
+    "collect": [
+      "runs/team/S5/log.txt",
+      "runs/team/S5/metrics.json",
+      "runs/team/S5/metrics_pp.json"
+    ]
+  }
+]
