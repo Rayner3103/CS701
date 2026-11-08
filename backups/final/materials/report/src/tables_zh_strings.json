@@ -5,7 +5,6 @@
   "**Table 4.**": "**表 4.**",
   "**Table 5.**": "**表 5.**",
   "TBD": "待定",
-
   "Official scores (Phase 1 val, reference 93.31 / 26.13; the last row is test, reference 93.99 / 25.41; seed 0, 1 run each). V2 and F1 were scored on Codabench, the rest on the course leaderboard.": "官方分数（Phase 1 验证集，参考分数 93.31 / 26.13；最后一行是测试集，参考分数 93.99 / 25.41；seed 0，各 1 次运行）。V2 和 F1 在 Codabench 上计分，其余在课程榜单上计分。",
   "| Date | Entry | Δm | F1 | mAP | Change |": "| 日期 | 提交 | Δm | F1 | mAP | 变化 |",
   "| Date |": "| 日期 |",
@@ -32,8 +31,7 @@
   "**posted, Phase 1**": "**已发布，Phase 1**",
   "test: + min_keep 100, snap": "测试集：+ min_keep 100，吸附",
   "**posted, Phase 2** (test reference)": "**已发布，Phase 2**（测试集参考分数）",
-
-  "Leave-one-out on `vallike` (36-epoch cosine, FINAL post-processing, last checkpoint). ΔΔm is variant minus final recipe, paired by seed; mean±std where n>1.": "在 `vallike` 上的留一实验（36 epoch 余弦日程，FINAL 后处理，最后一个 checkpoint）。ΔΔm 是变体减去最终配方，按 seed 配对；n>1 时为 mean±std。",
+  "Leave-one-out on `vallike` (36-epoch cosine, FINAL post-processing, last checkpoint). ΔΔm is variant minus final recipe, paired by seed; mean±std where n>1.": "在 `vallike` 上的留一实验（36 epoch 余弦日程，FINAL 后处理，最后一个 checkpoint）。ΔΔm 是变体减去最终配方，按 seed 配对；n>1 时为均值 ± 样本标准差。",
   "| Variant | Train. M | n | mAP | F1 | ΔΔm |": "| 变体 | 可训练 M | n | mAP | F1 | ΔΔm |",
   "Final recipe": "最终配方",
   "no spatial prior": "去掉空间先验",
@@ -44,7 +42,6 @@
   "reference anchors": "参考锚框",
   "LayerNorms frozen": "冻结 LayerNorm",
   "LoRA r32, head 1024": "LoRA r32，head 1024",
-
   "Cumulative post-processing and averaging on full-length runs (n=1 seed; `trainvl` → `vallike`). Step gains are paired on one seed's weights; Δm uses the val reference, on a local split, so its absolute level is not comparable to the board.": "全长运行上的累积后处理和平均（n=1 个 seed；`trainvl` → `vallike`）。各步提升在同一 seed 的权重上配对；Δm 使用验证集参考分数，在本地划分上计算，所以其绝对水平不能和榜单比较。",
   "Cumulative post-processing and averaging on full-length runs (n=2 seeds; `trainvl` → `vallike`). Step gains are paired on one seed's weights; Δm uses the val reference, on a local split, so its absolute level is not comparable to the board.": "全长运行上的累积后处理和平均（n=2 个 seed；`trainvl` → `vallike`）。各步提升在同一 seed 的权重上配对；Δm 使用验证集参考分数，在本地划分上计算，所以其绝对水平不能和榜单比较。",
   "Cumulative post-processing and averaging on full-length runs (n=3 seeds; `trainvl` → `vallike`). Step gains are paired on one seed's weights; Δm uses the val reference, on a local split, so its absolute level is not comparable to the board.": "全长运行上的累积后处理和平均（n=3 个 seed；`trainvl` → `vallike`）。各步提升在同一 seed 的权重上配对；Δm 使用验证集参考分数，在本地划分上计算，所以其绝对水平不能和榜单比较。",
@@ -56,7 +53,6 @@
   "class-agnostic (vs hard)": "类无关融合（相对硬融合）",
   "min_keep 100 (vs class-agn.)": "min_keep 100（相对类无关融合）",
   "snap = FINAL": "吸附 = FINAL",
-
   "Tried and dropped. Numbers are local Δm unless marked; screens are single-seed, so read small values with the ±0.70 noise of §4.1 in mind.": "尝试后放弃的做法。除非标注，数字都是本地 Δm；筛选都是单 seed，所以看较小的数值时要记住 §4.1 中 ±0.70 的噪声。",
   "| Idea | Result | Note |": "| 想法 | 结果 | 备注 |",
   "| Idea |": "| 想法 |",
@@ -100,7 +96,6 @@
   "noise or harm": "噪声或有害",
   "kNN label transfer (local only)": "kNN 标签迁移（仅本地）",
   "test-time data, rules; not used": "测试时需要数据，涉及规则；未使用",
-
   "Items required by the Terms.": "Terms 要求披露的项目。",
   "| Item | Value |": "| 项目 | 内容 |",
   "| Item |": "| 项目 |",
@@ -121,5 +116,27 @@
   "| Seeds | Submitted model: 1 run. Final recipe, full length: ": "| Seed | 提交模型：1 次运行。最终配方的全长运行数：",
   "1 finished, 2 running (TBD)": "1 次已完成，2 次运行中（待定）",
   " runs. Ablations: Table tab:loo. C36: 37 runs, ±0.70": "。消融：表 tab:loo。C36：37 次运行，±0.70",
-  " runs. Ablations: Table 2. C36: 37 runs, ±0.70": "。消融：表 2。C36：37 次运行，±0.70"
+  " runs. Ablations: Table 2. C36: 37 runs, ±0.70": "。消融：表 2。C36：37 次运行，±0.70",
+  "**Table A59a.**": "**表 A59a.**",
+  "**Table A59b.**": "**表 A59b.**",
+  "Mean and sample std": "均值与样本标准差",
+  "| Seed | mAP | F1 | AP50 | Δm |": "| Seed | mAP | F1 | AP50 | Δm |",
+  "Change from FINAL": "相对 FINAL 的改动",
+  "without snap": "不使用吸附",
+  "min_keep 30": "min_keep 30",
+  "no fusion": "不使用融合",
+  "objectness power 0.25": "objectness 指数 0.25",
+  "RPN top 1000": "RPN 候选 1000",
+  "last-stage box": "末阶段框",
+  "shift 0": "平移 0",
+  "shift -0.4": "平移 -0.4",
+  "single e180": "单个 e180",
+  "single e160": "单个 e160",
+  "test entry (zip TBD)": "测试集提交（zip 待定）",
+  "Full-length FINAL results on `vallike`. Seed 0 uses DDP; seeds 1 and 2 use one GPU (Table A58). Δm uses official val references 93.31 / 26.13.": "全长运行的 FINAL 结果，评估于 `vallike`。Seed 0 使用 DDP，seed 1 和 2 使用一块 GPU（表 A58）。Δm 使用官方验证集参考分数 93.31 / 26.13。",
+  "Change from FINAL, paired within each full-length run on `vallike`; mean and sample std across three runs. Negative means worse. These removals are not additive cumulative steps.": "相对 FINAL 的变化，在各全长运行的 `vallike` 结果上配对；报告三个运行的均值和样本标准差。负值表示变差。这些移除结果不是可相加的累积步骤。",
+  "RPN top 2000": "RPN 候选 2000",
+  "bridge ≤ + 0.9 AP; oversampling -4.15": "桥梁 ≤ + 0.9 AP；过采样 -4.15",
+  "+ 2.26, -0.12, board -0.03": "+ 2.26，-0.12，榜单 -0.03",
+  "-3.1 to + 0.06 mAP": "-3.1 至 + 0.06 mAP"
 }

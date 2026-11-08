@@ -1,0 +1,9 @@
+base 3 45.76 96.43 39.24
+noCascade 3 42.23 95.81 32.15
+noFlipBias 3 44.88 96.71 37.7
+noNWD 3 46.1 96.36 39.84
+noSP 3 45.47 96.16 38.53
+noSizeIoU 3 44.6 96.27 36.93
+noSmallAnchors 3 44.87 96.15 37.38
+noTrainNorms 3 45.75 96.25 39.11
+smallCapacity 3 43.87 96.43 35.61

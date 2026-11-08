@@ -5,6 +5,12 @@ set -eu
 ROOT=/mnt/hdd/junkaichen/CS701/CS701; RUNS=/mnt/hdd/junkaichen/CS701/cs701_runs; M=$ROOT/backups/final/materials
 SP=/tmp/claude-1001/-mnt-hdd-junkaichen-CS701-CS701/bb21cad1-800d-4668-8787-ca582a4209c5/scratchpad
 RPT=$ROOT/experiments/report_final_20261105
+# Keep the only remaining copy of session summaries before rebuilding local_only.
+SESSION_ARCHIVE=$ROOT/report_final/local_session_archive
+mkdir -p "$SESSION_ARCHIVE"
+if [ -d "$M/local_only/sessions" ]; then
+    rsync -a "$M/local_only/sessions/" "$SESSION_ARCHIVE/"
+fi
 rm -f "$M/README.md.bak"; rm -rf "$M/code" "$M/report" "$M/experiment_records" "$M/run_records" "$M/phase2_records" "$M/manifest" "$M/local_only"
 mkdir -p "$M"/{code,report,experiment_records,run_records,phase2_records,manifest,local_only/sessions}
 # report
@@ -44,6 +50,7 @@ mkdir -p local_only/runtime; cp -al "$ROOT/.runtime/avg" local_only/runtime/avg;
 cp -al "$B56" local_only/backup_56.49
 ln -s "$RUNS" local_only/cs701_runs
 cp -a "$RPT/ledgers" local_only/ledgers
+rsync -a "$SESSION_ARCHIVE/" local_only/sessions/
 cp -a "$SP/condensed" "$SP/condensed_index.tsv" local_only/sessions/ 2>/dev/null || true
 echo 'local_only/' > .gitignore
 # manifest of what is not pushed
@@ -51,7 +58,17 @@ echo 'local_only/' > .gitignore
 ( cd "$ROOT/.runtime/avg"; sha256sum *.pt ) > manifest/averaged_weights.sha256
 ( cd "$RUNS"; find . -type f \( -name '*.pt' -o -name '*.pth' \) -printf '%s\tcs701_runs/%P\n' ; cd "$ROOT"; find experiments .runtime backups -type f -size +3M -printf '%s\t%p\n' ) | sort -k2 > manifest/large_files_not_pushed.tsv
 python3 "$RPT/progress.py" > manifest/training_status.txt
-cp "$RPT/results/leaderboard_phase2.json" manifest/leaderboard_phase2_2026-11-05.json
+sed -i 's/[[:blank:]]*$//' manifest/training_status.txt
+BOARD=$(python3 - "$ROOT/report_final/report_inputs.json" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1])).get('leaderboard_snapshot_file', 'leaderboard_phase2.json'))
+PY
+)
+cp "$RPT/results/$BOARD" "manifest/$BOARD"
+if [ -f "$RPT/results/leaderboard_snapshot_meta.json" ]; then
+    cp "$RPT/results/leaderboard_snapshot_meta.json" manifest/
+fi
+cp "$RPT/results/report_compute.json" manifest/report_compute.json
 # other people and other projects do not belong in a shared repository
-grep -rIlE 'another user|another project' . --exclude-dir=local_only 2>/dev/null | while read -r f; do sed -i -E 's/another user/another user/g; s/another project/another project/g' "$f"; done
+grep -rIlE 'hegeng|SecureVibeGym' . --exclude-dir=local_only 2>/dev/null | while read -r f; do sed -i -E 's/hegeng/another user/g; s/SecureVibeGym/another project/g' "$f"; done
 du -sh --exclude=local_only .; find . -path ./local_only -prune -o -type f -print | wc -l; find . -path ./local_only -prune -o -type f -size +20M -print

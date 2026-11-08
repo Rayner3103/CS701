@@ -2,7 +2,7 @@
 
 [English](README.md) · **中文**
 
-报告、代码和实验记录的汇总，截至 2026 年 11 月 5 日。标注“待定”的内容还没有结果，训练结束后更新。文档都有两个版本：`X.md` 是英文，`X.zh-CN.md` 是中文。
+报告、代码和实验记录的汇总，截至 2026 年 11 月 8 日。报告补跑的全部 30 个训练任务已于 03:24 SGT 成功结束，三次运行的结果已写入报告。仍标注“待定”的项目缺少可核实记录。文档都有两个版本：`X.md` 是英文，`X.zh-CN.md` 是中文。
 
 **从这里开始：[report/REPORT.zh-CN.md](report/REPORT.zh-CN.md)**（图文报告和完整实验日志）。
 
@@ -20,18 +20,18 @@
 
 ## Phase 2 成绩
 
-Δm **61.25**，macro-F1 96.96，mAP 55.74，AP50 75.19，11 月 3 日 15:37 SGT 发布。11 月 5 日 18:59 的公开榜单上排 8 队第 3，榜单 11 月 8 日锁定。快照见 `manifest/leaderboard_phase2_2026-11-05.json`。
+Δm **61.25**，macro-F1 96.96，mAP 55.74，AP50 75.19，11 月 3 日 15:37 SGT 发布。11 月 8 日 12:21 SGT 的公开榜单上排 9 队第 3；当时尚未锁定，当天 23:59 SGT 截止，因此不是最终排名。快照见 `manifest/leaderboard_phase2_2026-11-08.json`；获取时间见 `manifest/leaderboard_snapshot_meta.json`。
 
-## 待定
+## 完成情况与剩余项目
 
 | 项目 | 状态 |
 |---|---|
 | Phase 2 实际提交的文件和次数 | 待定：回忆中最后一次是 `PHASE2_shot1_FINAL_avg100-180x9_agn_mk100_SNAP.zip`，榜单不显示文件名 |
 | 其他作者 | 待定 |
-| 完整配方 seed 1、2 | 待定：训练中，见 `manifest/training_status.txt` |
-| 留一消融（8 个变体，3 个 seed） | 待定：训练中 |
-| 本地参考模型 | 待定：排队中 |
-| 全项目 GPU 时总数 | 待定：截至 11 月 2 日约 388，不含队友和报告实验 |
+| 完整配方 seed 1、2 | 已完成，各 180 轮；连同 seed 0，共三个全长本地运行；见 `manifest/training_status.txt` |
+| 留一消融（8 个变体，3 个 seed） | 已完成：含三个配对基线，共 27 次运行，每次 36 轮；见表 2 |
+| 本地参考模型 | 已完成：24 轮；默认评估下 F1 92.31、mAP 25.66、AP50 54.81 |
+| 全项目 GPU 时总数 | 约 514 = 历史约 388 + 报告队列 126.31；队列时间包含预测和平均，不含队友的 RTX 3080 运行；见 `manifest/report_compute.json` |
 | 报告格式和截止日期 | 待定：“CVPR 模板、不超过 6 页”只来自队内草稿，目前不受页数限制；LaTeX 版暂缓 |
 
 ## 没有推送的内容及原因
@@ -46,6 +46,15 @@
 不翻译的内容：日志、数据文件，以及第三方的 `LICENSE`、`NOTICE`、`LEGAL`。
 
 ## 重建
+
+在本材料目录内重新生成报告（使用报告的 Python 环境）：
+
+```bash
+python report/gen_figures.py
+python report/gen_report.py
+```
+
+在保留实验源文件的原服务器上重建整个材料包：
 
 ```bash
 report_final/build_materials.sh   # 在仓库根目录运行

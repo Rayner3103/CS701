@@ -4,8 +4,6 @@
 
 [中文版](REPORT.zh-CN.md)
 
-> **Status (5 November 2026).** Some training for this report is still running. Items marked TBD will be filled in when it finishes: seeds 1 and 2 of the full-length runs, most ablation variants, the local reference run and the project GPU-hour total.
-
 ## Abstract
 
 One model must classify a SAR image into nine scene classes and detect its objects, half of which are smaller than a 16×16 ViT patch, under limits of 130 M total and 40 M trainable parameters. Our model keeps a DINOv3 ViT-B/16 frozen and spends the budget on LoRA rank 80 and a three-stage Cascade R-CNN built for tiny boxes.
@@ -13,9 +11,9 @@ One model must classify a SAR image into nine scene classes and detect its objec
 | Phase | Δm | macro-F1 | mAP | AP50 | Rank |
 |---|---|---|---|---|---|
 | Phase 1, validation | 56.49 | 95.27 | 55.10 | 74.85 | 3 of 9 |
-| Phase 2, test | **61.25** | 96.96 | 55.74 | 75.19 | 3 of 8 on 5 November; the board locks on 8 November |
+| Phase 2, test | **61.25** | 96.96 | 55.74 | 75.19 | 3 of 9 at 11-08 12:21 SGT; board locks at 11-08 23:59 SGT |
 
-Almost all the gain over the reference comes from detection. This report gives what each part adds, how it was implemented and why, and what failed, including results that won on a local split and vanished on the board. The appendix holds the complete experiment log.
+Almost all the gain over the reference comes from detection. This report gives what each part adds, how it was implemented and why, and what failed, including results that won on a local split and vanished on the board. All 30 report runs finished at 11-08 03:24 SGT: two additional full-length seeds, 27 short ablation runs and one local reference. Results below report three-run means and sample standard deviations where available. The appendix holds the complete experiment log.
 
 ## 1. Introduction
 
@@ -71,7 +69,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 - **Suppression:** per-class Gaussian soft-NMS with σ = 0.5, RPN top 2000, score threshold 1e-5, 100 boxes per image.
 - **Image label:** `argmax_c [ log p_img(c) + 2 · log max_i p_i(c) ]`.
 
-**Additions in the Phase 2 entry**, never scored on val:
+**Additions in the intended FINAL recipe for Phase 2**, never scored on val (the manually uploaded zip remains unverified; §A5.13):
 
 - **`min_keep` 100** keeps the best 100 boxes of an image when too few clear the threshold.
 - **Lattice snapping.** Predicted corners of aircraft, car and all 256 px images are rounded to integers in original pixels. For wind turbines, a per-image fractional offset is estimated as a circular mean over confident boxes and applied only when the concentration R ≥ 0.5. Scores and order do not change.
@@ -86,7 +84,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 
 **Split.** `prepare_course_data.py` splits the train set by class with seed 0 into 7,512 / 940 / 940, used for screening up to 11-01. The ablations here use a second split from the same pool: `vallike` (992 images from the old holdouts, sampled to match the predicted class and image-size mix of the official val set) and `trainvl` (the other 8,400). Official val and test images were only ever predicted; their predicted class counts set the sampling mix.
 
-**Choosing the Phase 2 entry.** We took the Phase 1 recipe with the highest official val Δm, then added two steps each found positive on local holdouts by paired bootstrap, combined +0.30 mAP [+0.20, +0.41]. A twin trained on `trainvl` confirmed that the averaging window sat within noise (0.1 mAP) of the best alternatives. These selections reused the same data many times, and many Phase 1 choices were made on the val board itself, so our val score is optimistic.
+**Choosing the intended Phase 2 recipe.** We took the Phase 1 recipe with the highest official val Δm, then added two steps each found positive on local holdouts by paired bootstrap, combined +0.30 mAP [+0.20, +0.41]. A twin trained on `trainvl` confirmed that the averaging window sat within noise (0.1 mAP) of the best alternatives. These selections reused the same data many times, and many Phase 1 choices were made on the val board itself, so our val score is optimistic. This describes the selected recipe; the file actually uploaded and the number of Phase 2 submissions remain TBD (§A5.13).
 
 **Noise.** One run of the 36-epoch C36 configuration varies by ±0.70 local Δm (37 seeds); sampling alone gives an SD of about 2 Δm between test and val. Post-processing comparisons are paired on the same weights and images, so differences of 0.1–0.3 Δm can be real there, while differences between runs below about 1 Δm are not.
 
@@ -110,7 +108,7 @@ LoRA [Hu 2022] and MTLoRA [Agiza 2024] adapt frozen weights at low cost; we use 
 | 11-01 | avg e100/120/140/160 | 55.41 | 95.20 | 54.56 | checkpoint averaging |
 | 11-01 | avg e100–180 (9), hard | 56.41 | 95.27 | 55.06 | wider window + hard fusion |
 | **11-01** | **same, class-agnostic** | **56.49** | **95.27** | **55.10** | **posted, Phase 1** |
-| **11-03** | **test: + min_keep 100, snap** | **61.25** | **96.96** | **55.74** | **posted, Phase 2** (test reference) |
+| **11-03** | **test entry (zip TBD)** | **61.25** | **96.96** | **55.74** | **posted, Phase 2** (test reference) |
 
 Most steps change several things, so attribution comes from §4.3. Between F2 and SC2, wider adaptation and head account for the largest step; from there, a slower cosine helped twice, and the last 3.1 Δm cost no training at all.
 
@@ -124,15 +122,19 @@ We finished Phase 1 third of nine, behind Team 9 (67.16) and Team 6 (65.85). Tea
 
 | Variant | Train. M | n | mAP | F1 | ΔΔm |
 |---|---|---|---|---|---|
-| Final recipe | 39.87 | 1 | 45.67 | 96.71 | — |
-| no spatial prior | 39.66 | 1 | 45.85 | 95.62 | -0.25 |
-| no size-aware IoU | 39.87 | 1 | 44.17 | 96.11 | -3.20 |
-| no flip bias (shift -0.4) | 39.87 | TBD | | | |
-| no NWD matching | 39.87 | TBD | | | |
-| no Cascade (Faster R-CNN) | 32.16 | TBD | | | |
-| reference anchors | 39.86 | TBD | | | |
-| LayerNorms frozen | 39.83 | TBD | | | |
-| LoRA r32, head 1024 | 24.02 | TBD | | | |
+| Final recipe | 39.87 | 3 | 45.76±0.09 | 96.43±0.32 | — |
+| no spatial prior | 39.66 | 3 | 45.47±0.35 | 96.16±0.48 | -0.71±0.40 |
+| no size-aware IoU | 39.87 | 3 | 44.60±0.53 | 96.27±0.22 | -2.31±1.11 |
+| no flip bias (shift -0.4) | 39.87 | 3 | 44.88±0.43 | 96.71±0.41 | -1.54±0.84 |
+| no NWD matching | 39.87 | 3 | 46.10±0.51 | 96.36±0.48 | +0.60±1.20 |
+| no Cascade (Faster R-CNN) | 32.16 | 3 | 42.23±0.34 | 95.81±0.20 | -7.09±0.46 |
+| reference anchors | 39.86 | 3 | 44.87±0.33 | 96.15±0.40 | -1.86±0.80 |
+| LayerNorms frozen | 39.83 | 3 | 45.75±0.15 | 96.25±0.37 | -0.13±0.29 |
+| LoRA r32, head 1024 | 24.02 | 3 | 43.87±0.35 | 96.43±0.27 | -3.63±0.49 |
+
+The paired three-seed results give a baseline of mAP 45.76 ± 0.09 and F1 96.43 ± 0.32. Removing Cascade costs 7.09 ± 0.46 Δm, reducing capacity costs 3.63 ± 0.49, and removing size-aware IoU costs 2.31 ± 1.11. Reference anchors cost 1.86 ± 0.80, removing flip bias with its matched shift costs 1.54 ± 0.84, and removing the spatial prior costs 0.71 ± 0.40. Freezing LayerNorm changes Δm by −0.13 ± 0.29. Removing NWD instead gives +0.60 ± 1.20: seed 0 declines, while seeds 1 and 2 improve, so this short-run experiment does not establish a stable benefit for NWD in the final combination. Table 2 uses official val references 93.31 / 26.13 applied to the local split; its absolute Δm is not comparable to the leaderboard.
+
+The same-split reference `RPT_REF24_s0` reaches F1 92.31, mAP 25.66 and AP50 54.81 after 24 epochs with default evaluation, not FINAL post-processing. It is reported separately rather than used to redefine the reference of Tables 2 and 3.
 
 ![Leave-one-out change in Δm](figures/loo.png)
 
@@ -142,26 +144,28 @@ We finished Phase 1 third of nine, behind Team 9 (67.16) and Team 6 (65.85). Tea
 
 **Schedule.** On official val, cosine length at a fixed stopping epoch gave +1.29 (130→160, 7,512 images, e130) and +1.02 on the full data, the second also changing the data loader. Then 160→200 gave +0.63 at e160 against e130 of cos160. Halving the LR lost 7.2 local Δm; e200 lost 0.12 to e180.
 
-**Post-processing and averaging.** A cumulative ablation on the full-length runs (seed 0 finished; seeds 1 and 2 TBD). Averaging is the largest single step, and objectness power 0 the next. Class-agnostic fusion beats hard filtering because hard filtering discards every true box in a misclassified image.
+**Post-processing and averaging.** The cumulative ablation now includes seeds 0, 1 and 2. Averaging is the largest step at +1.38 ± 0.17 Δm, followed by objectness power 0 at +0.75 ± 0.25. Snapping adds +0.62 ± 0.21, with per-run gains +0.39 / +0.79 / +0.69; its magnitude is not constant across runs. Class-agnostic fusion adds +0.09 ± 0.04 over hard filtering, which discards true boxes in misclassified images. All values are paired step differences, reported as mean ± sample std across three runs. Seed 0 uses DDP and seeds 1 and 2 use one GPU, so the spread mixes seed and parallelism (§A6).
 
 ![Gain of each post-processing step](figures/pp_ladder.png)
 
 *Figure 7. Δm gain of each cumulative step on `vallike`.*
 
-**Table 3.** Cumulative post-processing and averaging on full-length runs (n=1 seed; `trainvl` → `vallike`). Step gains are paired on one seed's weights; Δm uses the val reference, on a local split, so its absolute level is not comparable to the board.
+**Table 3.** Cumulative post-processing and averaging on full-length runs (n=3 seeds; `trainvl` → `vallike`). Step gains are paired on one seed's weights; Δm uses the val reference, on a local split, so its absolute level is not comparable to the board.
 
 | Step (cumulative) | mAP | F1 | ΔmAP | ΔΔm |
 |---|---|---|---|---|
-| e180, σ.75, obj^.25, RPN 1k, λ1 | 57.00 | 96.46 | — | — |
-| σ 0.5 | 57.15 | 96.46 | +0.15 | +0.29 |
-| objectness power 0 | 57.56 | 96.46 | +0.41 | +0.79 |
-| RPN top 2000 | 57.60 | 96.46 | +0.04 | +0.07 |
-| λ 2 | 57.60 | 96.65 | +0.00 | +0.10 |
-| **average e100–180** | 58.37 | 96.53 | +0.78 | +1.42 |
-| hard fusion | 58.53 | 96.53 | +0.16 | +0.31 |
-| class-agnostic (vs hard) | 58.59 | 96.53 | +0.06 | +0.11 |
-| min_keep 100 (vs class-agn.) | 58.61 | 96.53 | +0.02 | +0.03 |
-| **snap = FINAL** | 58.81 | 96.53 | +0.20 | +0.39 |
+| e180, σ.75, obj^.25, RPN 1k, λ1 | 56.87±0.28 | 96.16±0.34 | — | — |
+| σ 0.5 | 57.03±0.29 | 96.16±0.34 | +0.16±0.01 | +0.30±0.02 |
+| objectness power 0 | 57.42±0.18 | 96.16±0.34 | +0.39±0.13 | +0.75±0.25 |
+| RPN top 2000 | 57.45±0.18 | 96.16±0.34 | +0.03±0.01 | +0.05±0.02 |
+| λ 2 | 57.45±0.18 | 96.33±0.37 | +0.00±0.00 | +0.09±0.02 |
+| **average e100–180** | 58.18±0.21 | 96.30±0.21 | +0.73±0.04 | +1.38±0.17 |
+| hard fusion | 58.35±0.19 | 96.30±0.21 | +0.17±0.03 | +0.32±0.06 |
+| class-agnostic (vs hard) | 58.39±0.19 | 96.30±0.21 | +0.05±0.02 | +0.09±0.04 |
+| min_keep 100 (vs class-agn.) | 58.41±0.19 | 96.30±0.21 | +0.019±0.002 | +0.036±0.003 |
+| **snap = FINAL** | 58.74±0.09 | 96.30±0.21 | +0.32±0.11 | +0.62±0.21 |
+
+These cumulative gains depend on order. From FINAL, replacing averaging by e180 costs 1.08 ± 0.20 Δm. RPN 1000 instead of 2000 gains +0.05 ± 0.04, and λ 1 instead of 2 gains +0.03 ± 0.03; these small reversal effects show that early-step gains do not guarantee benefits in the final combination. The recorded submission recipe is kept fixed; all removal results are in Table A59b.
 
 ### 4.4 What did not work
 
@@ -211,18 +215,18 @@ We trade parameters for score: 39.87 M of the 40 M limit. The cheaper 23.8 M F2 
 | Parameters | **125,076,960 total, 39,867,360 trainable**: frozen ViT 85.14 M; LoRA 11.80 M; norms 0.04 M; neck 5.56 M + prior 0.21 M; RPN 0.60 M; Cascade 21.65 M; class head 0.01 M |
 | GPU | 2 × NVIDIA RTX 6000 Ada (46,068 MiB), shared with other users |
 | Final training | 12.97 h to e180 on 2 GPUs (25.9 GPU-h); the run continued to e200 at 14.14 h. Averaging: 30 s CPU |
-| Project GPU-h | About TBD on this server, tuning included; RTX 3080 runs of teammates not counted |
+| Project GPU-h | About 514 on this server, tuning included; RTX 3080 runs of teammates not counted |
 | Peak GPU memory | Train 12.07 GiB per GPU (gradient checkpointing, 8 per GPU); inference 1.15 GiB allocated |
 | Inference | 21–25 ms per image at batch 16 (bf16, including post-processing, GPU shared); 60 ms at batch 2 under load on the test run |
 | Input | One gray image, stretched to 512 × 512; train mean/std 0.2526/0.2133; one pass, no tiling, no TTA |
 | Pretrained | **Final:** DINOv3 ViT-B/16 LVD-1689M (timm). **Exploration only:** ImageNet-21k ViT-B/16; DINOv3 ConvNeXt-T; DINOv3 ViT-S/16 with YOLO; TerraMind; LingBot-Vision-B/16. None trained on SAR |
 | Code | Base: TA reference repo; torchvision, timm, pycocotools. Ours: LoRA extensions, Cascade with size-aware IoU, NWD matching, spatial prior, post-processing, averaging, snapping, evaluator |
 | Validation | §4.1. Official val and test only predicted |
-| Seeds | Submitted model: 1 run. Final recipe, full length: 1 finished, 2 running (TBD) runs. Ablations: Table 2. C36: 37 runs, ± 0.70 |
+| Seeds | Submitted model: 1 run. Final recipe, full length: 3 runs. Ablations: Table 2. C36: 37 runs, ± 0.70 |
 
 ## 6. Limitations and conclusion
 
-Averaging, fusion, snapping and `min_keep` gains are measured on one held-out split that also shaped earlier decisions. The 36-epoch ablations do not measure full-length effects, and neither GIoU with an IoU branch (stopped at epoch 145) nor photometric augmentation was evaluated at full length. We also found no fix for the strict-IoU gap of about 5 mAP to the leading teams.
+Averaging, fusion, snapping and `min_keep` gains now have three-run estimates, but remain measured on one held-out split that also shaped earlier decisions. The submitted full-data model has one seed; its uncertainty is not measured by the `trainvl` repeats. The full-length spread also mixes seed with DDP versus single-GPU training, and some small post-processing effects reverse under removal from FINAL. The 36-epoch ablations do not measure full-length effects, and neither GIoU with an IoU branch (stopped at epoch 145) nor photometric augmentation was evaluated at full length. We also found no fix for the strict-IoU gap of about 5 mAP to the leading teams.
 
 A strong generic backbone, frozen and adapted with wide LoRA, plus a detector rebuilt for sub-patch objects carried most of the gain; patient schedules and careful use of one forward pass supplied the rest. The most useful habit was to count a local gain only after a second holdout or the board agreed.
 
@@ -1281,7 +1285,7 @@ All pass `tools/check_submission.py`: 2,065 images, 0 outside. All three shot zi
 
 | Question | Finding |
 |---|---|
-| Phase 2 score | Read from the public board on 11-05 18:59 SGT: **Δm 61.25**, macro-F1 96.96, mAP 55.74, AP50 75.19, accuracy 97.09, posted 11-03 15:37 SGT, submission `s_lia6Xuj5jW`. Rank 3 of 8 at that time (Team 6 71.57, Team 9 71.40, Team 2 58.36); the board locks on 11-08. The saved board is `results/leaderboard_phase2.json` |
+| Phase 2 score | Public API snapshot at 11-08 12:21 SGT: **Δm 61.25**, macro-F1 96.96, mAP 55.74, AP50 75.19, accuracy 97.09, posted 11-03 15:37 SGT, submission `s_lia6Xuj5jW`. Rank 3 of 9 (Team 6 71.57, Team 9 71.40, Team 2 58.36); `locked=false`, so this is not a final ranking. The board locks at 11-08 23:59 SGT. Saved as `results/leaderboard_phase2_2026-11-08.json`; retrieval metadata is in `results/leaderboard_snapshot_meta.json` |
 | Which file was uploaded? | **Not established from project records.** Upload was manual and no upload log exists. On 11-05 the team recalled the FINAL zip, as a recollection |
 | Evidence pointing elsewhere | At 21:22–21:23 on 11-02 a screenshot showed a file picker on the plain-recipe zip (`PHASE2_shot1_avg100-180x9_..._k9.zip`), with a question whether that file had the 56.49 recipe. Five minutes later all experiments were stopped |
 | One or two submissions used? | Unknown. The plain recipe could have been an earlier submission. No evidence either way |
@@ -1293,11 +1297,11 @@ All pass `tools/check_submission.py`: 2,065 images, 0 outside. All three shot zi
 
 ## A6. Runs added for this report
 
-`$RPT/queue.py` adds repeats of the final recipe and leave-one-out ablations, because the submitted model has one seed and most screens were single-seed against older bases. All runs use a frozen code copy in `$RPT/code`, the split `trainvl` (8,400) → `vallike` (992), and FINAL post-processing for scoring. Training was still in progress when this text was written, so only the design is described here; results appear in the two generated tables below. A smoke pass (`queue.py --smoke`: 64 images, 1 epoch) of all seed-0 variants, one twin and the reference finished before launch at 11-05 11:49:56.
+`$RPT/queue.py` adds repeats of the final recipe and leave-one-out ablations, because the submitted model has one seed and most screens were single-seed against older bases. All runs use a frozen code copy in `$RPT/code`, the split `trainvl` (8,400) → `vallike` (992), and FINAL post-processing for scoring. All 30 tasks completed successfully at 11-08 03:24:31, with no failed jobs or retries. All 27 ablation raw dumps and both new twins' four raw dumps were checked present. Results are generated from the saved outputs, not inferred from the queue status. A smoke pass (`queue.py --smoke`: 64 images, 1 epoch) of all seed-0 variants, one twin and the reference finished before launch at 11-05 11:49:56.
 
 ### A6.1 Design
 
-**Twin seeds.** Seeds 1 and 2 of the final recipe with `--epochs 200 --schedule-epochs 200 --stop-after-epoch 180 --save-every 10 --eval-every 20 --save-training-state`. Rationale: the final recipe at full length has a single seed (TWIN1), so the averaging and post-processing gains have no seed spread yet. After training, `queue.py` averages e100–180 with step 10 (`eval_tools/average_local.py`) and dumps raw vallike predictions for the average and for e130, e160, e180. `eval_tools/ablate_pp.py` then scores the cumulative ladder and the removals. These runs are not strict replicates of TWIN1:
+**Twin seeds.** Seeds 1 and 2 of the final recipe with `--epochs 200 --schedule-epochs 200 --stop-after-epoch 180 --save-every 10 --eval-every 20 --save-training-state`. Rationale: before these repeats, the final recipe at full length had a single seed (TWIN1), so the averaging and post-processing gains had no measured spread across runs. After training, `queue.py` averages e100–180 with step 10 (`eval_tools/average_local.py`) and dumps raw vallike predictions for the average and for e130, e160, e180. `eval_tools/ablate_pp.py` then scores the cumulative ladder and the removals. These runs are not strict replicates of TWIN1:
 
 **Table A58.** Seed 0 twin against seeds 1 and 2.
 
@@ -1327,17 +1331,40 @@ The spread between the three therefore mixes seed and parallelism. One GPU per t
 | `noTrainNorms` | No `--train-norms` | −0.2 | Never ablated alone |
 | `smallCapacity` | LoRA r32 α64, head 1024 | −0.2 | Scaling (SC1, SC2) was never split or repeated |
 
-**Reference.** `RPT_REF24_s0` trains the reference recipe (`--backbone vit --init pretrained --adapt lora`, 24 epochs, seed 0) on the same split, for a same-split reference point. `eval_tools/analyze_loo.py` loads its metrics but does not use them in Table 2, where Δm uses the official val references applied to vallike.
+**Reference.** `RPT_REF24_s0` trains the reference recipe (`--backbone vit --init pretrained --adapt lora`, 24 epochs, seed 0) on the same split, for a same-split reference point. It reaches macro-F1 92.31, mAP 25.66 and AP50 54.81 with the model's default evaluation, not FINAL post-processing. These values are a separate same-split reference point: Tables 2 and 3 keep the official val reference scores 93.31 / 26.13, not this local reference. Absolute vallike Δm is therefore not an official score, and a model gain against the local reference would also mix post-processing settings.
 
-**Queue.** Two GPU lanes. GPU 0 runs twin seed 1 then seed 2, then shares the remaining list. GPU 1 takes the shared list in order: all seed-0 variants, the reference, all seed-1 variants, all seed-2 variants. A failed training resumes from `training_state.pt` with up to 3 retries, 5 minutes apart. A job named in `skip.txt` is skipped, so the n column of Table 2 can be below 3. Every run uses `--grad-ckpt`, `--reproducible-loader`, `--batch-size 16`, `--workers 4`, `--eval-batch-size 4`. The raw dump uses `--rpn-topn 2000 --obj-pow 0 --soft-sigma 0.5 --cls-lambda 2 --fusion agn --gamma 1 --topk 9 --dump-raw`; min_keep 100 and snapping are applied afterwards in `ablate_pp.py`.
+**Queue.** Two GPU lanes. GPU 0 runs twin seed 1 then seed 2, then shares the remaining list. GPU 1 takes the shared list in order: all seed-0 variants, the reference, all seed-1 variants, all seed-2 variants. A failed training resumes from `training_state.pt` with up to 3 retries, 5 minutes apart. A job named in `skip.txt` would be skipped; no planned task was skipped, and every row in Table 2 has n = 3. Every twin and leave-one-out run uses `--grad-ckpt`, `--reproducible-loader`, `--batch-size 16`, `--workers 4`, `--eval-batch-size 4`. The raw dump uses `--rpn-topn 2000 --obj-pow 0 --soft-sigma 0.5 --cls-lambda 2 --fusion agn --gamma 1 --topk 9 --dump-raw`; min_keep 100 and snapping are applied afterwards in `ablate_pp.py`.
 
 ### A6.2 Results
 
-The two tables below are generated by `report_final/gen_report.py` from `$RPT/results/`.
+`report_final/gen_report.py` reads `$RPT/results/loo.json` (27 runs) and the three `pp_ablation_*.json` files. Table 2 contains all nine model variants with n = 3 each; Table 3 reports the cumulative post-processing ladder. Tables A59a and A59b give the full-length final scores and the paired removal checks. All standard deviations are sample standard deviations across runs, not bootstrap intervals.
 
-Results of the leave-one-out runs are in Table 2.
+**Table A59a.** Full-length FINAL results on `vallike`. Seed 0 uses DDP; seeds 1 and 2 use one GPU (Table A58). Δm uses official val references 93.31 / 26.13.
 
-Results of the post-processing ablation are in Table 3.
+| Seed | mAP | F1 | AP50 | Δm |
+|---|---|---|---|---|
+| 0 | 58.81 | 96.53 | 78.19 | 64.26 |
+| 1 | 58.64 | 96.25 | 77.83 | 63.79 |
+| 2 | 58.76 | 96.12 | 78.31 | 63.94 |
+| Mean and sample std | 58.74±0.09 | 96.30±0.21 | 78.11±0.25 | 64.00±0.24 |
+
+**Table A59b.** Change from FINAL, paired within each full-length run on `vallike`; mean and sample std across three runs. Negative means worse. These removals are not additive cumulative steps.
+
+| Change from FINAL | ΔmAP | ΔΔm |
+|---|---|---|
+| without snap | -0.32±0.11 | -0.62±0.21 |
+| min_keep 30 | -0.018±0.002 | -0.034±0.004 |
+| no fusion | -0.20±0.14 | -0.37±0.28 |
+| hard fusion | -0.05±0.03 | -0.09±0.05 |
+| σ 0.75 | -0.12±0.02 | -0.23±0.04 |
+| objectness power 0.25 | -0.35±0.20 | -0.67±0.37 |
+| RPN top 1000 | -0.00±0.03 | +0.05±0.04 |
+| last-stage box | -0.39±0.12 | -0.75±0.23 |
+| shift 0 | -0.71±0.03 | -1.36±0.06 |
+| shift -0.4 | -1.28±0.18 | -2.45±0.34 |
+| λ 1 | +0.00±0.00 | +0.03±0.03 |
+| single e180 | -0.57±0.02 | -1.08±0.20 |
+| single e160 | -0.51±0.10 | -1.04±0.31 |
 
 ### A6.3 Seed 0 detail of the post-processing ablation
 
@@ -1499,7 +1526,7 @@ These seeds were not planned. The team had asked to prioritise more ideas over m
 
 ### A8.2 What is single-seed
 
-Every screen in Parts A and B is one seed, including A4, A2, AA, S5, N1, SC1, SC2, BP7 and F2. In 10-27 to 10-31 no experiment was repeated with a second seed. The one attempt (SC1 seed 1) was stopped by the team after minutes in favour of full-data training, and BP7 seed repeats were proposed and never started. The full-data 56.49 run has one seed, and the twins have one seed each, until the runs of §A6 finish.
+Every screen in Parts A and B is one seed, including A4, A2, AA, S5, N1, SC1, SC2, BP7 and F2. In 10-27 to 10-31 no experiment was repeated with a second seed. The one attempt (SC1 seed 1) was stopped by the team after minutes in favour of full-data training, and BP7 seed repeats were proposed and never started. The submitted full-data 56.49 model still has one seed. The completed runs of §A6 provide three full-length runs on `trainvl` and three seeds for every 36-epoch ablation; they do not turn the full-data submission into a multi-seed result.
 
 **Table A68.** Other noise evidence.
 
@@ -1552,7 +1579,7 @@ Terms as quoted in sessions and the official docs: at most 130M total and 40M tr
 
 Hardware: 2 × NVIDIA RTX 6000 Ada, `nvidia-smi` total 46,068 MiB each (44.36–44.39 GiB per PyTorch), shared with other users. `train_hours` is wall time of the epoch loop including periodic evaluation; it excludes final evaluation and post-processing.
 
-**Table A70.** GPU-hour total. All values are training only.
+**Table A70.** GPU-hour accounting. Historical blocks count training; the new report block uses single-GPU queue wall time, including its prediction and averaging steps, as explicitly noted.
 
 | Block | GPU-h | Composition |
 |---|---|---|
@@ -1562,10 +1589,11 @@ Hardware: 2 × NVIDIA RTX 6000 Ada, `nvidia-smi` total 46,068 MiB each (44.36–
 | **Subtotal to 11-01** | **about 340** | Matches the backup report |
 | TWIN1 + TWIN2 + AUG1 + DP1 | about 48.3 | 28.4 + 18.8 + about 1.1 (derived) |
 | **Total at the 11-02 stop** | **about 388** | About 208 since 10-28 |
+| Report runs, 11-05 to 11-08 | 126.31 | All 30 tasks on one GPU each; exact start-to-done timestamps in `results/report_compute.json`; 125.94 h through successful training-process return, with the remainder used by post-training steps |
+| **Updated project total** | **about 514** | 388 + 126.31; approximate historical training plus the report queue, excluding teammates' RTX 3080 runs |
 
 **Outside the total:**
 
-- All `RPT_*` runs of §A6, which are still training. The total for the final paper is TBD.
 - Rayner's and other teammates' runs on RTX 3080 (for example 24 ep 0.9–2.2 h each, 100 ep 3.9–8.7 h)‡.
 - `FINAL_v1` about 0.67 h, `FINAL_v2` 0.15 h, `V2L`/`V2F` 2 min each, SEED_47 about 0.95 h, SEED_48 about 0.2 h, A00/A01 about 9 min, and DDP hang debugging.
 - All inference, tuning inference (about 55 s per split per variant under load), evaluation, smoke tests and CPU work. TWIN1 evaluation took about 14 min on one GPU.
@@ -1710,7 +1738,7 @@ Places where earlier internal notes were wrong, or where a claim is weaker than 
 - Which file or files were uploaded for Phase 2 (§A5.13); the board shows the score, not the file.
 - The official effect of lattice snapping and min_keep. Whether the lattice holds on val and test labels.
 - The official effect of the e100–180 window without fusion. The board's split between window and fusion.
-- Seed variance of the final recipe at full length, until the runs of §A6 finish.
+- Seed variance of the submitted full-data model: §A6 repeats the recipe on `trainvl`, not on all 9,392 labelled images.
 - Whether GIoU + IoU branch, photometric augmentation, smaller anchors or drop path help on the full recipe. TWIN2 stopped at e145; TWIN3–5 never ran. AUG1 stopped at e3.
 - The split of SC2's +7.02 between scaling and epochs, and between LoRA and head.
 - The spatial prior's effect on the board under a matched schedule.

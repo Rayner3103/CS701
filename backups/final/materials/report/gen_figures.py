@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 from matplotlib.patches import FancyBboxPatch, Rectangle
 HERE = Path(__file__).resolve().parent; RES = HERE.parent / 'experiments/report_final_20261105/results'; OUT = HERE / 'figures'; OUT.mkdir(exist_ok=True)
+if not RES.is_dir():
+    RES = HERE.parent / 'experiment_records/report_final_20261105/results'
 fm.fontManager.addfont('/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf')
 BLUE, ORANGE, INK, MUT, GRID, SURF, TINT, GRAY = '#2a78d6', '#eb6834', '#0b0b0b', '#52514e', '#e4e3df', '#ffffff', '#dbe8f8', '#ececea'
 CLS_EN = {1:'aircraft',2:'airport',3:'bridge',4:'car',5:'harbor',6:'oil tank',7:'playground',8:'ship',9:'wind turbine'}
@@ -59,15 +61,16 @@ def loo(lang):
         ds = [V[k]['dm'][V[k]['seeds'].index(s)] - b['dm'][b['seeds'].index(s)] for s in V[k]['seeds'] if s in b['seeds']] if k in V else []
         rows.append((n[1] if lang == 'zh' else n[0], st.mean(ds) if ds else None, st.stdev(ds) if len(ds) > 1 else 0, len(ds)))
     rows.sort(key=lambda r: (r[1] is not None, r[1] if r[1] is not None else 0), reverse=True); rows = rows[::-1] if False else rows
-    fig, ax = plt.subplots(figsize=(7.2, 3.3)); y = list(range(len(rows)))[::-1]; done = [v[1] for v in rows if v[1] is not None]
-    lo = min(done + [-3]) - 1.1; hi = max(done + [1.5]) + .9
+    fig, ax = plt.subplots(figsize=(8.0, 3.7)); y = list(range(len(rows)))[::-1]
+    lo = min([r[1] - r[2] for r in rows if r[1] is not None] + [-3]) - 2.5
+    hi = max([r[1] + r[2] for r in rows if r[1] is not None] + [1.5]) + 1.5
     ax.axvspan(-.70, .70, color=GRAY, lw=0, zorder=0, label=T(lang, 'seed noise of C36, ±0.70', 'C36 的 seed 噪声，±0.70'))
     for yy, r in zip(y, rows):
         if r[1] is None: ax.text(lo + .08, yy, T(lang, 'TBD', '待定'), va='center', fontsize=8, color=MUT)
         else:
             ax.barh(yy, r[1], height=.55, color=BLUE, xerr=r[2] or None, error_kw=dict(ecolor=MUT, lw=.8, capsize=2))
             ax.text(r[1] + (.08 if r[1] >= 0 else -.08) + (r[2] if r[1] >= 0 else -r[2]), yy, f"{r[1]:+.2f} (n={r[3]})", va='center', ha='left' if r[1] >= 0 else 'right', fontsize=7.5, color=INK)
-    ax.axvline(0, color=MUT, lw=.7); grid(ax, 'x'); ax.set_xlim(lo, hi); ax.set_ylim(-.7, len(rows) - .4); ax.set_yticks(y); ax.set_yticklabels([r[0] for r in rows], fontsize=8); ax.legend(frameon=False, fontsize=7.5, loc='upper right')
+    ax.axvline(0, color=MUT, lw=.7); grid(ax, 'x'); ax.set_xlim(lo, hi); ax.set_ylim(-.7, len(rows) - .4); ax.set_yticks(y); ax.set_yticklabels([r[0] for r in rows], fontsize=8); ax.legend(frameon=False, fontsize=7.5, loc='upper left')
     ax.set_xlabel(T(lang, 'Δm of the variant minus the final recipe, 36-epoch runs on vallike (error bars ±1 std where n > 1)', '变体减最终配方的 Δm，36 轮，vallike（n > 1 时误差线为 ±1 标准差）'), fontsize=8)
     save(fig, 'loo', lang)
 def iou(lang):

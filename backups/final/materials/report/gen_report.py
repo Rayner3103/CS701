@@ -4,11 +4,15 @@ hand-checked against the ledgers in experiments/report_final_20261105/ledgers (s
 import glob, json, os, statistics as st
 from pathlib import Path
 HERE = Path(__file__).resolve().parent; RES = HERE.parent / 'experiments/report_final_20261105/results'
+if not RES.is_dir():
+    RES = HERE.parent / 'experiment_records/report_final_20261105/results'
 (HERE / 'tables').mkdir(exist_ok=True); (HERE / 'figures').mkdir(exist_ok=True)
 PEND = 'TBD'
 cfg = json.loads((HERE / 'report_inputs.json').read_text())
 def w(name, s): (HERE / 'tables' / name).write_text(s)
 def pm(xs, d=2, sign=False):
+    if len(xs) > 1 and d == 2 and 0 < st.stdev(xs) < 0.005:
+        d = 3
     f = f'{{:+.{d}f}}' if sign else f'{{:.{d}f}}'
     if len(xs) == 1: return f.format(xs[0])
     return f.format(st.mean(xs)) + r'$\pm$' + f'{st.stdev(xs):.{d}f}'
@@ -27,7 +31,7 @@ rows = [r'10-20 & V2, 120-ep cosine, e100 & 38.23 & 95.06 & 45.62 & first long r
  r'11-01 & avg e100/120/140/160 & 55.41 & 95.20 & 54.56 & checkpoint averaging',
  r'11-01 & avg e100--180 (9), hard & 56.41 & 95.27 & 55.06 & wider window + hard fusion',
  r'\textbf{11-01} & \textbf{same, class-agnostic} & \textbf{56.49} & \textbf{95.27} & \textbf{55.10} & \textbf{posted, Phase 1}',
- r'\textbf{11-03} & \textbf{test: + min\_keep 100, snap} & \textbf{\PTWO} & \textbf{96.96} & \textbf{55.74} & \textbf{posted, Phase 2} (test reference)']
+ r'\textbf{11-03} & \textbf{test entry (zip TBD)} & \textbf{\PTWO} & \textbf{96.96} & \textbf{55.74} & \textbf{posted, Phase 2} (test reference)']
 w('official.tex', table('tab:official', r'Official scores (Phase 1 val, reference 93.31 / 26.13; the last row is test, reference 93.99 / 25.41; seed 0, 1 run each). V2 and F1 were scored on Codabench, the rest on the course leaderboard.', 'lp{2.35cm}rrrp{2.0cm}', r'Date & Entry & \dm & F1 & mAP & Change', rows))
 # ---------------- post-processing ablation over seeds
 files = sorted(glob.glob(str(RES / 'pp_ablation_*.json'))); runs = [json.load(open(f)) for f in files]
@@ -46,6 +50,20 @@ if runs:
     cap = f"Cumulative post-processing and averaging on full-length runs (n={len(runs)} seed{'s' if len(runs) > 1 else ''}; \\texttt{{trainvl}} $\\to$ \\texttt{{vallike}}). Step gains are paired on one seed's weights; \\dm{{}} uses the val reference, on a local split, so its absolute level is not comparable to the board."
     s = table('tab:pp', cap, 'lrrrr', r'Step (cumulative) & mAP & F1 & $\Delta$mAP & $\Delta$\dm', rows)
     w('pp.tex', s)
+    finals = [next(x for x in r['results'] if x['name'] == '+ lattice snap (FINAL)') for r in runs]
+    seed_rows = [f"{i} & {r['mAP']:.2f} & {r['F1']:.2f} & {r['AP50']:.2f} & {r['dm']:.2f}" for i, r in enumerate(finals)]
+    seed_rows.append('Mean and sample std & ' + ' & '.join(pm([r[k] for r in finals]) for k in ('mAP', 'F1', 'AP50', 'dm')))
+    w('pp_seeds.tex', table('tab:pp_seeds', r'Full-length FINAL results on \texttt{vallike}. Seed 0 uses DDP; seeds 1 and 2 use one GPU (Table A58). $\dm$ uses official val references 93.31 / 26.13.', 'lrrrr', r'Seed & mAP & F1 & AP50 & \dm', seed_rows))
+    removals = {
+        'FINAL without snap': 'without snap', 'FINAL min_keep 30': 'min_keep 30',
+        'FINAL no fusion': 'no fusion', 'FINAL hard fusion': 'hard fusion',
+        'FINAL sigma 0.75': r'$\sigma$ 0.75', 'FINAL objectness 0.25': r'objectness power 0.25',
+        'FINAL RPN 1000': 'RPN top 1000', 'FINAL last-stage box': 'last-stage box',
+        'FINAL shift 0': 'shift 0', 'FINAL shift -0.4': 'shift -0.4',
+        'FINAL lambda 1': r'$\lambda$ 1', 'FINAL single e180': 'single e180', 'FINAL single e160': 'single e160',
+    }
+    removal_rows = [f"{label} & {pm([-r['final_minus_variant'][key]['mAP'] for r in runs], 2, True)} & {pm([-r['final_minus_variant'][key]['dm'] for r in runs], 2, True)}" for key, label in removals.items()]
+    w('pp_removals.tex', table('tab:pp_removals', r'Change from FINAL, paired within each full-length run on \texttt{vallike}; mean and sample std across three runs. Negative means worse. These removals are not additive cumulative steps.', 'lrr', r'Change from FINAL & $\Delta$mAP & $\Delta$\dm', removal_rows))
 else:
     w('pp.tex', '\\begin{table}[t]\\caption{%s}\\label{tab:pp}\\end{table}\n' % PEND)
 # ---------------- leave-one-out
@@ -103,7 +121,7 @@ sys.path.insert(0, str(HERE / 'src'))
 from tex2md import tex_table_to_md, Conv
 vals = {'\\PTWO': cfg['phase2_score'], '\\GPUH': cfg['gpu_hours'], '\\TEAMMATES': cfg['teammates']}
 frag = {}
-for key, num in (('official', 'Table 1'), ('loo', 'Table 2'), ('pp', 'Table 3'), ('negative', 'Table 4'), ('terms', 'Table 5')):
+for key, num in (('official', 'Table 1'), ('loo', 'Table 2'), ('pp', 'Table 3'), ('negative', 'Table 4'), ('terms', 'Table 5'), ('pp_seeds', 'Table A59a'), ('pp_removals', 'Table A59b')):
     t = (HERE / 'tables' / f'{key}.tex').read_text()
     for k, v in vals.items(): t = t.replace(k, v)
     frag[key] = re.sub(r'(?<=\S) {2,}(?=\S)', ' ', tex_table_to_md(t, num)) if 'tabular' in t else f'**{num}.** TBD'

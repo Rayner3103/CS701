@@ -1,6 +1,8 @@
 {
-"teammates": "TBD",
-"phase2_score": "61.25",
-"gpu_hours": "TBD",
-"twin_seeds": "1 finished, 2 running (TBD)"
+  "teammates": "TBD",
+  "phase2_score": "61.25",
+  "gpu_hours": "514",
+  "twin_seeds": "3",
+  "leaderboard_snapshot_file": "leaderboard_phase2_2026-11-08.json",
+  "report_date": "2026-11-08"
 }
