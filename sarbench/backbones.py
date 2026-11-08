@@ -1,8 +1,15 @@
 """The backbones, built for 512 px input. Plain ViTs map images [B, 1, 512, 512] -> patch tokens [B, N, D];
 the ConvNeXt maps them to four feature maps at strides 4, 8, 16 and 32."""
 import timm
-from terratorch.registry import BACKBONE_REGISTRY  # as in the reference: this import also switches fp32 matmuls to TF32
+import torch
 from torch import nn
+
+try:  # as in the reference: this import also switches fp32 matmuls to TF32
+    from terratorch.registry import BACKBONE_REGISTRY
+except ImportError:  # terratorch is only needed for the TerraMind backbone; keep its TF32 side effect
+    BACKBONE_REGISTRY = None
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
 
 
 def forward_tokens(backbone, x):
@@ -105,6 +112,8 @@ class TerraMind(nn.Module):
 
     def __init__(self, pretrained: bool):
         super().__init__()
+        if BACKBONE_REGISTRY is None:
+            raise ImportError('terratorch is required for the TerraMind backbone')
         self.terramind = BACKBONE_REGISTRY.build('terratorch_terramind_v1_base', pretrained=pretrained,
                                                  modalities=['S1GRD'])
         self.embed_dim = 768
