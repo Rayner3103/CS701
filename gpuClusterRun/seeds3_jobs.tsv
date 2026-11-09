@@ -1,0 +1,72 @@
+# Missing seeds (target 0,1,2) of every 24-epoch config. Tab-separated; read by seeds3.sh. Longest job first within a kind.
+# est_h = expected hours alone on an RTX 3090 (local RTX 3080 hours / 1.15); gb = approx peak model memory; smoke=1: the job SMOKE=1 runs.
+# id	kind	est_h	gb	seed	smoke	data	name	args
+os3_dinov3_lora_mlp_cascade-s1	bench	7.44	7.0	1	1	os3	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp --cascade --cascade-checkpoint
+os3_dinov3_lora_mlp_cascade-s2	bench	7.44	7.0	2	0	os3	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp --cascade --cascade-checkpoint
+dinov3_lora_mlp_cascade-s1	bench	3.74	7.0	1	1	course	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp --cascade --cascade-checkpoint
+dinov3_lora_mlp_cascade-s2	bench	3.74	7.0	2	0	course	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp --cascade --cascade-checkpoint
+tm_moelora_sp-s1	bench	2.57	8.7	1	1	course	-	--backbone terramind --init pretrained --adapt moelora --spatial-prior
+tm_moelora_sp-s2	bench	2.57	8.7	2	0	course	-	--backbone terramind --init pretrained --adapt moelora --spatial-prior
+vit_moelora_sp-s1	bench	2.46	7.6	1	1	course	-	--backbone vit --init pretrained --adapt moelora --spatial-prior
+vit_moelora_sp-s2	bench	2.46	7.6	2	0	course	-	--backbone vit --init pretrained --adapt moelora --spatial-prior
+tm_moelora-s1	bench	2.34	7.5	1	1	course	-	--backbone terramind --init pretrained --adapt moelora
+tm_moelora-s2	bench	2.34	7.5	2	0	course	-	--backbone terramind --init pretrained --adapt moelora
+vit_moelora-s1	bench	2.23	6.4	1	1	course	-	--backbone vit --init pretrained --adapt moelora
+vit_moelora-s2	bench	2.23	6.4	2	0	course	-	--backbone vit --init pretrained --adapt moelora
+dinov3_lora_mlp-s1	bench	1.83	5.3	1	1	course	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp
+dinov3_lora_mlp-s2	bench	1.83	5.3	2	0	course	-	--backbone dinov3 --init pretrained --adapt lora --lora-targets attn+mlp
+tm_lora_sp-s1	bench	1.81	5.8	1	1	course	-	--backbone terramind --init pretrained --adapt lora --spatial-prior
+tm_lora_sp-s2	bench	1.81	5.8	2	0	course	-	--backbone terramind --init pretrained --adapt lora --spatial-prior
+dinov3_adaptformer_lora-s1	bench	1.75	4.7	1	1	course	-	--backbone dinov3 --init pretrained --adapt adaptformer_lora
+dinov3_adaptformer_lora-s2	bench	1.75	4.7	2	0	course	-	--backbone dinov3 --init pretrained --adapt adaptformer_lora
+vit_lora_sp-s1	bench	1.75	5.2	1	1	course	-	--backbone vit --init pretrained --adapt lora --spatial-prior
+vit_lora_sp-s2	bench	1.75	5.2	2	0	course	-	--backbone vit --init pretrained --adapt lora --spatial-prior
+dinov3_adaptformer_b256-s1	bench	1.65	4.3	1	1	course	-	--backbone dinov3 --init pretrained --adapt adaptformer --bottleneck 256
+dinov3_adaptformer_b256-s2	bench	1.65	4.3	2	0	course	-	--backbone dinov3 --init pretrained --adapt adaptformer --bottleneck 256
+dinov3_adaptformer-s1	bench	1.64	4.3	1	1	course	-	--backbone dinov3 --init pretrained --adapt adaptformer
+dinov3_adaptformer-s2	bench	1.64	4.3	2	0	course	-	--backbone dinov3 --init pretrained --adapt adaptformer
+tm_lora-s1	bench	1.58	4.7	1	1	course	-	--backbone terramind --init pretrained --adapt lora
+tm_lora-s2	bench	1.58	4.7	2	0	course	-	--backbone terramind --init pretrained --adapt lora
+vit_lora-s1	bench	1.53	4.1	1	1	course	-	--backbone vit --init pretrained --adapt lora
+vit_lora-s2	bench	1.53	4.1	2	0	course	-	--backbone vit --init pretrained --adapt lora
+os3_dinob_lora256-s1	yolo	3.65	5	1	1	yolo-os3	aug_os3_dinob_lora256_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-rank 256
+os3_dinob_lora256-s2	yolo	3.65	5	2	0	yolo-os3	aug_os3_dinob_lora256_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-rank 256
+dinob_loramlp-s1	yolo	1.95	3.8	1	1	yolo	dinob_loramlp_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-targets attn.qkv attn.proj mlp.fc1 mlp.fc2
+dinob_loramlp-s2	yolo	1.95	3.8	2	0	yolo	dinob_loramlp_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-targets attn.qkv attn.proj mlp.fc1 mlp.fc2
+dinob_lora16_yolo26m-s1	yolo	1.9	7.3	1	1	yolo	dinob_lora_yolo26m_ep24	--yolo yolo26m --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt
+dinob_lora16_yolo26m-s2	yolo	1.9	7.3	2	0	yolo	dinob_lora_yolo26m_ep24	--yolo yolo26m --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt
+dinob_lora256-s2	yolo	1.83	5	2	1	yolo	dinob_lora256_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-rank 256
+dinob_lora16-s2	yolo	1.77	3.7	2	1	yolo	dinob_lora_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt
+dinob_lora_unf2-s1	yolo	1.77	4.7	1	1	yolo	dinob_lora_unf2_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --dino-unfreeze 2
+dinob_lora_unf2-s2	yolo	1.77	4.7	2	0	yolo	dinob_lora_unf2_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --dino-unfreeze 2
+dinob_lora64-s1	yolo	1.76	4.5	1	1	yolo	dinob_lora64_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-rank 64
+dinob_lora64-s2	yolo	1.76	4.5	2	0	yolo	dinob_lora64_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt lora --dino-grad-ckpt --lora-rank 64
+os3_dino_yolo26s-s1	yolo	1.64	6.1	1	1	yolo-os3	aug_os3_dino_yolo26s_ep24	--yolo yolo26s
+os3_dino_yolo26s-s2	yolo	1.64	6.1	2	0	yolo-os3	aug_os3_dino_yolo26s_ep24	--yolo yolo26s
+dino_yolo26s_p2-s1	yolo	1.34	7	1	1	yolo	dino_yolo26s-p2_ep24	--yolo yolo26s-p2
+dino_yolo26s_p2-s2	yolo	1.34	7	2	0	yolo	dino_yolo26s-p2_ep24	--yolo yolo26s-p2
+os2_dino_yolo26s-s1	yolo	1.24	6.1	1	1	yolo-os2	aug_os2_dino_yolo26s_ep24	--yolo yolo26s
+os2_dino_yolo26s-s2	yolo	1.24	6.1	2	0	yolo-os2	aug_os2_dino_yolo26s_ep24	--yolo yolo26s
+os2paste_dino_yolo26s-s1	yolo	1.23	6.1	1	1	yolo-os2paste	aug_os2paste_dino_yolo26s_ep24	--yolo yolo26s
+os2paste_dino_yolo26s-s2	yolo	1.23	6.1	2	0	yolo-os2paste	aug_os2paste_dino_yolo26s_ep24	--yolo yolo26s
+os2pasteall_dino_yolo26s-s1	yolo	1.23	6.1	1	1	yolo-os2pasteall	aug_os2pasteall_dino_yolo26s_ep24	--yolo yolo26s
+os2pasteall_dino_yolo26s-s2	yolo	1.23	6.1	2	0	yolo-os2pasteall	aug_os2pasteall_dino_yolo26s_ep24	--yolo yolo26s
+dinob_unf2-s1	yolo	1.05	5.2	1	1	yolo	dinob_unf2_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen --dino-unfreeze 2
+dinob_unf2-s2	yolo	1.05	5.2	2	0	yolo	dinob_unf2_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen --dino-unfreeze 2
+dino_yolo12s-s1	yolo	0.86	6.5	1	1	yolo	dino_yolo12s_ep24	--yolo yolo12s
+dino_yolo12s-s2	yolo	0.86	6.5	2	0	yolo	dino_yolo12s_ep24	--yolo yolo12s
+dino_yolo12s_cls-s1	yolo	0.86	6.5	1	1	yolo	dino_yolo12s_cls_ep24	--yolo yolo12s --cls-head
+dino_yolo12s_cls-s2	yolo	0.86	6.5	2	0	yolo	dino_yolo12s_cls_ep24	--yolo yolo12s --cls-head
+dino_yolo12s_rot90-s1	yolo	0.85	6.5	1	1	yolo	dino_yolo12s_rot90_ep24	--yolo yolo12s --rot90 0.75
+dino_yolo12s_rot90-s2	yolo	0.85	6.5	2	0	yolo	dino_yolo12s_rot90_ep24	--yolo yolo12s --rot90 0.75
+dino_yolo26s_rot90-s1	yolo	0.82	6.1	1	1	yolo	dino_yolo26s_rot90_ep24	--yolo yolo26s --rot90 0.75
+dino_yolo26s_rot90-s2	yolo	0.82	6.1	2	0	yolo	dino_yolo26s_rot90_ep24	--yolo yolo26s --rot90 0.75
+dino_yolo26s-s2	yolo	0.8	6.1	2	1	yolo	dino_yolo26s_ep24	--yolo yolo26s
+dinob_frozen-s1	yolo	0.64	3.1	1	1	yolo	dinob_frozen_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen
+dinob_frozen-s2	yolo	0.64	3.1	2	0	yolo	dinob_frozen_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen
+os3_yolo26s_plain-s1	yolo	0.59	3	1	1	yolo-os3	aug_os3_yolo26s_ep24	--yolo yolo26s --dino none
+os3_yolo26s_plain-s2	yolo	0.59	3	2	0	yolo-os3	aug_os3_yolo26s_ep24	--yolo yolo26s --dino none
+dinob_unf4-s1	yolo	0.53	6.4	1	1	yolo	dinob_unf4_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen --dino-unfreeze 4
+dinob_unf4-s2	yolo	0.53	6.4	2	0	yolo	dinob_unf4_yolo26s_ep24	--yolo yolo26s --dino vit_base_patch16_dinov3.lvd1689m --dino-adapt frozen --dino-unfreeze 4
+yolo26s_plain-s1	yolo	0.29	3	1	1	yolo	yolo26s_ep24	--yolo yolo26s --dino none
+yolo26s_plain-s2	yolo	0.29	3	2	0	yolo	yolo26s_ep24	--yolo yolo26s --dino none
