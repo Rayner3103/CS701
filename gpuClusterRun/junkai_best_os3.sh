@@ -54,32 +54,40 @@
 # Junkai's recipe: ~40+ GPU-hours on one GPU, i.e. a chain of 2-3 allocations of 24 h (a job cut off resumes from its
 # last epoch: training_state.pt is saved every epoch). Rough per-epoch time on one RTX 6000 Ada: 6-7 min plain, 13 min os3.
 #
-# Submit from the repo (cs701-sar-benchmark), a chain of allocations (afterany), see gpuClusterRun/junkai_best_os3_submit.sh:
-#   bash gpuClusterRun/junkai_best_os3_submit.sh smoke    # 3 epochs on 64 images, then average / predict / score: ~30 min
-#   bash gpuClusterRun/junkai_best_os3_submit.sh          # OS=3, a chain of 4 allocations (the last ones end in seconds)
-#   OS=1 bash gpuClusterRun/junkai_best_os3_submit.sh     # the control without oversampling (about half the time)
-# or one allocation:  sbatch gpuClusterRun/junkai_best_os3.sh
+# Submit from the repo (cs701-sar-benchmark), after the pre-run (junkai_best_os3_prepare.sh):
+#   sbatch --time=01:00:00 gpuClusterRun/junkai_best_os3.sh --smoke   # 3 epochs on 64 images, then average / predict / score: ~30 min
+#   sbatch gpuClusterRun/junkai_best_os3.sh                           # the real run, OS=3: trains up to 23.5 h, then stops
+#   OS=1 sbatch gpuClusterRun/junkai_best_os3.sh                      # the control without oversampling (about half the time)
+# One allocation trains for at most WALL_H hours and stops; submit it again (or chain it) until the log says "finished" and
+# delta_m_vallike.json exists: every allocation resumes from the last epoch and one that has nothing left ends in seconds.
+# Chain, for example 3 allocations one after the other:
+#   j=$(sbatch --parsable gpuClusterRun/junkai_best_os3.sh)
+#   j=$(sbatch --parsable --dependency=afterany:$j gpuClusterRun/junkai_best_os3.sh)
+#   j=$(sbatch --parsable --dependency=afterany:$j gpuClusterRun/junkai_best_os3.sh)
 # Settings, as environment variables (sbatch exports them); do not change them between the allocations of one run:
 #   OS=3           oversampling factor of the small-object images (1: control)
 #   SEED=0         training seed
-#   SMOKE=1        3-epoch pipeline check on 64 images (use --time=01:00:00), into runs/junkai_os3_smoke
-#   DATA=DIR       SARFact-Course-20K (default ../dataset/SARFact-Course-20K); the trainvl / vallike files are built into
-#                  it once (additive: classification/{trainvl,vallike}.csv, detection/instances_*.json, vallike_split.json)
+#   --smoke        (argument after the script name, or SMOKE=1) 3-epoch pipeline check on 64 images, into runs/junkai_os3_smoke
+#   DATA=DIR       SARFact-Course-20K (default ../dataset/SARFact-Course-20K), prepared by the pre-run
 #   OFFLINE=1      do not contact Hugging Face: the DINOv3 weights must already be in the cache (see below)
 #   WALL_H=23.5    hours of training per allocation; the rest of the 24 h is for averaging, prediction and scoring
 #   EXTRA="..."    more arguments for train.py (e.g. EXTRA="--batch-size 8" if the GPU is too small for batch 16 with gradient
 #                  checkpointing: this changes the recipe)
 #
-# Once, on the login node (compute nodes may have no internet), with the venv active:
-#   pip install -r junkai_os3/requirements.txt          # torch, timm 1.0.24, terratorch, torchgeo, pycocotools (the reference env)
-#   python -c "import timm; timm.create_model('vit_base_patch16_dinov3.lvd1689m', pretrained=True)"   # DINOv3 weights
-# and the data, next to the repo (docs/setup.md): ../dataset/SARFact-Course-20K   (the job builds trainvl / vallike itself)
-# If the job fails with a connection error, resubmit with OFFLINE=1.
+# Pre-run, once, on the login node (internet, no GPU): bash gpuClusterRun/junkai_best_os3_prepare.sh
+#   (venv packages, data conversion into ../dataset/SARFact-Course-20K, trainvl / vallike split, DINOv3 weights, a check).
+# This script then only trains and scores. If it fails with a connection error, resubmit with OFFLINE=1.
 # Results, in runs/junkai_os3/<name>/ :  delta_m_vallike.json (F1, mAP, AP50, delta_m with and without snapping, per-class AP),
 # avg_model.pt (the averaged weights), raw_vallike.pt, predict_vallike.log (pycocotools cross-check), log.txt (training).
 
 set -euo pipefail
 T0=$(date +%s)
+for arg in "$@"; do
+    case "$arg" in
+        --smoke) SMOKE=1 ;;
+        *) echo "unknown argument $arg (only --smoke)"; exit 2 ;;
+    esac
+done
 
 # Purge the environment, load the modules we require.
 # Refer to https://violet.scis.dev/docs/Advanced%20settings/module for more information
@@ -87,7 +95,7 @@ module purge
 module load Python/3.12.8-GCCcore-13.3.0
 
 # This command assumes that you've already created the environment previously
-# python3.12 -m venv ~/myenv && source ~/myenv/bin/activate && pip install -r junkai_os3/requirements.txt
+# (created and filled by the pre-run, or: python3.12 -m venv .venv && pip install -r junkai_os3/requirements.txt)
 source "/common/home/users/r/rayner.sim.2024/repos/CS701/cs701-sar-benchmark/.venv/bin/activate"
 
 # sbatch runs a copy of this script, so the repo is found from the directory the job was submitted from
@@ -95,9 +103,9 @@ cd "${SLURM_SUBMIT_DIR:-$PWD}"
 [ -f junkai_os3/train.py ] || { [ -f ../junkai_os3/train.py ] && cd ..; } || { echo "junkai_os3/train.py not found: submit from cs701-sar-benchmark"; exit 1; }
 REPO=$(pwd)
 python -c "import torch, timm, terratorch, pycocotools" 2>/dev/null \
-    || { echo "missing Python packages in the venv: pip install -r junkai_os3/requirements.txt"; exit 1; }
+    || { echo "missing Python packages in the venv: run gpuClusterRun/junkai_best_os3_prepare.sh on the login node"; exit 1; }
 DATA="${DATA:-$REPO/../dataset/SARFact-Course-20K}"
-[ -d "$DATA/detection" ] || { echo "no $DATA (docs/setup.md)"; exit 1; }
+[ -d "$DATA/detection" ] || { echo "no $DATA: run gpuClusterRun/junkai_best_os3_prepare.sh on the login node first"; exit 1; }
 
 OS="${OS:-3}"
 SEED="${SEED:-0}"
@@ -128,10 +136,10 @@ if [ -f "$RUN/delta_m_vallike.json" ]; then
     exit 0
 fi
 
-# trainvl (8,400) / vallike (992): built once into the dataset folder, as in Junkai's report
-if [ ! -f "$DATA/classification/vallike.csv" ] || [ ! -f "$DATA/detection/instances_trainvl.json" ]; then
-    python -I junkai_os3/tools/make_vallike_split.py --data "$DATA"
-fi
+# the data and the trainvl / vallike split come from the pre-run (login node): gpuClusterRun/junkai_best_os3_prepare.sh
+for f in classification/vallike.csv classification/trainvl.csv detection/instances_vallike.json detection/instances_trainvl.json; do
+    [ -f "$DATA/$f" ] || { echo "missing $DATA/$f: run  bash gpuClusterRun/junkai_best_os3_prepare.sh  on the login node first"; exit 1; }
+done
 
 cd junkai_os3   # its own sarbench/ must be the one imported, not the repo root's
 RUN="../$RUN"; OUT="../$OUT"
