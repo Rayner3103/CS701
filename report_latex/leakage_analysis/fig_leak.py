@@ -21,8 +21,9 @@ rng = np.random.default_rng(int(sys.argv[3]) if len(sys.argv) > 3 else 1)
 pick = [rng.choice(np.where((px >= .95) & (v > 0))[0]),
         rng.choice(np.where((s > .955) & (s < .965) & (px < .3))[0]),
         rng.choice(np.where((s > .88) & (s < .90))[0])]
-fig = plt.figure(figsize=(3.4, 2.75))
-gs = fig.add_gridspec(2, 1, height_ratios=[0.62, 1.25], hspace=0.30)
+ONLY = len(sys.argv) > 4
+fig = plt.figure(figsize=(3.4, 1.05) if ONLY else (3.4, 2.75))
+gs = fig.add_gridspec(1, 1, top=0.78, bottom=0.12) if ONLY else fig.add_gridspec(2, 1, height_ratios=[0.62, 1.25], hspace=0.30)
 top = gs[0].subgridspec(1, 6, wspace=0.05)
 ttl = ['exact copy', 'near copy', 'no copy']
 for c, i in enumerate(pick):
@@ -34,8 +35,10 @@ for c, i in enumerate(pick):
         ax.set_xlabel(lab, fontsize=6.5, labelpad=1)
     sub = f'cos {s[i]:.3f}' + (f', {VIEW[v[i]]}' if c == 0 else '')
     p0, p1 = axs[0].get_position(), axs[1].get_position(); xc = (p0.x0 + p1.x1) / 2
-    fig.text(xc, p0.y1 + 0.045, ttl[c], ha='center', fontsize=7.5, weight='bold', color=NAVY)
-    fig.text(xc, p0.y1 + 0.012, sub, ha='center', fontsize=6.3, color=INK)
+    fig.text(xc, p0.y1 + (0.15 if ONLY else 0.045), ttl[c], ha='center', fontsize=7.5, weight='bold', color=NAVY)
+    fig.text(xc, p0.y1 + (0.035 if ONLY else 0.012), sub, ha='center', fontsize=6.3, color=INK)
+if ONLY:
+    fig.savefig(OUT, bbox_inches='tight', pad_inches=0.02, dpi=400); sys.exit()
 b = json.load(open(D / 'bands_all.json'))
 models = [('YOLO11-L', 'submission-val-yolo11l-alltrain96-seed0.zip', GREY), ('ConvNeXt-S', 'submission-val-rcnn-v3-pp-softnms-obj-shift-stagemean-fused.zip', TEAL),
           ('F2', 'F2_full_val_shift-0.2.zip', '#8FA3CC'), ('SC2', 'SC2_e130_val_shift-0.2.zip', BLUE), ('F3', 'F3_avg120-140_val_shift-0.2.zip', AMBER)]

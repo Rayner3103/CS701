@@ -17,3 +17,10 @@ Inputs: the course data (`train/`, `val/`) and, from `hf download doem1997/cs701
 5. `fig_leak.py DIR out.png 2` — Figure 4.
 
 `results/` holds the outputs used in the paper (`bands_all.json`, `bands_f3e130.json`, bootstrap logs, `nn.npz`, `pix.npz`). Note: `pycocotools`' `COCOeval.accumulate(p)` indexes image subsets wrongly, so subset mAP is computed by rebuilding `evalImgs` (checked against a fresh `COCOeval` on the subset).
+6. `shiftcheck.py DIR` — shift/scale-tolerant template matching (OpenCV, centre and quadrant crops, scales 0.8/1/1.25) of each near/none pair → `shift.npz`; prints the verified share per tier and a random-pair control (0.2% false positives). `score_strict.py` re-scores the none tier without the pairs it verifies (`bands_strict.json`).
+
+Figure 4 is `fig_leak.py DIR figures/leakage_pairs.png 2 only` (image row only); `leakage.png` is the older version with the bar chart.
+
+## Reproducing the final entry
+
+Training, prediction, checkpoint averaging and snapping code is on branch `junkai` under `backups/final/materials/code` (see its README and `backups/final/materials/experiment_records/backup_56.49/make_submission.sh`). The final checkpoint and the submitted zips are not in git.
