@@ -39,8 +39,10 @@ CS701 Deep Learning and Vision, Team 7, Singapore Management University
 One model must classify a synthetic aperture radar (SAR) image into nine scene classes and detect all of its objects, half of which are smaller than one $16{\times}16$ ViT patch, with at most 130\,M parameters, 40\,M of them trainable, and one forward pass at $\le512$\,px.
 We keep a DINOv3 ViT-B/16 frozen and spend the trainable budget on rank-80 LoRA and a three-stage Cascade R-CNN rebuilt for tiny boxes: 6\,px anchors matched by $\max(\mathrm{IoU},\mathrm{NWD})$, IoU thresholds that relax with box size, a pixel-level CNN prior, and a fix for a $-0.3$\,px annotation bias that ordinary flips double.
 Zero-cost steps on one set of weights (checkpoint averaging, image--box score fusion, soft-NMS and snapping to an annotation lattice) add a further ${\approx}3.6$\,\dm.
-The entry scores \dm{} 56.49 on the validation board and 61.25 on the test board (macro-F1 96.96, mAP 55.74), third of nine teams at the 8 Nov board snapshot.
-A parallel CNN line (YOLO11, ConvNeXt Cascade R-CNN) plateaued at \dm{} 40.35, and three cases show that gains seen in short runs or on one local holdout shrink by $5$--$10\times$ or vanish on the board.
+The entry scores \dm{} 56.49 on the validation board and 61.25 on the test board (macro-F1 96.96, mAP 55.74).
+With the released labels we audit train--test leakage: 32\% of validation images are pixel copies of a training image under a flip or $90^\circ$ rotation (only 4\% of these unrotated, so a file-hash check misses them), and a further 31\% are, by inspection, mostly shifted or cropped views of a training scene.
+Every model reaches F1 100 on the copies, and the mAP spread between our entries falls from 25 points on copies to under 5 on scenes without a copy, where a YOLO11-L that trails by 14\,\dm{} on the board is level with our 150-epoch ViT. The board progress of the ViT line is concentrated on leaked images; we quantify this and propose a leakage-aware protocol for fair testing.
+A parallel CNN line plateaued at \dm{} 40.35, and three cases show local gains shrinking by $5$--$10\times$ on the board.
 \end{abstract}
 
 %-------------------------------------------------------------------------
@@ -55,9 +57,9 @@ The task couples two outputs from one image: a scene label (macro-F1) and boxes 
 \end{equation}
 with a ViT-B + LoRA reference of 93.31 / 26.13 on validation and 93.99 / 25.41 on test. Since $F1_\text{ref}$ is already high, one mAP point is worth 1.91\,\dm{} and one F1 point only 0.54: \textbf{the score is earned by detection}, which became our first design decision.
 
-Three properties of the data then shaped the model (\cref{fig:data}). (i) \textbf{Boxes are tiny}: 18.4\% of the 32{,}533 boxes have side $<8$\,px and 50.5\% are below 16\,px, \ie below one ViT token. (ii) \textbf{Localisation, not recognition, is the bottleneck}: our AP falls from ${\approx}75$ at IoU\,0.5 to ${\approx}22$ at 0.9. (iii) \textbf{Annotations carry structure}: a systematic sub-pixel offset, an integer coordinate lattice for some classes, about 10\% near-duplicate images, and two classes (bridge, playground) whose labels appear only partly recoverable from SAR.
+Three properties of the data then shaped the model (\cref{fig:data}). (i) \textbf{Boxes are tiny}: 18.4\% of the 32{,}533 boxes have side $<8$\,px and 50.5\% are below 16\,px, \ie below one ViT token. (ii) \textbf{Localisation, not recognition, is the bottleneck}: our AP falls from ${\approx}75$ at IoU\,0.5 to ${\approx}22$ at 0.9. (iii) \textbf{Annotations carry structure}: a systematic sub-pixel offset, an integer coordinate lattice for some classes, and two classes (bridge, playground) that our ViT models detect well (AP 65--84) only on exact copies of training images and hardly at all (AP ${\approx}2$) on unseen scenes. (iv) \textbf{The splits leak}: the course data pools SARDet-100K \cite{li2024sardet}, RSAR \cite{zhang2025rsar}, M4-SAR \cite{wang2025m4sar} and HRSID \cite{wei2020hrsid}; according to the organisers' investigation, the first three tiled and augmented large scenes before splitting, so about two thirds of validation and test images have a flipped, rotated, shifted or cropped copy in train.
 
-Our objectives were therefore to (1) adapt a strong generic backbone within 40\,M trainable parameters without destroying its features, (2) make a ViT detector work below its patch size, (3) extract every zero-cost gain from a single forward pass, and (4) build an evaluation protocol that tells real gains from noise. Our contributions are a tiny-object Cascade on a frozen DINOv3, a set of data-driven processing steps, and a candid account of what did not transfer from local runs to the board.
+Our objectives were therefore to (1) adapt a strong generic backbone within 40\,M trainable parameters without destroying its features, (2) make a ViT detector work below its patch size, (3) extract every zero-cost gain from a single forward pass, and (4) tell real gains from noise and from memorisation. Our contributions are a tiny-object Cascade on a frozen DINOv3, a set of data-driven processing steps, and a leakage audit with the released labels (\cref{sec:leak}) that re-scores our entries on unseen scenes and shows which conclusions survive.
 
 \begin{figure}[t]
   \centering
@@ -80,6 +82,8 @@ Our objectives were therefore to (1) adapt a strong generic backbone within 40\,
 \textbf{Detectors.} Two-stage detectors \cite{ren2015faster} with FPN \cite{lin2017fpn} are accurate but tied to anchors; Cascade R-CNN \cite{cai2018cascade} refines boxes in stages with rising IoU thresholds, which directly targets strict-IoU AP. One-stage YOLO detectors \cite{redmon2016yolo} and DETR-style real-time detectors \cite{zhao2024rtdetr} are fast and simple to train, but in our runs they were weaker at strict IoU on tiny boxes. ViTDet \cite{li2022vitdet} builds a pyramid from a single ViT map, and ViT-Adapter \cite{chen2023vitadapter} injects a CNN spatial prior; we use both ideas in reduced form.
 
 \textbf{Tiny objects.} IoU is unstable for small boxes: a 2\,px offset already drives the IoU of an 8\,px box towards zero. NWD \cite{wang2021nwd} models boxes as Gaussians and replaces IoU in assignment. Soft-NMS \cite{bodla2017softnms} keeps overlapping true positives, and weight averaging along a trajectory \cite{izmailov2018swa,wortsman2022soups} improves a single model at no inference cost.
+
+\textbf{Test-set leakage.} Near-duplicates between train and test inflate benchmark scores: 3\% of CIFAR-10 and 10\% of CIFAR-100 test images have a near-copy in train \cite{barz2020cifair}, and freshly collected test sets expose gaps that reused ones hide \cite{recht2019imagenet}. Exact-hash checks catch only byte-identical files. The SAR benchmarks behind our data \cite{li2024sardet,zhang2025rsar,wang2025m4sar} tile large scenes and augment them before splitting; to our knowledge their official splits have not been audited for such copies.
 
 %-------------------------------------------------------------------------
 \section{Method}
@@ -151,7 +155,7 @@ Our objectives were therefore to (1) adapt a strong generic backbone within 40\,
 
 \subsection{A parallel CNN detector line}
 \label{sec:cnn}
-To test whether a convolutional design with native stride-4 features suits 8\,px targets better, one of us developed a CNN line on the same split and protocol. It started from YOLO11-L (COCO-pretrained) and moved to a torchvision Faster/Cascade R-CNN on a ConvNeXt-T/S backbone (ImageNet-22k) with an FPN over P2--P6. The ConvNeXt-S version keeps the stem and early stages trainable and freezes part of stage 2, giving 62.6\,M total and 39.5\,M trainable parameters. RPN and RoI computations had to stay in FP32, because bf16 autocast snapped boxes to a 2\,px grid. The line then added the same kinds of change as the main model: soft-NMS, image--box score fusion, the box shift, and later 6\,px anchors, an NWD term in the RPN and size-aware IoU.
+To test whether native stride-4 features suit 8\,px targets better, one of us developed a CNN line on the same split: YOLO11-L (COCO), then Faster/Cascade R-CNN on ConvNeXt-T/S (ImageNet-22k) with an FPN over P2--P6 (ConvNeXt-S: 62.6\,M total, 39.5\,M trainable). RPN and RoI ran in FP32, because bf16 snapped boxes to a 2\,px grid. It then adopted the main model's soft-NMS, score fusion and box shift, and later 6\,px anchors, NWD and size-aware IoU.
 
 \subsection{Spending the budget on full blocks}
 \label{sec:unfreeze}
@@ -187,7 +191,7 @@ cos200 & cosine 200, e160 & 95.02 & 53.56 & 53.41 \\
 \label{tab:official}
 \end{table}
 
-\Cref{tab:official} traces the official score. The largest single jump (F2$\to$SC2, $+7.0$\,\dm) came from filling the budget with a wider LoRA and head together with a longer schedule; slower cosines helped twice ($+1.3$, $+0.6$), and the last $3.1$\,\dm{} on validation needed no training at all. We finished Phase 1 third of nine and were third of nine on the test board at the 8 Nov snapshot (the board closed later that day). Our test macro-F1 (96.96) is above both leading teams (96.11, 96.27), whereas their mAP is 5.5 points higher (61.2 \vs 55.7) while their AP50 is only 2.6 higher, so the remaining gap is at strict IoU.
+\Cref{tab:official} traces the official score. The largest single jump (F2$\to$SC2, $+7.0$\,\dm) came from filling the budget with a wider LoRA and head together with a longer schedule; slower cosines helped twice ($+1.3$, $+0.6$), and the last $3.1$\,\dm{} on validation needed no training at all. We were third of nine on both boards at the 8 Nov snapshot; given \cref{sec:leak}, these ranks say more about memorisation than generalisation. Our test macro-F1 (96.96) is above both leading teams (96.11, 96.27), whereas their mAP is 5.5 points higher (61.2 \vs 55.7) while their AP50 is only 2.6 higher, so the remaining gap is at strict IoU.
 
 \subsection{What each part adds}
 
@@ -234,58 +238,80 @@ total & $+1.87$ & $\approx\!+3.6$ \\
 \label{tab:pp}
 \end{table}
 
-\Cref{tab:loo} removes one part at a time. The cascade is the most valuable part ($-7.1$\,\dm{} without it), confirming that the bottleneck is box quality. Capacity is next: shrinking LoRA and the head to 24\,M costs 3.6\,\dm. All three tiny-object changes help (size-aware IoU, small anchors, flip bias, together ${\approx}5.7$\,\dm). NWD matching shows no stable benefit once the other tiny-object parts are present: seed 0 declines and seeds 1--2 improve. Earlier single-seed screens on the 7{,}512 split ranked the same parts in the same order: DINOv3 instead of ImageNet-21k ViT gave $+8.1$ local \dm, LoRA on all linear layers $+18.1$, and the cascade $+21.0$.
+\Cref{tab:loo} removes one part at a time. The cascade is the most valuable part ($-7.1$\,\dm{} without it), confirming that the bottleneck is box quality. Capacity is next: shrinking LoRA and the head to 24\,M costs 3.6\,\dm. All three tiny-object changes help (size-aware IoU, small anchors, flip bias, together ${\approx}5.7$\,\dm). NWD matching shows no stable benefit once the other tiny-object parts are present: seed 0 declines and seeds 1--2 improve.
 \Cref{tab:pp} shows the zero-training steps. Checkpoint averaging is the largest ($+1.38$\,\dm). The flat, low-LR tail of the 200-epoch cosine is exactly where averaging helps. Dropping RPN objectness from the score helps because objectness is poorly calibrated for tiny boxes. Snapping is the only data-mining finding that survived testing: $+0.20$ and $+0.36$ mAP on two holdouts (paired bootstrap $P{\approx}1$).
 
 \subsection{The CNN line and full-block adaptation}
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\linewidth]{figures/cnn_and_unfreeze.pdf}
-  \caption{(a) Official validation \dm{} of the CNN detector line, all trained on the full training set; amber steps reuse the main model's ideas. (b) Screens on the team code at 36 epochs: training the last two ViT blocks fully (amber) leads by ${\approx}2$ mAP on both local splits, but the lead shrinks to $+0.25$ mAP at 150 epochs on the board (\cref{sec:lessons}).}
+  \includegraphics[width=0.86\linewidth]{figures/cnn_and_unfreeze.pdf}
+  \caption{(a) Official validation \dm{} of the CNN detector line, all trained on the full training set; amber steps reuse the main model's ideas. (b) 36-epoch screens: training the last two ViT blocks fully (amber) leads by ${\approx}2$ mAP locally, $+0.25$ at 150 epochs on the board, more on unseen scenes (\cref{sec:leak}).}
   \label{fig:cnn}
 \end{figure*}
 
-\textbf{CNN line} (\cref{fig:cnn}a). YOLO11-L trained on all data reached 37.8 on the board. Faster R-CNN on ConvNeXt-T gave the best macro-F1 of any model at that time (95.3 local) but loose boxes: AP50 was 5 points and AP75 15 points below YOLO11-L. This led to a three-stage cascade and the larger ConvNeXt-S (35.3$\to$37.2). The zero-training steps transferred directly: soft-NMS, score fusion and the box shift gave $+2.8$\,\dm{} on the board with the same weights (mAP 45.0$\to$46.4). The small-object recipe then added only $+0.3$ (46.5 mAP). DETR-style detectors trailed YOLO11-L on our split (DEIMv2-L $-3.4$\,mAP at 48 epochs, RF-DETR-S ${\approx}-12$), and DINOv3 ViT-B with LoRA behind a plain FPN in the same R-CNN scored only 33.2. The main model differs in its ViTDet neck with normalised per-level convolutions, final-norm tokens and a wider cascade head; we did not isolate which of these mattered. With the main line 11\,\dm{} ahead, we moved this compute to it.
+\textbf{CNN line} (\cref{fig:cnn}a). YOLO11-L trained on all data reached 37.8 on the board. Faster R-CNN on ConvNeXt-T gave the best macro-F1 of any model at that time but loose boxes (AP75 15 points below YOLO11-L), which led to a three-stage cascade on ConvNeXt-S. The zero-training steps transferred directly ($+2.8$\,\dm{} with the same weights); the small-object recipe added only $+0.3$. DETR-style detectors trailed YOLO11-L (DEIMv2-L $-3.4$\,mAP, RF-DETR-S ${\approx}-12$), and DINOv3 with LoRA behind a plain FPN in the same R-CNN scored only 33.2, so the main model's ViTDet neck and wide cascade head matter. With the main line 11\,\dm{} ahead on the board we moved this compute to it; on unseen scenes, however, the two are level (\cref{sec:leak}).
 
 \textbf{Full blocks \vs wide LoRA} (\cref{fig:cnn}b). At 36 epochs, training the last two blocks fully (S3) beat the control by $+2.06$ / $+2.21$ mAP on the two local splits, with gains on harbor, wind turbine and airport. Pretrained or random spatial priors added at most $0.4$. A doubled LR diverged. Trained for 150 epochs on all data, however, S3 scored 52.91 mAP on the validation board against 52.66 for the same-length SC2 (+0.25), and averaging epochs 120--140 reached mAP 53.03 / \dm{} 52.56. That is still below BP7, so the final model kept rank-80 LoRA.
 
-\subsection{Data findings and the weak classes}
+\subsection{The weak classes}
 \label{sec:weak}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.49\linewidth]{figures/per_class_ap.png}\hfill
-  \includegraphics[width=0.49\linewidth]{figures/near_duplicates.png}
-  \caption{Left: per-class AP of the final recipe on \emph{vallike}. Right: mAP by similarity to the nearest training image (frozen DINOv3 cosine).}
-  \label{fig:weak}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{figures/patchgrid.png}\\[2pt]
-  \includegraphics[width=\linewidth]{figures/bridge_gt.png}
-  \caption{Visual examples (training images, ground truth). Top: wind turbines; the 5--7\,px boxes sit beside the bright return and inside one 16\,px ViT patch (grid). Bottom: bridge boxes (green), often on dark road crossings with no bright SAR return, which helps explain why bridge AP stays at 8.}
-  \label{fig:examples}
-\end{figure}
-
-\textbf{Near-duplicates.} About 10\% of holdout images have a near-copy in the training set (\cref{fig:weak}, right). Local mAP is 83 on these against 40 for images without one, and playground AP is 87 against 12. This inflates local scores and is why we built \emph{vallike} and required a second confirmation.
-
-\textbf{Bridge and playground.} Bridge stays at AP 8 and playground at 33 (\cref{fig:weak}, left), although wind turbines, which are smaller, reach 79; size alone is not the cause. Only 53\% / 67\% of their boxes receive a proposal at IoU 0.5 (96\% for wind turbines), and bridge$\leftrightarrow$playground accounts for 24 of 48 image-classification errors. Evidence from the CNN line points to the labels. A YOLO11-L reaches playground AP50 62.5 on its own training images but 6.4 held out, so it memorises rather than generalises. 33\% of bridge and 23\% of playground boxes contain no bright SAR return (7\% for wind turbines, 0\% for ships). Shifting, rescaling or swapping the ground-truth boxes never improved the match (identity was always best), and no image feature separated labelled objects from confident unlabelled detections. Positive-unlabelled loss reweighting (41.28 \vs 41.31 mAP), class weights and oversampling all failed to move bridge by more than 0.9 AP; oversampling also cost $-4.2$\,\dm{} on other classes. We conclude that these labels are only partly recoverable from SAR. This remains a limit of the data, not one we could train away.
+On \emph{vallike}, bridge stays at AP 8 and playground at 33, although wind turbines, which are smaller, reach 79. Only 53\% / 67\% of their boxes receive a proposal at IoU 0.5 (96\% for wind turbines), and 33\% of bridge and 23\% of playground boxes contain no bright SAR return (0\% for ships). Re-fitting the ground-truth boxes, positive-unlabelled loss reweighting, class weights and oversampling moved bridge by at most 0.9 AP. \Cref{sec:leak} shows what these classes really measure.
 
 \subsection{What did not work}
 \label{sec:failed}
-\textbf{Augmentation.} $90^\circ$ rotations cost 5--6\,\dm{} on YOLO models and lost 3.7 mAP over 100 epochs on the cascade; copy-paste and zoom also trailed plain flips. We attribute this to SAR geometry: shadow and layover follow the radar look direction, so rotated images are physically implausible. Oversampling images with small objects helped every short run ($+4$ to $+11$\,\dm{} at 24 epochs), but was not tested at full length.
-\textbf{Other.} EMA, an IoU branch, a 1024-RoI batch, overlapping patches (stride 8, $2.6\times$ compute), halving the LR ($-7.2$), a LingBot-B backbone, box voting, rank or size priors, and RoI context were all neutral or harmful. RoI context is the most instructive case: $+2.26$\,\dm{} on one holdout, $-0.12$ on the other and $-0.03$ on the board.
+$90^\circ$ rotations cost 5--6\,\dm{} on YOLO and 3.7 mAP on the cascade; copy-paste and zoom also trailed plain flips, which we attribute to SAR geometry (shadow and layover follow the look direction). EMA, an IoU branch, overlapping patches, a LingBot-B backbone, box voting, size priors and RoI context were neutral or harmful. RoI context is instructive: $+2.26$\,\dm{} on one holdout, $-0.12$ on the other and $-0.03$ on the board.
 
 \subsection{Lessons on evaluation}
 \label{sec:lessons}
-Three independent cases show local gains shrinking by $5$--$10\times$ or vanishing on the board. RoI context went from $+2.26$\,\dm{} to $-0.03$. The CNN small-object recipe went from $+1.47$ holdout mAP to $+0.17$ mAP on the board. Full-block adaptation went from $+2.1$ mAP at 36 epochs to $+0.25$ at 150. The causes are near-duplicates, single-holdout variance and parts whose advantage disappears as the LR decays. Our rule became: short runs rank ideas, and a change is kept only when a second holdout, a full-length run or the board agrees.
+Three cases show local gains shrinking by $5$--$10\times$ on the board: RoI context ($+2.26\to-0.03$\,\dm), the CNN small-object recipe ($+1.47\to+0.17$ mAP) and full-block adaptation ($+2.1$ mAP at 36 epochs $\to+0.25$ at 150). Our rule became: short runs rank ideas, and a change is kept only when a second holdout, a full-length run or the board agrees. \Cref{sec:leak} shows the limit of that rule: all three judges shared the same leakage.
+
+%-------------------------------------------------------------------------
+\section{Train--test leakage}
+\label{sec:leak}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/leakage.png}
+  \caption{Top: validation images and their nearest training image. Bottom: mAP of our entries on the released validation labels by leakage tier.}
+  \label{fig:leak}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & board & \multicolumn{3}{c}{mAP by tier} & \dm{} \\
+\cmidrule(lr){3-5}
+Entry & \dm & exact & near & none & none \\
+\midrule
+1-NN copy, no model & $-19.8$ & 61.1 & 0.0 & 0.0 & $-59.8$ \\
+YOLO11-L & 37.81 & 53.0 & 43.0 & 37.2 & 20.5 \\
+ConvNeXt-S Cascade & 40.07 & 63.0 & 42.3 & 35.7 & 18.7 \\
+F2 (ViT, 120 ep) & 44.85 & 68.9 & 41.7 & 35.8 & 17.2 \\
+SC2 (ViT, 150 ep) & 51.87 & 77.9 & 45.9 & 36.6 & 18.7 \\
+F3 (full blocks) & 52.56 & 78.2 & 46.0 & 40.2 & 26.7 \\
+\bottomrule
+\end{tabular}
+\caption{Official validation entries re-scored by leakage tier (exact 456, near 442, none 528 images). Board \dm{} matches the leaderboard to 0.01.}
+\label{tab:leak}
+\end{table}
+
+The organisers' audit found near-copies of training images in about two thirds of validation and test. We measured this independently with the released labels and re-scored the five entries for which we still hold the validation predictions.
+
+\textbf{Detection of copies.} Each image is embedded with the frozen DINOv3 (global feature, 256\,px). For every validation or test image we take the highest cosine to any training image over its eight flips and $90^\circ$ rotations, then verify the best pair by pixel correlation after undoing that transform. Three tiers follow (\cref{fig:leak}, top). \emph{Exact}: pixel correlation ${\ge}0.8$, 32.0\% of validation and 31.5\% of test. Only 4\% of these are in the original orientation, and a quarter differ in mean intensity by over 20\%, so file hashes, and even a plain nearest-neighbour search (2.5\% above cosine 0.99), miss them. \emph{Near}: cosine ${\ge}0.94$ without a pixel match, 31.0\% / 32.2\%; by inspection these are mostly shifted or cropped views of a training scene. \emph{None}: the remaining 37\% / 36\%. The 63\% leaked share agrees with the organisers' estimate. The training set is as self-similar as the split (median nearest-neighbour cosine without flips 0.941 for train leave-one-out \vs 0.940 for validation), which fits tiling and augmentation before the split. The tiers differ by class: 88\% of wind-turbine images are exact copies, against under 3\% for aircraft, car and ship.
+
+\textbf{What the board measured} (\cref{tab:leak}). (i) Image classification on copies is retrieval: every entry scores F1 100 on the exact tier, and copying the label of the nearest training image already gives F1 86.4 on all of validation. Copying that image's boxes through the inverse flip or rotation scores 61.1 mAP on the exact tier with no detector at all, more than YOLO11-L. (ii) The spread between entries is 25 mAP on exact copies but under 5 on unseen scenes. The F2$\to$SC2 step (wider LoRA, longer schedule, $+7.0$ board \dm) added 8.9 mAP on exact copies, 4.2 on near copies and 0.8 on unseen scenes ($+1.4{\pm}2.7$\,\dm), so it paid off mainly on images with a copy in train. Wind turbines show the same pattern (SC2 AP 85 on exact, 41 on near copies). (iii) YOLO11-L trails SC2 by 14.1\,\dm{} on the board, by $4.4{\pm}1.3$ on all non-exact images, and is level on unseen scenes ($+1.8{\pm}6.6$; bootstrap s.d.). (iv) Full-block adaptation (F3, averaged checkpoints), which we dropped for a $+0.37$ mAP board gain, is ahead on unseen scenes by 3.6 mAP ($+8.0{\pm}2.1$\,\dm) and on all non-exact images by $+1.9{\pm}0.9$; the matched e130 checkpoint gives $+3.3$ mAP on unseen scenes. Much of this comes from airport, harbor and the three unseen wind-turbine images, so the size is uncertain, but the board hid a real difference. (v) Bridge and playground reach AP 84 and 65--70 on exact copies (5 and 23 images) but only ${\approx}2$ on unseen scenes, for both SC2 and F3. Their low scores are not a tuning problem; the models detect them only by recognising training scenes, which is why no reweighting helped (\cref{sec:weak}).
+
+\textbf{Effect on our process.} Our local holdouts were random subsets of train and leak in the same way, so local and board scores agreed while both rewarded memorisation. On 1 Nov we had measured similarity without flips or rotations and counted only cosine ${\ge}0.99$ as a copy (10\%). A nearest-neighbour box transfer gained $+0.5$ mAP locally; we declined it as test-time use of training data, although the copy baseline above shows how much it could have exploited.
+
+\textbf{A fair protocol.} (1) Deduplicate with transform-invariant retrieval (max over the eight flips and rotations, plus crops), verified at pixel level. (2) Split by scene group: connect images whose similarity exceeds a threshold and assign each connected component, or each source scene where source metadata identifies one, to one split. (3) Report the leak-free subset as the headline and per-tier scores beside it, per class, since tiers differ in class mix. (4) Size the clean set for the effects of interest: on our 528 unseen validation images, the bootstrap standard deviation of a model difference is 2--7\,\dm, so gaps below about twice that cannot be resolved. (5) Select models on a scene-grouped holdout rather than random images.
 
 %-------------------------------------------------------------------------
 \section{Conclusion}
-A frozen generic backbone (DINOv3), adapted with wide LoRA and paired with a detector rebuilt for sub-patch objects, carried most of the gain, and patient schedules and careful use of one forward pass supplied the rest. The metric decided where effort went: one mAP point is worth 3.6 F1 points. The remaining gap to the leaders, about 5 mAP, lies at strict IoU on tiny boxes and in two classes whose labels SAR does not fully support.
-\textbf{Limitations.} The submitted model is a single seed; the ablations are 36-epoch runs, and their absolute \dm{} uses the official reference on a local split. Several Phase 1 choices were made on the validation board, so our validation score is optimistic. Most code was written with AI coding assistants directed by the team.
+A frozen generic backbone (DINOv3), adapted with wide LoRA and paired with a detector rebuilt for sub-patch objects, carried most of the gain, and patient schedules and careful use of one forward pass supplied the rest. The metric decided where effort went: one mAP point is worth 3.6 F1 points. The released labels qualify all of this: 63\% of validation and test images have a copy in train, the board rewards memorising them, and on unseen scenes our entries are within about 5 mAP of each other and of a YOLO11-L.
+\textbf{Limitations.} The submitted model is a single seed; the ablations are 36-epoch runs, and their absolute \dm{} uses the official reference on a local split. Several Phase 1 choices were made on the validation board, so our validation score is optimistic. The leakage audit covers the entries whose predictions we kept, not the final entry, and its unseen subset is small. Most code was written with AI coding assistants directed by the team.
 
 \textbf{Compliance.} 125{,}076{,}960 total / 39{,}867{,}360 trainable parameters; one gray $512^2$ input, one pass, no TTA or ensembles; pretrained weights DINOv3 LVD-1689M (none trained on SAR); about 514 GPU-hours for the whole project, including tuning.
 
