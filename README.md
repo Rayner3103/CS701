@@ -1,5 +1,7 @@
 # CS701 Team 7: multi-task learning on SAR images
 
+**[Report (PDF)](report_latex/main.pdf)** · [Checkpoint release](https://github.com/Rayner3103/CS701/releases/tag/final-val-test-checkpoints-20261122) · [How to reproduce](#3-reproduce-the-final-results)
+
 One model classifies a synthetic aperture radar (SAR) image into nine scene classes and detects its objects, within
 the course limits (≤ 40 M trainable parameters, one forward pass at ≤ 512 px). Our final model is a frozen DINOv3
 ViT-B/16 with rank-80 LoRA and a three-stage Cascade R-CNN rebuilt for tiny boxes, followed by zero-cost
@@ -18,6 +20,8 @@ post-processing on one set of averaged weights.
   (report Sec. 5): about a third of validation and test images are flipped or rotated pixel copies of a training image.
 
 ## Contents
+
+**Report:** [report_latex/main.pdf](report_latex/main.pdf)
 
 1. [Task and metric](#1-task-and-metric)
 2. [Final model](#2-final-model)
