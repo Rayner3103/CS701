@@ -23,4 +23,4 @@ Figure 4 is `fig_leak.py DIR figures/leakage_pairs.png 2 only` (image row only);
 
 ## Reproducing the final entry
 
-Training, prediction, checkpoint averaging and snapping code is on branch `junkai` under `backups/final/materials/code` (see its README and `backups/final/materials/experiment_records/backup_56.49/make_submission.sh`). The final checkpoint and the submitted zips are not in git.
+See section 3 of the [repository README](../README.md#3-reproduce-the-final-results): the final checkpoint is in the GitHub release [final-val-test-checkpoints-20261122](https://github.com/Rayner3103/CS701/releases/tag/final-val-test-checkpoints-20261122) (fetched by `backups/final/checkpoints/download.py`), and the training, prediction, averaging and snapping code is at the repo root. The submitted zips are not in git.

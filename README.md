@@ -75,13 +75,12 @@ Two ways:
 
 ### 3.1 Environment
 
-The checkpoint helper is on the `junkai` branch. The model code there is identical to `luat`'s (`train.py`,
-`predict.py`, `sarbench/`, `tools/`), so run every step below from a checkout of `junkai`. Keep this folder layout,
-because the scripts look for the data next to the repo:
+Run every step below from the repo root on `main`. Keep this folder layout, because the scripts look for the data
+next to the repo:
 
 ```
 CS701/
-├── cs701-sar-benchmark/        # this repo, branch junkai
+├── cs701-sar-benchmark/        # this repo
 ├── cs701-sar-course-data/      # raw download from Hugging Face
 └── dataset/SARFact-Course-20K/ # converted training data (only needed to retrain)
 ```
@@ -89,7 +88,7 @@ CS701/
 ```bash
 mkdir CS701 && cd CS701
 git clone https://github.com/Rayner3103/CS701.git cs701-sar-benchmark
-cd cs701-sar-benchmark && git checkout junkai
+cd cs701-sar-benchmark
 
 conda create -n cs701bench python=3.12 -y && conda activate cs701bench
 pip install -r requirements.txt   # torch 2.9.0 / torchvision 0.24.0 for CUDA 12.8, timm 1.0.24
@@ -121,8 +120,7 @@ More detail: [setup.md](setup.md) (Steps 3–4).
 ### 3.3 Get the checkpoint
 
 The release holds two files (about 502 MB): `avg_e100-180.pt`, the 234 trained tensors averaged over epochs
-100–180, and `model.safetensors`, the frozen DINOv3 backbone at the exact revision we used. From the repo root on
-`junkai`:
+100–180, and `model.safetensors`, the frozen DINOv3 backbone at the exact revision we used. From the repo root:
 
 ```bash
 python backups/final/checkpoints/download.py           # downloads both assets into backups/final/checkpoints/ and checks SHA256
@@ -181,13 +179,12 @@ stores file times).
 - **Official**: upload the zip to the [Codabench competition](https://www.codabench.org/competitions/18271)
   (validation or test phase).
 - **Local, validation only**: the organisers released the validation labels after the competition. The leakage-audit
-  scorer on branch `luat` computes macro-F1, mAP and Δm on all validation images (reproduces the leaderboard to 0.01)
-  and per leakage tier. It is not on `junkai`, so add a second worktree:
+  scorer computes macro-F1, mAP and Δm on all validation images (reproduces the leaderboard to 0.01) and per
+  leakage tier:
 
   ```bash
-  git worktree add ../cs701-luat luat
-  python ../cs701-luat/report_latex/leakage_analysis/score_bands.py \
-      ../cs701-luat/report_latex/leakage_analysis/results ../cs701-sar-course-data \
+  python report_latex/leakage_analysis/score_bands.py \
+      report_latex/leakage_analysis/results ../cs701-sar-course-data \
       submissions/val_avg100-180_agn.zip
   ```
 
@@ -241,7 +238,7 @@ the board for a single checkpoint, less after averaging.
 |---|---|
 | Table 1, progression of official scores | [backup_56.49/run/official_scores_phase1.json](backups/final/materials/experiment_records/backup_56.49/run/official_scores_phase1.json); earlier entries in [backups/](backups/) (folder names start with their val Δm) |
 | Table 2, leave-one-out ablations (3 seeds) and Table 3, zero-training steps | [backups/final/materials/experiment_records/report_final_20261105/](backups/final/materials/experiment_records/report_final_20261105/) (`eval_tools/analyze_loo.py`, `eval_tools/ablate_pp.py`, logs) |
-| Table 4 and Fig. 4, train–test leakage audit | [report_latex/leakage_analysis/](report_latex/leakage_analysis/), steps in [report_latex/README.md](report_latex/README.md) (branch `luat`) |
+| Table 4 and Fig. 4, train–test leakage audit | [report_latex/leakage_analysis/](report_latex/leakage_analysis/), steps in [report_latex/README.md](report_latex/README.md) |
 | Fig. 3a, CNN detector line (YOLO11-L, Faster/Cascade R-CNN on ConvNeXt-T/S) | developed by Le Ba Luat; its code and records are not in this repository (summary in report Secs. 3.2 and 4.3) |
 | Fig. 3b and Sec. 4.3, full-block adaptation (F3) | 36-epoch screens: [backups/33.92-…](backups/33.92-8010-36ep-screens-B0-S1-S3-S4-S5-DINOv3-Cascade-NWD-SizeIoU-FlipBias-shift0.2/); 150-epoch F3 entry: [backups/52.56-F3-…](backups/52.56-F3-full150-avg120-140-DINOv3-LoRA48-Unfreeze2-Head1024-Cascade-NWD-SizeIoU-FlipBias-shift0.2/) |
 | All experiment records, in English and Chinese | [backups/final/materials/README.md](backups/final/materials/README.md) |
@@ -265,7 +262,7 @@ sarbench/
 └── training_state.py    exact resume (model, optimizer, schedule, RNG)
 tools/                   checkpoint averaging, submission check, lattice snapping, experiment launchers
 backups/                 experiment records of every main entry; backups/final has the final materials
-report_latex/            the report (LaTeX, figures, leakage audit; branch luat)
+report_latex/            the report (LaTeX, figures, leakage audit)
 docs/                    course baseline README and design notes
 ```
 
