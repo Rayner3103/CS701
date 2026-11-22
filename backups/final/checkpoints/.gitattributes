@@ -1,0 +1,3 @@
+# Exact bytes on every OS: download.py and SHA256SUMS check these files' SHA256,
+# which Windows CRLF conversion (core.autocrlf) would change.
+* -text
