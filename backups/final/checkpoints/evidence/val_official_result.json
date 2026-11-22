@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-11-01T21:15:00+08:00",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9.zip",
+  "sha256": "041b6b0fca84344a38542edfd84468c48f18332184df2d50db8eb6b22028ae9b",
+  "method": "equal parameter average of cos200 ckpts e100..e180 step 10 (9 ckpts), one forward per image; rpn_topn 2000, obj_pow 0, soft-NMS sigma 0.5, stage_box mean, cls_lambda 2, shift -0.2, fusion agn gamma 1 topk 9 (score = (1 - p_bg) * p_img(c))",
+  "weights": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180.pt",
+  "raw": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180_val_raw.pt",
+  "delta_m": 56.49, "macro_f1": 95.27, "mAP": 55.10, "accuracy": 95.58, "AP50": 74.85,
+  "vs_hard_fusion_same_weights": {"delta_m": 0.08, "mAP_pp": 0.04, "F1_pp": 0.0},
+  "local_evidence": "paired bootstrap on lr1x W3 holdouts: agn vs hard val +0.091 [+0.019,+0.176] P=.996, test +0.151 [+0.015,+0.363] P=.992; analysis in scratchpad boot/ (boot_eval.py validated against pycocotools)",
+  "status": "Phase 1 best; to be posted by the user before 2026-11-01 23:59 SGT; Phase 2 default recipe"
+}

@@ -59,3 +59,5 @@ python report/gen_report.py
 ```bash
 report_final/build_materials.sh   # 在仓库根目录运行
 ```
+
+最终 val/test 推理所需的共享 checkpoint、冻结骨干权重已另存于 [GitHub Release](https://github.com/Rayner3103/CS701/releases/tag/final-val-test-checkpoints-20261122)；配置、SHA256 和下载脚本见 [`../checkpoints/README.txt`](../checkpoints/README.txt)。运行 `python3 backups/final/checkpoints/download.py` 可还原到本地最终备份目录。
