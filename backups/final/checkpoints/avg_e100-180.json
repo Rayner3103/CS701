@@ -1,0 +1,62 @@
+{
+  "method": "parameter average, one model, one forward per image",
+  "sources": [
+    {
+      "epoch": 100,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e100.pt",
+      "sha256": "623c2622fad60911a257592d374a2f26cb24ee5c56df36a623a1ff743f54b48f",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 110,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e110.pt",
+      "sha256": "f694f3e2136f4b13774e125a305780bb52ff193f58dad832879e58bd83eaae21",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 120,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e120.pt",
+      "sha256": "8a18baad3e1a2034b9e0d4d76a8a5e420f4586356fefbc45c09d853120d3dde3",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 130,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/full_train/ckpt_e130.pt",
+      "sha256": "d0ed0d9c64af9d31f07b45cf4d79c9e2c0fae4fc026e5c8afbebe1b85f46f569",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 140,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/full_train_e160/ckpt_e140.pt",
+      "sha256": "2a0b51bb9ff9da2d398ef799a5e378bbd9518e267901ae4c88aea2659b25a1e3",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 150,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e150.pt",
+      "sha256": "d099a787d86347b9f1b67f0bb882d19318d00d237ee003bb965835d7100785ba",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 160,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e160.pt",
+      "sha256": "a8de35f3209f2772b5f5c262c3b79a262a568ba570feb623e449157d98ded0de",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 170,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e170.pt",
+      "sha256": "d2e22551d8f61225cab8931ab182575d7fbbe7d35175bafdf77dac97f36ab725",
+      "coefficient": 0.1111111111111111
+    },
+    {
+      "epoch": 180,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e180.pt",
+      "sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a",
+      "coefficient": 0.1111111111111111
+    }
+  ],
+  "tensor_count": 234,
+  "values": 39867360,
+  "output_sha256": "70d5a924a76e281e5b455932bcb49b6bc049d6d59ba017ce58dca2eec3fe9cc6"
+}

@@ -59,3 +59,5 @@ Rebuild the entire bundle on the original server, where the source experiments a
 ```bash
 report_final/build_materials.sh   # from the repository root
 ```
+
+The shared final val/test checkpoint and required frozen backbone weights are available as [GitHub Release assets](https://github.com/Rayner3103/CS701/releases/tag/final-val-test-checkpoints-20261122). Configuration, SHA256 checksums, and download instructions are in [`../checkpoints/README.txt`](../checkpoints/README.txt). Run `python3 backups/final/checkpoints/download.py` from the repository root to restore the weights into the final backup directory.

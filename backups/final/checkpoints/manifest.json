@@ -1,0 +1,103 @@
+{
+  "purpose": "Minimal independent checkpoint backup for official Phase 1 val and Phase 2 test inference",
+  "shared_checkpoint": "avg_e100-180.pt",
+  "average_epochs": [
+    100,
+    110,
+    120,
+    130,
+    140,
+    150,
+    160,
+    170,
+    180
+  ],
+  "frozen_backbone": {
+    "timm_model": "vit_base_patch16_dinov3.lvd1689m",
+    "revision": "c6a5fb7d12bbd3cf3b0079253141c3332aaed7da",
+    "path": "hf_cache/models--timm--vit_base_patch16_dinov3.lvd1689m/snapshots/c6a5fb7d12bbd3cf3b0079253141c3332aaed7da/model.safetensors"
+  },
+  "val": {
+    "delta_m": 56.49,
+    "checkpoint": "avg_e100-180.pt",
+    "postprocess": {
+      "rpn_topn": 2000,
+      "obj_pow": 0,
+      "soft_sigma": 0.5,
+      "stage_box": "mean",
+      "cls_lambda": 2,
+      "shift": -0.2,
+      "fusion": "agn",
+      "gamma": 1,
+      "topk": 9,
+      "min_keep": 30,
+      "snap": false
+    }
+  },
+  "test": {
+    "checkpoint": "avg_e100-180.pt",
+    "planned_final_postprocess": {
+      "same_as": "val",
+      "min_keep": 100,
+      "snap": true
+    },
+    "recorded_delta_m": 61.25,
+    "submission_provenance": "The report cannot verify the exact manually uploaded Phase 2 zip. Both plain and FINAL candidates use this same checkpoint."
+  },
+  "files": [
+    {
+      "path": "avg_e100-180.pt",
+      "bytes": 159543771,
+      "sha256": "70d5a924a76e281e5b455932bcb49b6bc049d6d59ba017ce58dca2eec3fe9cc6",
+      "source": "/home/junkaichen@smu.edu.sg/CS701/.runtime/avg/avg_e100-180.pt",
+      "source_resolved": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180.pt",
+      "release_asset": "avg_e100-180.pt",
+      "download_url": "https://github.com/Rayner3103/CS701/releases/download/final-val-test-checkpoints-20261122/avg_e100-180.pt"
+    },
+    {
+      "path": "avg_e100-180.json",
+      "bytes": 2794,
+      "sha256": "2685780ecdf736e2c285f2405b2d820851c078d9e7aa2434c9f17e2b6f0914b7",
+      "source": "/home/junkaichen@smu.edu.sg/CS701/.runtime/avg/avg_e100-180.json",
+      "source_resolved": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180.json"
+    },
+    {
+      "path": "metrics.json",
+      "bytes": 2536,
+      "sha256": "df1e8f48feaa83890724e93d60b4b767da1af652726fc945e9ee81c7adaff106",
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/metrics.json",
+      "source_resolved": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/metrics.json"
+    },
+    {
+      "path": "hf_cache/models--timm--vit_base_patch16_dinov3.lvd1689m/snapshots/c6a5fb7d12bbd3cf3b0079253141c3332aaed7da/model.safetensors",
+      "bytes": 342579728,
+      "sha256": "1f9ed8a2378d65e24bb710ba522ac9fa7be4e036d7aefb4384ce022833926332",
+      "source": "/home/junkaichen@smu.edu.sg/.cache/huggingface/hub/models--timm--vit_base_patch16_dinov3.lvd1689m/snapshots/c6a5fb7d12bbd3cf3b0079253141c3332aaed7da/model.safetensors",
+      "source_resolved": "/mnt/hdd/junkaichen/hf-cache/hub/blobs/ab/abae05a9dd22aef2e72ec751479d35ae6a576fad4b10eb8c8be8c224a36ddfa7",
+      "release_asset": "model.safetensors",
+      "download_url": "https://github.com/Rayner3103/CS701/releases/download/final-val-test-checkpoints-20261122/model.safetensors"
+    },
+    {
+      "path": "hf_cache/models--timm--vit_base_patch16_dinov3.lvd1689m/refs/main",
+      "bytes": 40,
+      "sha256": "26f4a43805f244b8390176b57ce41d89c1347c2414676b4b2b4e20d4af2a9c5b",
+      "source": "/home/junkaichen@smu.edu.sg/.cache/huggingface/hub/models--timm--vit_base_patch16_dinov3.lvd1689m/refs/main",
+      "source_resolved": "/mnt/hdd/junkaichen/hf-cache/hub/models--timm--vit_base_patch16_dinov3.lvd1689m/refs/main"
+    },
+    {
+      "path": "evidence/val_official_result.json",
+      "bytes": 1153,
+      "sha256": "4b19667c15024e9a1368a3c005186da22e141e100c2e573d4055f74245789afa",
+      "source": "/home/junkaichen@smu.edu.sg/CS701/experiments/bp7_full_cos200_final/avg_e100-180x9_agn/official_result.json",
+      "source_resolved": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/avg_e100-180x9_agn/official_result.json"
+    },
+    {
+      "path": "evidence/test_final_after_watch.sh",
+      "bytes": 1333,
+      "sha256": "c9d0818987b833741c3348ede48f0f26476de1ba24f56b33491adab1d1e0565b",
+      "source": "/home/junkaichen@smu.edu.sg/CS701/.runtime/phase2/final_after_watch.sh",
+      "source_resolved": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/phase2/final_after_watch.sh"
+    }
+  ],
+  "github_release": "https://github.com/Rayner3103/CS701/releases/tag/final-val-test-checkpoints-20261122"
+}
