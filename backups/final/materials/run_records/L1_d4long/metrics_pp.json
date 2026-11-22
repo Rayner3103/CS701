@@ -1,0 +1,31 @@
+{
+ "post": {
+  "score_thresh": 1e-05,
+  "min_keep": 30,
+  "per_class": 100,
+  "total": 100,
+  "fusion": "none",
+  "nms": "soft",
+  "soft_sigma": 0.75,
+  "obj_pow": 0.25,
+  "shift": -0.4,
+  "stage_box": "mean",
+  "cls_lambda": 1.0
+ },
+ "test": {
+  "macro_f1": 0.9588856736811839,
+  "mAP": 0.45428239982661484,
+  "AP50": 0.7149390059985405,
+  "per_class_AP": {
+   "aircraft": 0.562658637471979,
+   "airport": 0.7526370270032268,
+   "bridge": 0.04124991819459364,
+   "car": 0.591333900195143,
+   "harbor": 0.6136919510833152,
+   "oil_tank": 0.5163342095345457,
+   "playground": 0.09000416173233738,
+   "ship": 0.3869837448079399,
+   "wind_turbine": 0.5336480484164532
+  }
+ }
+}

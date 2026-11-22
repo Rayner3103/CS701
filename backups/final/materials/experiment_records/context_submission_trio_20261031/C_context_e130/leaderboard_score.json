@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-10-31T12:01:54.194412+08:00",
+  "source": "User-provided screenshot labelled c; displayed rounded precision only",
+  "label": "C_context_e130",
+  "checkpoint_epoch": 130,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "roi_context": 3,
+  "roi_context_mode": "classification",
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/c.zip",
+  "submission_sha256": "357a02d8b5f81c058e7a9b1d6f1e2f0657cbfa7fb9eae50690c9f35513859d53",
+  "checkpoint_sha256": "c273fb03a9e6aeed60fb0439e6b17d25d3ebdf2c5def8796cf80c77a28e347ca",
+  "scores_percent": {
+    "delta_m": 46.93,
+    "macro_f1": 94.78,
+    "mAP": 50.24,
+    "accuracy": 95.09,
+    "AP50": 72.33
+  },
+  "difference_from_no_context_e130": {
+    "delta_m": -0.19,
+    "macro_f1": 0.2,
+    "mAP": -0.17,
+    "accuracy": 0.14,
+    "AP50": 0.71
+  },
+  "difference_from_B_context_e150": {
+    "delta_m": 0.04,
+    "macro_f1": -0.11,
+    "mAP": 0.05,
+    "accuracy": -0.07,
+    "AP50": 0.26
+  },
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false
+}

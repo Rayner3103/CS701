@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-10-29T17:28:29.686373+08:00",
+  "source": "Both scores reported by user via leaderboard screenshots.",
+  "phase": 1,
+  "epoch": 40,
+  "SC2": {
+    "delta_m": 30.7,
+    "macro_f1": 95.88,
+    "mAP": 41.45,
+    "accuracy": 96.14,
+    "AP50": 70.0
+  },
+  "BP7": {
+    "delta_m": 32.89,
+    "macro_f1": 95.61,
+    "mAP": 42.68,
+    "accuracy": 95.93,
+    "AP50": 70.72
+  },
+  "BP7_minus_SC2": {
+    "delta_m": 2.19,
+    "macro_f1": -0.27,
+    "mAP": 1.23,
+    "accuracy": -0.21,
+    "AP50": 0.72
+  },
+  "matching_conditions": [
+    "9392 official training images",
+    "40 epochs",
+    "DINOv3 LoRA80/alpha160, Cascade head1536",
+    "global batch16, two GPUs, seed0",
+    "same final postprocessing and shift -0.2"
+  ],
+  "differences": [
+    "SpatialPrior64 for BP7, none for SC2",
+    "130-epoch cosine schedule for BP7 vs 150 for SC2",
+    "2 vs 8 data-loader workers per rank, augmentation draws not strictly paired"
+  ],
+  "interpretation": "BP7 leads the existing SC2 baseline at epoch 40, mainly through detection. This is not a strict single-variable or multi-seed ablation and does not establish final-checkpoint improvement."
+}

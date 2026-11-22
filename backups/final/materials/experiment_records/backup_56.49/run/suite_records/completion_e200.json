@@ -1,0 +1,70 @@
+{
+  "completed_at": "2026-11-01T17:12:53+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2",
+  "stage": "complete",
+  "checkpoint_validation": {
+    "time": "2026-11-01T17:11:43+08:00",
+    "epoch": 200,
+    "global_step": 117400,
+    "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/model.pt",
+    "sha256": "ee1c77af308a1ea5c1dd725f45c28ad02314e406f340689a0f9f1db463d996c7",
+    "lr_factor": 0.0,
+    "train_hours": 14.140532512731024,
+    "optimizer_and_rank_rng_saved": true,
+    "checkpoint_sha256": "fe7189c01819d4165d077e46524e77e56f3f9a5c540644aeb55c72d016eea50c",
+    "trained_tensors_match": true,
+    "persistent_buffers_match": true,
+    "parameters": 125076960,
+    "trainable_parameters": 39867360,
+    "buffer_values": 16,
+    "schedule_epochs": 200,
+    "training_images": 9392,
+    "training_state_sha256": "ee1c77af308a1ea5c1dd725f45c28ad02314e406f340689a0f9f1db463d996c7",
+    "final_metrics": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/metrics.json"
+  },
+  "submission_e200_validation": {
+    "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e200.zip",
+    "sha256": "334f3e1bce4331e184930e7ca34ba1a49cd3eb974df6ef380bbed778f74fe1a2",
+    "prediction_images": 1426,
+    "boxes": 58390,
+    "bytes": 9021103,
+    "format_passed": true,
+    "boxes_within_images": true,
+    "shift": -0.2,
+    "uploaded": false,
+    "epoch": 200,
+    "checkpoint_sha256": "fe7189c01819d4165d077e46524e77e56f3f9a5c540644aeb55c72d016eea50c"
+  },
+  "submission_e180_validation": {
+    "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e180.zip",
+    "sha256": "c28929d8545233279f09a1adc906ebdf1f16917f39d8490e16498400d9d75ce1",
+    "prediction_images": 1426,
+    "boxes": 58599,
+    "bytes": 9053463,
+    "format_passed": true,
+    "boxes_within_images": true,
+    "shift": -0.2,
+    "uploaded": false,
+    "epoch": 180,
+    "checkpoint_sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a"
+  },
+  "automatic_upload": false,
+  "export_settings": {
+    "classification_lambda": 1,
+    "soft_sigma": 0.75,
+    "stage_box": "mean",
+    "shift": -0.2
+  },
+  "note": "These default exports are distinct from the scored e180 lambda2 sigma0.5 best; no official score yet for e200. Checkpoint train_hours exclude separately recorded discarded attempts.",
+  "best_settings_variant_official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e200_rpn2000_obj0/official_result.json",
+  "best_settings_variant_metrics": {
+    "delta_m": 54.71,
+    "macro_f1": 95.09,
+    "mAP": 54.23,
+    "accuracy": 95.44,
+    "AP50": 73.9
+  },
+  "best_checkpoint_retained": "average_e160_e170_e180",
+  "best_reported_project_delta_m": 55.26,
+  "best_submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg160170180_rpn2000_obj0_soft05_cls2.zip"
+}

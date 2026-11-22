@@ -1,0 +1,27 @@
+{
+  "images": 1426,
+  "classification_agreement_with_aaa": 0.26367461430575034,
+  "aaa_label_counts": {
+    "0": 148,
+    "1": 187,
+    "2": 123,
+    "3": 94,
+    "4": 116,
+    "5": 157,
+    "6": 184,
+    "7": 158,
+    "8": 259
+  },
+  "bbb_label_counts": {
+    "0": 30,
+    "1": 29,
+    "2": 372,
+    "3": 3,
+    "4": 71,
+    "5": 241,
+    "6": 180,
+    "7": 37,
+    "8": 463
+  },
+  "note": "Unlabeled prediction comparison only; agreement and label counts are not accuracy."
+}

@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-10-29T20:17:40.198622+08:00",
+  "source": "User-provided leaderboard result JSON in this conversation; numeric precision preserved as supplied.",
+  "phase": 1,
+  "checkpoint_epoch": 110,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full130_r80h1536_spatial64_e110_val_shift-0.2.zip",
+  "submission_sha256": "0140bb54a26e06facc6b0c2ca073fdf8b7e25c6cf20f7a25a16ac93c6a46cb33",
+  "post_shift": -0.2,
+  "scores_percent": {
+    "delta_m": 51.603019875059054,
+    "macro_f1": 95.64655475462997,
+    "mAP": 52.44553137225846,
+    "accuracy": 95.93267882187938,
+    "AP50": 73.4753653217561
+  },
+  "difference_from_bp7_e80": {
+    "delta_m": 3.2031214683241274,
+    "macro_f1": -0.06515215594917834,
+    "mAP": 1.6922943833326798,
+    "accuracy": -0.07012622720897355,
+    "AP50": -0.5239980101993638
+  },
+  "difference_from_sc2_e130_displayed": {
+    "delta_m": -0.25698012494094513,
+    "macro_f1": 0.29655475462998027,
+    "mAP": -0.21446862774153885,
+    "accuracy": 0.3526788218793797,
+    "AP50": 0.2953653217560941
+  },
+  "comparison_note": "SC2 e130 reference values are rounded backup-reported scores; checkpoint epoch and cosine schedules differ."
+}

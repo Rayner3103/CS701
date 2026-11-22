@@ -1,0 +1,27 @@
+{
+  "pid": 1126688,
+  "started_at": "2026-10-29T21:32:16+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "epochs_per_trial": 130,
+  "global_batch": 16,
+  "workers_per_rank": 2,
+  "primary_endpoint": "epoch130 local-val submission-post delta_m",
+  "official_submissions": 0,
+  "completed_trials": [
+    "lr1x",
+    "lr05x"
+  ],
+  "stage": "complete",
+  "updated_at": "2026-10-30T09:27:45+08:00",
+  "active_trial": null
+}

@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-10-29T17:28:29.686373+08:00",
+  "source": "User-provided leaderboard screenshot in this conversation; values transcribed as displayed.",
+  "phase": 1,
+  "checkpoint_epoch": 40,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/SC2_full150_e40_val_shift-0.2.zip",
+  "submission_sha256": "922490860973509c167024c27bd35e1ff5455c6435cb3990e074c9e29cce06d5",
+  "post_shift": -0.2,
+  "scores_percent": {
+    "delta_m": 30.7,
+    "macro_f1": 95.88,
+    "mAP": 41.45,
+    "accuracy": 96.14,
+    "AP50": 70.0
+  },
+  "precision_note": "Rounded screenshot values; preserve displayed delta_m."
+}

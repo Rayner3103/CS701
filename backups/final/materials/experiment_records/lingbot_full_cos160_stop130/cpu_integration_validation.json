@@ -1,0 +1,23 @@
+{
+  "cpu_only": true,
+  "weights_path": "/mnt/hdd/junkaichen/hf-cache/hub/models--robbyant--lingbot-vision-vit-base/snapshots/f606f8c6c4002234ea68038f4d7c7cf57da96dfa/model.pt",
+  "strict_load": true,
+  "gray_rgb_token_max_abs_diff": 4.708766937255859e-06,
+  "input_shape": [
+    2,
+    1,
+    64,
+    64
+  ],
+  "grad_checkpoint_max_abs_diff": 0.0,
+  "gradients_finite": true,
+  "dynamo_fullgraph_block_with_checkpoint": true,
+  "lora_wrapped_layers": 48,
+  "budget": {
+    "parameters": 125105376,
+    "trainable_parameters": 39867360,
+    "floating_buffers": 27664,
+    "all_buffers": 27664
+  },
+  "limitations": "CPU eager-backend Dynamo test does not replace the queued CUDA/Inductor DDP smoke."
+}

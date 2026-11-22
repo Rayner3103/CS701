@@ -1,0 +1,5 @@
+weights/
+runs/
+*.pt
+SC2_e130_*_shift-0.2.zip
+!submission/SC2_e130_val_shift-0.2.zip

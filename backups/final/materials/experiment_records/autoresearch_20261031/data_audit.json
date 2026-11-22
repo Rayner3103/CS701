@@ -1,0 +1,98 @@
+{
+  "time": "2026-10-31T03:34:26.203676+08:00",
+  "source_run": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x",
+  "data_used": "Official train only, partitioned local train/val",
+  "training_bbox_stats_at512": {
+    "aircraft": {
+      "boxes": 2051,
+      "median_sqrt_area_px": 75.97367965289031,
+      "fraction_sqrt_area_below16": 0.023890784982935155,
+      "median_aspect_ratio": 1.196078431372549,
+      "fraction_aspect_ratio_over3": 0.0019502681618722574
+    },
+    "wind_turbine": {
+      "boxes": 6848,
+      "median_sqrt_area_px": 8.160883080892656,
+      "fraction_sqrt_area_below16": 0.9423189252336449,
+      "median_aspect_ratio": 1.0913656507445708,
+      "fraction_aspect_ratio_over3": 0.0
+    },
+    "bridge": {
+      "boxes": 3264,
+      "median_sqrt_area_px": 9.905870424909498,
+      "fraction_sqrt_area_below16": 0.8275122549019608,
+      "median_aspect_ratio": 1.3477844851608038,
+      "fraction_aspect_ratio_over3": 0.033394607843137254
+    },
+    "ship": {
+      "boxes": 1216,
+      "median_sqrt_area_px": 55.713541543682815,
+      "fraction_sqrt_area_below16": 0.004934210526315789,
+      "median_aspect_ratio": 1.6771235521235521,
+      "fraction_aspect_ratio_over3": 0.13157894736842105
+    },
+    "harbor": {
+      "boxes": 2161,
+      "median_sqrt_area_px": 43.21945696523732,
+      "fraction_sqrt_area_below16": 0.017584451642757983,
+      "median_aspect_ratio": 1.194572855578007,
+      "fraction_aspect_ratio_over3": 0.04349838037945396
+    },
+    "oil_tank": {
+      "boxes": 4484,
+      "median_sqrt_area_px": 11.548472867243824,
+      "fraction_sqrt_area_below16": 0.5773862622658341,
+      "median_aspect_ratio": 1.0723395608467503,
+      "fraction_aspect_ratio_over3": 0.006467439785905442
+    },
+    "playground": {
+      "boxes": 2027,
+      "median_sqrt_area_px": 14.882407305271563,
+      "fraction_sqrt_area_below16": 0.6398618648248643,
+      "median_aspect_ratio": 1.424282351287727,
+      "fraction_aspect_ratio_over3": 0.000986679822397632
+    },
+    "airport": {
+      "boxes": 732,
+      "median_sqrt_area_px": 146.07671809651123,
+      "fraction_sqrt_area_below16": 0.0,
+      "median_aspect_ratio": 1.9934124681745025,
+      "fraction_aspect_ratio_over3": 0.3155737704918033
+    },
+    "car": {
+      "boxes": 3232,
+      "median_sqrt_area_px": 41.23105625617661,
+      "fraction_sqrt_area_below16": 0.0,
+      "median_aspect_ratio": 1.4583333333333333,
+      "fraction_aspect_ratio_over3": 0.002165841584158416
+    }
+  },
+  "post_per_class_AP": {
+    "aircraft": 0.5402753760139977,
+    "airport": 0.7630968150523542,
+    "bridge": 0.047843877453371576,
+    "car": 0.6274980757093966,
+    "harbor": 0.6450199516275315,
+    "oil_tank": 0.7302005871022478,
+    "playground": 0.22944890294560558,
+    "ship": 0.3914161546050564,
+    "wind_turbine": 0.7298030010095925
+  },
+  "post_image_classification_errors": 48,
+  "post_bridge_playground_confusions": 24,
+  "trainable_parameters": 39867360,
+  "trainable_budget_remaining": 132640,
+  "schedule_update_counts": {
+    "local130": 61100,
+    "local160": 75200,
+    "full130": 76310,
+    "full160": 93920
+  },
+  "sources_sha256": {
+    "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K/detection/instances_train.json": "10fcfba501363029e72e3b5d07114749995018ec7d2117189eed1191bbe57aa2",
+    "/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K/detection/instances_val.json": "fcb94bef79a0abf08882fa84ca948cf21c87b7c250f7807f4c7ee87ea9f314be",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/predictions_val.json": "2cd74aa0f0cf0ad6303d1219c6ba83032222482ef8fec3097c25cdbb27aded1c",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/metrics.json": "0f00c0b11fe4bd98c3789f80cd75f9cea8432a93a391e26bd89aa60c211f0d1a",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x/metrics_submission_post_val.json": "6884f42ee74791dd1c2696947dd34ddc40faf457627c7ee31d99eb37a6cd20ef"
+  }
+}

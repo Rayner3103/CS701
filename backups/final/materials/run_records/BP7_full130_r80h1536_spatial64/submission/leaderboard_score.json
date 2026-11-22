@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-10-29T21:05:47.763163+08:00",
+  "source": "User-provided leaderboard screenshot in this conversation; main delta_m is 51.76.",
+  "phase": 1,
+  "checkpoint_epoch": 130,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full130_r80h1536_spatial64_e130_val_shift-0.2.zip",
+  "submission_sha256": "46a964636e94fe29a24cc9fe0de3eee5a3d7f96030459adb1a0052863371b994",
+  "post_shift": -0.2,
+  "scores_percent": {
+    "delta_m": 51.76,
+    "macro_f1": 95.65,
+    "mAP": 52.53,
+    "accuracy": 95.93,
+    "AP50": 73.32
+  },
+  "precision_note": "Rounded screenshot values preserved as displayed. The small chart label +39.74 is not the main result.",
+  "difference_from_bp7_e110_approx": {
+    "delta_m": 0.1569801249409437,
+    "macro_f1": 0.0034452453700311025,
+    "mAP": 0.0844686277415434,
+    "accuracy": -0.002678821879371185,
+    "AP50": -0.15536532175610773
+  },
+  "difference_from_sc2_e130_displayed": {
+    "delta_m": -0.1,
+    "macro_f1": 0.3,
+    "mAP": -0.13,
+    "accuracy": 0.35,
+    "AP50": 0.14
+  },
+  "comparison_note": "Single runs; BP7 uses a 130-epoch cosine plan and SC2 e130 is from a 150-epoch plan. Small score difference does not establish statistical superiority."
+}

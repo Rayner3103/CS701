@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-11-01T14:54:21+08:00",
+  "source": "User-provided official JSON scores",
+  "submission_association": "Feedback immediately after BP7_e160_cls2.zip was offered; association from conversation context",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e160_cls2.zip",
+  "submission_sha256": "1eb73e90f619b691105fff8852994ce0e08a188c392c904f555ab4fe7900217b",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e160.pt",
+  "checkpoint_sha256": "a8de35f3209f2772b5f5c262c3b79a262a568ba570feb623e449157d98ded0de",
+  "epoch": 160,
+  "schedule_epochs": 200,
+  "training_images": 9392,
+  "classification_lambda": 2.0,
+  "metrics": {
+    "delta_m": 53.446672487364765,
+    "macro_f1": 95.09637129414226,
+    "mAP": 53.56316422583113,
+    "accuracy": 95.44179523141655,
+    "AP50": 73.4093733779144
+  },
+  "best_reported_project_delta_m": false,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "comparison_reference": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/official_result_e160.json",
+  "baseline_metric_precision": "Two decimal places only",
+  "approximate_changes_from_displayed_baseline": {
+    "delta_m": 0.04,
+    "macro_f1_pp": 0.08,
+    "accuracy_pp": 0.07
+  },
+  "detection_result_unchanged": true,
+  "detection_note": "Detection bytes are identical. The additional mAP/AP50 digits are precision, not improvement.",
+  "changed_classification_labels": 4,
+  "interpretation": "Small classification-only improvement over e160 lambda1 and best at report time; subsequently superseded by e180 lambda2. Does not establish a general benefit across checkpoints or unseen data.",
+  "best_at_report_time": true,
+  "superseded_by": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/official_result.json",
+  "superseded_at": "2026-11-01T16:20:07+08:00"
+}

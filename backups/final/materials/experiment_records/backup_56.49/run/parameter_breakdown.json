@@ -1,0 +1,10 @@
+{"total": 125076960, "trainable": 39867360, "floating_point_buffers": 16,
+ "parts": [
+  {"part": "DINOv3 ViT-B/16 backbone, frozen", "total": 85135104, "trainable": 0},
+  {"part": "LoRA (rank 80, alpha 160) on qkv, proj, fc1, fc2 of all 12 blocks", "total": 11796480, "trainable": 11796480},
+  {"part": "Backbone LayerNorms (trained) and other 1-D backbone tensors (frozen)", "total": 112896, "trainable": 38400},
+  {"part": "Neck: feature pyramid P2-P6 (5,560,000) + spatial prior CNN, 64 channels (210,688)", "total": 5770688, "trainable": 5770688},
+  {"part": "RPN", "total": 601645, "trainable": 601645},
+  {"part": "Cascade RoI heads, 3 stages, width 1536 (+ per-stage predictors 64,554)", "total": 21651690, "trainable": 21651690},
+  {"part": "Image classification head", "total": 8457, "trainable": 8457}
+ ]}

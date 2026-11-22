@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-11-01T20:10:49+08:00",
+  "source": "User-provided official evaluation metrics",
+  "metric_precision": "Displayed to two decimal places; exact scores unavailable",
+  "submission_association": "Feedback immediately after the e160/e170/e180 averaged submission was delivered",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg160170180_rpn2000_obj0_soft05_cls2.zip",
+  "submission_sha256": "2d4d7dab821962a99a1fb7fedb20490397ba403d165d6fd6e9ee63be49d54a29",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e160_e170_e180/averaged_model.pt",
+  "checkpoint_sha256": "17ccd649724f026c1a3db1002174e6b51880864a60a1c04fea8ae2621872f1ac",
+  "source_epochs": [
+    160,
+    170,
+    180
+  ],
+  "coefficients": [
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333
+  ],
+  "metrics": {
+    "delta_m": 55.26,
+    "macro_f1": 95.01,
+    "mAP": 54.53,
+    "accuracy": 95.37,
+    "AP50": 74.21
+  },
+  "classification_lambda": 2,
+  "stage_box": "mean",
+  "soft_sigma": 0.5,
+  "obj_pow": 0,
+  "rpn_test_pre_nms_topn": 2000,
+  "rpn_test_post_nms_topn": 2000,
+  "best_reported_project_delta_m": true,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "comparison_reference": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_rpn2000_obj0/official_result.json",
+  "approximate_changes": {
+    "delta_m": 0.43,
+    "macro_f1_pp": -0.08,
+    "mAP_pp": 0.24,
+    "accuracy_pp": -0.07,
+    "AP50_pp": 0.12
+  },
+  "interpretation": "Highest reported project score; improved detection and slightly lower classification versus the previous best. This does not isolate averaging versus each individually evaluated ingredient."
+}

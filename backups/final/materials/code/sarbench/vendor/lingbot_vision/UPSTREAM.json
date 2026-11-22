@@ -1,0 +1,31 @@
+{
+  "repository": "https://github.com/Robbyant/lingbot-vision",
+  "commit": "151e46321bae4399f8568829f190c7bdec216b49",
+  "files": {
+    "vit.py": {
+      "git_blob_sha": "897fef8dc03204ae48de9ed3c35453b7296fa93f",
+      "sha256": "cd5acd212c9d8d344d80376951997a0f11174cbaa99717bfbf9e35f1cef235a0"
+    },
+    "layers.py": {
+      "git_blob_sha": "78906e656a9465d753abffb61b35d424bd009c21",
+      "sha256": "c5c0a6d26ce98ba010d7e663339876bb4c6b2df5f56a90638aa30823b65bd145"
+    },
+    "attention.py": {
+      "git_blob_sha": "af8ef97d96a2fae7a33f2685d8fc9f322414615e",
+      "sha256": "fddd0040a953aa1ecd8b9c39ca8f57bd0bb7be71640df6efc89f6132160a303b"
+    },
+    "build.py": {
+      "git_blob_sha": "6ebb765ae8b9b9b8d03e0ca9c99e83a6ad59106e",
+      "sha256": "47a8f679536a577af8cf0de3e3a1a41a901840b273f10534810fec7560322ffd"
+    },
+    "LICENSE": {
+      "sha256": "4aaf883cbfee17c18ef61514c6d2163fb1ca0329c3c4babfbc22e33d675ccdec"
+    },
+    "LEGAL.md": {
+      "sha256": "c64de3e93021fb64830d28360704f01f40bb657efdd53bcd0c51ca9dea7d5560"
+    },
+    "lbot_vision_vitb.yaml": {
+      "sha256": "6b5770c57a28586721e2161b08e00443636881871afa932fad08ce2a449fb428"
+    }
+  }
+}

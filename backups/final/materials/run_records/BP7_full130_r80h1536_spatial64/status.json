@@ -1,0 +1,22 @@
+{
+  "pid": 2389276,
+  "started_at": "2026-10-29T14:48:56+08:00",
+  "run": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "epochs": 130,
+  "global_batch": 16,
+  "data_workers_per_rank": 2,
+  "stage": "complete",
+  "updated_at": "2026-10-29T20:57:54+08:00",
+  "submission": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64/submission/BP7_full130_r80h1536_spatial64_e130_val_shift-0.2.zip",
+  "uploaded": false
+}

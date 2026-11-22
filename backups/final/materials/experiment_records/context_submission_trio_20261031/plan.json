@@ -1,0 +1,43 @@
+{
+  "created_at": "2026-10-31T11:56:00.125367+08:00",
+  "trials": [
+    [
+      "A_baseline_e150",
+      "BP7_fixedLR160_local_s0_20261030_direct/schedule160",
+      150,
+      "BP7_local7512_lr1x_cos160_e150_val_shift-0.2.zip"
+    ],
+    [
+      "B_context_e150",
+      "BP7_ctx3_classification_local160_s0_20261031/context160",
+      150,
+      "BP7_local7512_ctx3_cls_cos160_e150_val_shift-0.2.zip"
+    ],
+    [
+      "C_context_e130",
+      "BP7_ctx3_classification_local160_s0_20261031/context160",
+      130,
+      "BP7_local7512_ctx3_cls_cos160_e130_val_shift-0.2.zip"
+    ]
+  ],
+  "training_images": 7512,
+  "schedule_epochs": 160,
+  "post": {
+    "nms_thresh": 0.5,
+    "gamma": 1.0,
+    "topk": 9,
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean",
+    "quality_pow": 0.0,
+    "cls_lambda": 1.0
+  },
+  "automatic_upload": false
+}

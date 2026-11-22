@@ -1,0 +1,30 @@
+{
+  "pid": 1432089,
+  "started_at": "2026-10-31T19:06:26+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "schedule_epochs": 160,
+  "stop_after_epoch": 130,
+  "training_images": 9392,
+  "maximum_new_training_runs": 1,
+  "official_submissions": 0,
+  "backbone": "lingbot_b",
+  "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+  "stage": "paused",
+  "updated_at": "2026-11-01T00:59:52+08:00",
+  "active_trial": "full_train",
+  "pause_reason": "Explicit user request: pause LingBot and keep only the existing BP7 training task",
+  "resumable_epoch": 64,
+  "resume_checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/paused_training_state.pt",
+  "automatic_resume": false
+}

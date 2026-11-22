@@ -1,0 +1,11 @@
+{
+  "time": "2026-10-31T21:36:08+08:00",
+  "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031/full_train/training_state.pt",
+  "checkpoint_sha256": "734596be8ec3657a1362479f17b162c62da6232288b8bc9e2f6d84e76e4c7774",
+  "epoch": 1,
+  "global_step": 587,
+  "training_images": 9392,
+  "optimizer_and_rank_rng_saved": true,
+  "allocator_config": "expandable_segments:True"
+}

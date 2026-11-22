@@ -1,0 +1,31 @@
+{
+  "pid": 3918658,
+  "started_at": "2026-11-01T11:11:12+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+  "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "training_images": 9392,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 160,
+  "gpu_memory_fraction": 0.35,
+  "allocator_config": "expandable_segments:True",
+  "official_submissions": 0,
+  "submissions": {
+    "130": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e130.zip"
+  },
+  "stage": "failed",
+  "updated_at": "2026-11-01T13:10:14+08:00",
+  "active_trial": "full_train_e160",
+  "target_epoch": 160,
+  "error": "CalledProcessError: Command '['/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python', '-m', 'torch.distributed.run', '--standalone', '--nproc_per_node', '2', 'tools/train_gpu_limited.py', '--memory-fraction', '0.35', 'train.py', '--data', '/mnt/hdd/junkaichen/CS701/cs701_data/dataset/SARFact-Course-20K', '--train-split', 'train+val+test', '--eval-splits', '', '--epochs', '200', '--save-every', '10', '--seed', '0', '--batch-size', '16', '--workers', '1', '--backbone', 'dinov3', '--init', 'pretrained', '--adapt', 'lora', '--lora-targets', 'attn.qkv,attn.proj,mlp.fc1,mlp.fc2', '--lora-rank', '80', '--lora-alpha', '160', '--cascade-rep', '1536', '--train-norms', '--backbone-lr', '0.0003', '--lr', '0.0001', '--weight-decay', '0.05', '--cascade', '--aligned-roi', '--rpn-nwd', '8', '--anchor-offset', '0.5', '--anchor-sizes=6,8,11;16,19,23;32,38,45;64,76,91;128,152,181', '--cascade-size-iou', '--flip-bias', '-0.3', '--grad-ckpt', '--spatial-prior', '64', '--eval-every', '10', '--eval-batch-size', '4', '--warmup-epochs', '1', '--schedule-epochs', '200', '--save-training-state', '--reproducible-loader', '--out', '/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35', '--name', 'full_train_e160', '--stop-after-epoch', '160', '--resume', '/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/validation/resume_e131/training_state.pt']' returned non-zero exit status 1."
+}

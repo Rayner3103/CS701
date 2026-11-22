@@ -1,0 +1,41 @@
+{
+  "sources": [
+    {
+      "epoch": 100,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e100.pt"
+    },
+    {
+      "epoch": 110,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e110.pt"
+    },
+    {
+      "epoch": 120,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e120.pt"
+    },
+    {
+      "epoch": 130,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e130.pt"
+    },
+    {
+      "epoch": 140,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e140.pt"
+    },
+    {
+      "epoch": 150,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e150.pt"
+    },
+    {
+      "epoch": 160,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e160.pt"
+    },
+    {
+      "epoch": 170,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e170.pt"
+    },
+    {
+      "epoch": 180,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/TWIN1_base_trainvl8400_cos200_s0_20261101/twin/ckpt_e180.pt"
+    }
+  ],
+  "tensors": 234
+}

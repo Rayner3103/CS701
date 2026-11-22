@@ -1,0 +1,30 @@
+{
+ "note": "Averaging-window sweep on an independent local trajectory: BP7, 7,512 training images, 130-epoch cosine, checkpoints every 10 (cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x). Scored with predict.py on the two labelled local holdouts (940 images each) with the final post-processing except fusion (rpn 2000, obj_pow 0, sigma 0.5, lambda 2, shift -0.2). Percent. 'Corresponding full window' maps the local 130-epoch schedule onto the full-data 200-epoch one by learning-rate position.",
+ "rows": [
+  {"window": "e130 single", "full_equiv": "e200 single", "val_mAP": 52.70, "val_AP50": 73.83, "val_F1": 95.24, "test_mAP": 53.10, "test_AP50": 74.46, "test_F1": 94.45},
+  {"window": "e100-130 (4)", "full_equiv": "e160-200", "val_mAP": 52.72, "val_AP50": 73.97, "val_F1": 95.24, "test_mAP": 53.22, "test_AP50": 74.58, "test_F1": 94.56},
+  {"window": "e70-100 (4)", "full_equiv": "e100-160", "val_mAP": 52.26, "val_AP50": 74.53, "val_F1": 95.30, "test_mAP": 53.30, "test_AP50": 75.23, "test_F1": 94.75},
+  {"window": "e70-120 (6)", "full_equiv": "e100-180 (the submission)", "val_mAP": 52.62, "val_AP50": 74.40, "val_F1": 95.20, "test_mAP": 53.57, "test_AP50": 75.09, "test_F1": 94.66},
+  {"window": "e70-130 (7)", "full_equiv": "e100-200", "val_mAP": 52.71, "val_AP50": 74.34, "val_F1": 95.20, "test_mAP": 53.54, "test_AP50": 75.01, "test_F1": 94.66},
+  {"window": "e50-130 (9)", "full_equiv": "e80-200", "val_mAP": 52.13, "val_AP50": 74.52, "val_F1": 95.48, "test_mAP": 53.31, "test_AP50": 75.62, "test_F1": 94.87},
+  {"window": "e50-100 (6)", "full_equiv": "e80-160", "val_mAP": 51.53, "val_AP50": 74.52, "val_F1": 95.48, "test_mAP": 52.97, "test_AP50": 75.81, "test_F1": 94.96}
+ ],
+ "postprocess_on_e70-120_average": {
+  "note": "Same weights (e70-120 average), only the post-processing changed; full-set COCO mAP (percent) on the two holdouts; paired bootstrap (500 resamples over images) in local_holdout_postprocess_bootstrap_*.json.",
+  "rows": [
+   {"variant": "no fusion (sigma 0.5)", "val_mAP": 52.622, "test_mAP": 53.574},
+   {"variant": "hard fusion (only the image class)", "val_mAP": 52.811, "test_mAP": 53.619},
+   {"variant": "class-agnostic fusion, gamma 1, topk 9 (THE SUBMISSION)", "val_mAP": 52.907, "test_mAP": 53.780},
+   {"variant": "class-agnostic fusion, topk 2", "val_mAP": 52.907, "test_mAP": 53.763},
+   {"variant": "class-agnostic fusion, gamma 0.5", "val_mAP": 52.877, "test_mAP": 53.734},
+   {"variant": "multiplicative fusion (p_det x p_img)", "val_mAP": 52.762, "test_mAP": 53.570},
+   {"variant": "hard fusion, sigma 0.4", "val_mAP": 52.816, "test_mAP": 53.634},
+   {"variant": "hard fusion, sigma 0.6", "val_mAP": 52.756, "test_mAP": 53.593},
+   {"variant": "hard fusion, shift -0.1", "val_mAP": 52.815, "test_mAP": 53.522},
+   {"variant": "hard fusion, shift -0.3", "val_mAP": 52.335, "test_mAP": 53.197},
+   {"variant": "no fusion, sigma 0.35 / 0.4 / 0.6", "val_mAP": [52.60, 52.64, 52.59], "test_mAP": [53.56, 53.59, 53.53]}
+  ],
+  "paired_bootstrap_vs_hard": {"agn_k9_val": "+0.091 [+0.019, +0.176], P(>0) 0.996", "agn_k9_test": "+0.151 [+0.015, +0.363], P(>0) 0.992"},
+  "paired_bootstrap_hard_vs_none": {"val": "+0.174 [-0.016, +0.373], P(>0) 0.964", "test": "+0.035 [-0.246, +0.274], P(>0) 0.628"}
+ }
+}

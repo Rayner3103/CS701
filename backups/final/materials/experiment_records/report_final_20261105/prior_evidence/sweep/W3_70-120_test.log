@@ -1,0 +1,11 @@
+GPU_RESOURCE_LIMIT {"local_rank": 0, "allocator_fraction": 0.15, "script": "predict.py"}
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+2026-11-01 20:34:51,765 - INFO - Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_dinov3.lvd1689m)
+2026-11-01 20:34:52,672 - INFO - HTTP Request: HEAD https://huggingface.co/timm/vit_base_patch16_dinov3.lvd1689m/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+2026-11-01 20:34:52,674 - INFO - [timm/vit_base_patch16_dinov3.lvd1689m] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
+2026-11-01 20:34:52,676 - INFO - Converted input conv patch_embed.proj pretrained weights from 3 to 1 channel(s)
+parameters: 125,076,960 total
+test: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9462 mAP 0.5357 AP50 0.7509 (40 s)
+per-class AP {'aircraft': 0.571, 'airport': 0.815, 'bridge': 0.062, 'car': 0.591, 'harbor': 0.684, 'oil_tank': 0.71, 'playground': 0.189, 'ship': 0.423, 'wind_turbine': 0.776}
+GPU_RESOURCE_PEAK {"local_rank": 0, "allocated_bytes": 1911519744, "reserved_bytes": 2717908992}

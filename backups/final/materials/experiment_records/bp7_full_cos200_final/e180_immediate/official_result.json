@@ -1,0 +1,38 @@
+{
+  "recorded_at": "2026-11-01T16:20:07+08:00",
+  "source": "User-provided official JSON scores",
+  "submission_association": "Feedback immediately after BP7_e180_cls2.zip was delivered",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_cls2.zip",
+  "submission_sha256": "24146c612379d086bd573185160a72ee17c1b6593ef499153360118cb4aed13a",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e180.pt",
+  "checkpoint_sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a",
+  "epoch": 180,
+  "schedule_epochs": 200,
+  "seed": 0,
+  "training_images": 9392,
+  "classification_lambda": 2.0,
+  "metrics": {
+    "delta_m": 53.47032436421459,
+    "macro_f1": 95.09184780172882,
+    "mAP": 53.57679225936561,
+    "accuracy": 95.44179523141655,
+    "AP50": 73.31166855365139
+  },
+  "comparison_reference": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/classification_e160_lambda2/official_result.json",
+  "differences_from_e160_lambda2": {
+    "delta_m": 0.023651876849825726,
+    "macro_f1": -0.004523492413440522,
+    "mAP": 0.013628033534480721,
+    "accuracy": 0.0,
+    "AP50": -0.09770482426301896
+  },
+  "difference_units": "delta_m points; other metrics percentage points",
+  "best_reported_project_delta_m": false,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "interpretation": "Best at report time with sigma0.75; superseded by the same e180 checkpoint with sigma0.5. The small e160-to-e180 improvement remains near-plateau evidence.",
+  "decision": "Finish the already running unchanged cosine200 trajectory. Preserve this e180 lambda2 as best observed submission; do not reset LR or extend training based on this tiny gain.",
+  "best_at_report_time": true,
+  "superseded_by": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_softsigma05/official_result.json",
+  "superseded_at": "2026-11-01T17:05:13+08:00"
+}

@@ -1,0 +1,111 @@
+{
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2/weights/model.pt",
+  "checkpoint_sha256": "59a0309d30a80b101bd31f419e5e5884dd9a94536973ab7ba7959fe87e412c61",
+  "run_args_sha256": "11e92b83e3597d6e938c7caebc75265344ba0590e9d9539b2f0e45db2c3486af",
+  "source_sha256": {
+    "make_submission.py": "344667c256f47dc1b6acba6aeefb8cca0871895283f5cfdedf1338bcdde61f06",
+    "pp_eval.py": "636f95b8184f53b2f522efc433b606d0725c59ba54beba4c8ec90e415c9be02c",
+    "pp_study.py": "e2bd9d997c25837277d8e5693ee377aea774a6746e6365f777aaacc11bee4b9c",
+    "predict.py": "b5937c210d47610fa9c963941a016a4cd833a00dd7c1a4d7fc060b5439e4d66c",
+    "prepare_course_data.py": "86a03fc4f806d049265c4d9835558f106649fcd4846286463858faa713f1f9ff",
+    "sarbench/__init__.py": "438be87f641ebc5f5938a9b5b049bfe46e3b07a1a6d85aaf725d2eeea92922e5",
+    "sarbench/adapters.py": "3e77b1342199851b99728719b0e32fbaef2b73a1332f3639a9cd5424cd0ee8f5",
+    "sarbench/backbones.py": "1825a69c4541fcae7fcd9d66a191a4a9d802850aaa517b33d84c3f604f8efff0",
+    "sarbench/data.py": "d825cef28a714ca4afba5fa5eb02307ae684e2efcdda7df9ef92041fe67c9054",
+    "sarbench/metrics.py": "962221dbdce8163b9d26bdd489604a7af4368a64dcd36a58fe817224a8050db0",
+    "sarbench/model.py": "276e185a789641ca881a1cbf60082fb65078bfba3fa388c29ba1a5c8bcbf8081",
+    "sarbench/postprocess.py": "6928f6e0fabd538e76319d64c70787335013a1460f5ca3f58281e19bad629588",
+    "sarbench/tiny.py": "62adcb23f5779f900bdf4b1a3fc6e634bc345ce6fea456722103f95dd7ba6a9c",
+    "score_submission.py": "3ee46799895a9adfeb4cf91e60ec9073ec6e9ac0e7f223f3892ab4570223c0e2",
+    "tests/test_adapters.py": "a78a6e81d70735f431f9a9d9f606761193b4629242194176eec04298e989f1c5",
+    "tests/test_augment.py": "b4055982ee281cf22eb7a904bf924d33b62966674771e463df75ad6755ce3ab4",
+    "tests/test_backbones.py": "12440522bae7947b367f49a7728699c2532cb073ea9a7d10df52bf54a5adcb82",
+    "tests/test_data.py": "2f1edfe4d31b3dc2cc25270244dd35c9464389ac22c85919cae90bbf158fa34e",
+    "tests/test_metrics.py": "73d13a5c9358f457582321295790b54cda2b540a030f6babf26178a1db2f84c0",
+    "tests/test_model.py": "360f6c60d0fd2ecfa7d56c842909685f0e11955abbb05f9f7a836f9140e6d016",
+    "tools/check_submission.py": "0d37bc33e6af59cf43dfb441e5dfe48e90c0e25e5ea91cda52e0a2874de4d2be",
+    "tools/make_folds.py": "6d338be64bbce72f6a5448aafa32b9c98420e516dc604484cbdb12c245e6602f",
+    "tools/size_ap.py": "d1c249502135a19968313c769b2f30accdb6fe7b2da8026622a3b6db3baf8313",
+    "tools/summarize_runs.py": "8b4a5c4177345c2956823041a5f3d9395d0bd2674c632a07d1755175be3f03ec",
+    "train.py": "b753f948f6625ada645a29dcc6e4e3c2c96a6dcb7cad1674a784256db4df1eba"
+  },
+  "script_sha256": "b85f9356d4e4cc5679e2286673a3d231280e1d8b3ad1b56aa603ca483ca9302e",
+  "images": "/home/junkaichen@smu.edu.sg/cs701_data/cs701-sar-course-data/val",
+  "images_sha256": "04094e6315ee2ac408e812c57650b8b53a9d5f1d88f6e843e36eac495c0045c8",
+  "expected_images": 1426,
+  "batch_size": 2,
+  "workers": 2,
+  "threads": 2,
+  "memory_fraction": 0.12,
+  "physical_gpu": "1",
+  "gpu": "NVIDIA RTX 6000 Ada Generation",
+  "torch_version": "2.9.0+cu128",
+  "inference": "one 512x512 input and one model forward per image, bf16",
+  "postprocessing": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean",
+    "cls_lambda": 1.0
+  },
+  "classification": "original lambda=1 fusion from same 2000-proposal forward",
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/SC2_e130_val_shift-0.2_rpn2000.zip",
+  "raw_output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/raw/SC2_e130_val_rpn2000_raw.pt",
+  "image_count": 1426,
+  "model_forward_calls": 713,
+  "predict_argv": [
+    "--run",
+    "/mnt/hdd/junkaichen/CS701/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2/weights",
+    "--weights",
+    "model.pt",
+    "--images",
+    "/home/junkaichen@smu.edu.sg/cs701_data/cs701-sar-course-data/val",
+    "--shift",
+    "-0.2",
+    "--batch-size",
+    "2",
+    "--workers",
+    "2",
+    "--out",
+    "/mnt/hdd/junkaichen/CS701/CS701/submissions/SC2_e130_val_shift-0.2_rpn2000.zip",
+    "--raw-out",
+    "/mnt/hdd/junkaichen/CS701/CS701/submissions/raw/SC2_e130_val_rpn2000_raw.pt"
+  ],
+  "rpn_before": {
+    "pre": {
+      "training": 2000,
+      "testing": 1000
+    },
+    "post": {
+      "training": 2000,
+      "testing": 1000
+    },
+    "nms": 0.7
+  },
+  "rpn_after": {
+    "pre": {
+      "training": 2000,
+      "testing": 2000
+    },
+    "post": {
+      "training": 2000,
+      "testing": 2000
+    },
+    "nms": 0.7
+  },
+  "parameters": 124866272,
+  "trainable_parameters": 39656672,
+  "detections": 61896,
+  "seconds": 78.23190464964136,
+  "peak_memory_gib": 0.9597678184509277,
+  "output_sha256": "06d9b37e934c43632aaf0067d8e517b5e911e248fd63d15cc1e13b238513defa",
+  "raw_sha256": "8308239e9be4a5920276f6c20fcfa6e0b71ab91178daa28cd0b79c39910589ea",
+  "proposal_count_min": 2000,
+  "proposal_count_max": 2000
+}

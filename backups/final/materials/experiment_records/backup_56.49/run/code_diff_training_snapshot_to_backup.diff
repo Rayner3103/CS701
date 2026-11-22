@@ -1,0 +1,154 @@
+--- /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/code/train.py	2026-10-29 21:18:37.349269990 +0800
++++ backups/56.49-full-cos200-avgE100-180-DINOv3-LoRA80-Head1536-SP64-Cascade-NWD-SizeIoU-FlipBias-agn-soft0.5-obj0-shift0.2/code/train.py	2026-11-01 21:16:22.900317996 +0800
+@@ -85,6 +85,7 @@
+     p.add_argument('--schedule-epochs', type=int, help='cosine horizon (default: --epochs; must be >= --epochs)')
+     p.add_argument('--save-training-state', action='store_true', help='atomically save complete training_state.pt each epoch')
+     p.add_argument('--resume', type=Path, help='restore a trusted local training_state.pt, including AdamW and rank RNG')
++    p.add_argument('--init-weights', type=Path, help='initialise the trained tensors from this model.pt / ckpt (e.g. an averaged checkpoint) with a fresh optimizer')
+     p.add_argument('--stop-after-epoch', type=int, help='cleanly stop after this epoch without shortening the LR schedule')
+     p.add_argument('--reproducible-loader', action='store_true',
+                    help='seed Python/NumPy and restart epoch-seeded workers; required for training-state save/resume')
+@@ -106,6 +107,9 @@
+     p.add_argument('--cp-source', default='mixed', choices=['mixed', 'same_class', 'same_image'])
+     p.add_argument('--cp-max-n', type=int, default=6)
+     p.add_argument('--cp-max-side', type=int, default=40)
++    p.add_argument('--speckle', type=float, default=0.0, help='photometric aug: max std of multiplicative speckle noise (0: off)')
++    p.add_argument('--gamma-jitter', type=float, default=0.0, help='photometric aug: gamma = exp(U(-g, g)) (0: off)')
++    p.add_argument('--photo-p', type=float, default=0.5, help='probability of each photometric aug per image')
+     p.add_argument('--zoom-p', type=float, default=0.0)
+     p.add_argument('--zoom-max', type=float, default=1.5)
+     # data, evaluation, output
+@@ -171,7 +175,9 @@
+     persistent = train and args.workers > 0 and not reproducible
+     batch_size = args.batch_size if train else (getattr(args, 'eval_batch_size', None) or args.batch_size)
+     dataset = SARMultiTask(args.data, split, train=train, limit=args.limit, aug=args.aug, zoom_p=args.zoom_p,
+-                           zoom_max=args.zoom_max, flip_bias=getattr(args, 'flip_bias', 0.0))
++                           zoom_max=args.zoom_max, flip_bias=getattr(args, 'flip_bias', 0.0),
++                           speckle=getattr(args, 'speckle', 0.0), gamma_jitter=getattr(args, 'gamma_jitter', 0.0),
++                           photo_p=getattr(args, 'photo_p', 0.5))
+     if train and args.copy_paste:
+         dataset = SameClassCopyPaste(dataset, p=args.copy_paste, max_n=args.cp_max_n, max_side=args.cp_max_side,
+                                      source=args.cp_source, seed=args.seed)
+@@ -430,6 +436,13 @@
+ 
+     # Model: adapters are created on the CPU, so they are added before .cuda()
+     model = build_model(args).cuda()
++    if getattr(args, 'init_weights', None):
++        state = torch.load(args.init_weights, map_location='cpu', weights_only=True)
++        state = {k.replace('._orig_mod', ''): v for k, v in state.items()}
++        missing, unexpected = model.load_state_dict(state, strict=False)
++        if unexpected:
++            raise SystemExit(f'--init-weights has unexpected tensors: {unexpected[:5]}')
++        log(f'Initialised {len(state)} tensors from {args.init_weights} ({len(missing)} tensors keep their pretrained/fresh values)', log_file)
+     model.roi_heads.post['score_thresh'] = args.score_thresh
+     if args.compile:
+         compile_blocks(model.backbone)
+--- /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/code/sarbench/adapters.py	2026-10-20 08:48:17.671386966 +0800
++++ backups/56.49-full-cos200-avgE100-180-DINOv3-LoRA80-Head1536-SP64-Cascade-NWD-SizeIoU-FlipBias-agn-soft0.5-obj0-shift0.2/code/sarbench/adapters.py	2026-10-31 15:11:09.557297595 +0800
+@@ -17,6 +17,14 @@
+         nn.init.zeros_(self.up.weight)  # B = 0: training starts from exactly the pretrained layer
+         self.scale = alpha / rank
+ 
++    @property
++    def in_features(self):
++        return self.base.in_features
++
++    @property
++    def out_features(self):
++        return self.base.out_features
++
+     def forward(self, x):
+         return self.base(x) + self.scale * self.up(self.down(x))
+ 
+--- /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/code/sarbench/backbones.py	2026-10-20 19:06:05.900445021 +0800
++++ backups/56.49-full-cos200-avgE100-180-DINOv3-LoRA80-Head1536-SP64-Cascade-NWD-SizeIoU-FlipBias-agn-soft0.5-obj0-shift0.2/code/sarbench/backbones.py	2026-10-31 15:11:09.151294332 +0800
+@@ -133,7 +133,7 @@
+     'convnext_t_dinov3': 'convnext_tiny.dinov3_lvd1689m',
+     'convnext_in22k': 'convnext_base.fb_in22k',
+ }
+-BACKBONES = ['vit', 'terramind', *TIMM_VITS, *TIMM_CONVNEXTS]
++BACKBONES = ['vit', 'terramind', 'lingbot_b', *TIMM_VITS, *TIMM_CONVNEXTS]
+ 
+ 
+ def build_backbone(name, pretrained, img_size=512, drop_path=0.0):
+@@ -142,6 +142,9 @@
+         return ViT(pretrained, drop_path)
+     if name == 'terramind':
+         return TerraMind(pretrained)
++    if name == 'lingbot_b':
++        from .lingbot import LingBotViT
++        return LingBotViT(pretrained, img_size, drop_path)
+     if name in TIMM_VITS:
+         return TimmViT(TIMM_VITS[name], pretrained, img_size, drop_path)
+     return TimmConvNeXt(TIMM_CONVNEXTS[name], pretrained, drop_path)
+--- /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/code/sarbench/data.py	2026-10-20 18:55:39.164546928 +0800
++++ backups/56.49-full-cos200-avgE100-180-DINOv3-LoRA80-Head1536-SP64-Cascade-NWD-SizeIoU-FlipBias-agn-soft0.5-obj0-shift0.2/code/sarbench/data.py	2026-11-01 21:08:12.497455045 +0800
+@@ -40,8 +40,12 @@
+     turns it into -b, so flipped boxes are moved by 2b to keep every target on the same convention."""
+ 
+     def __init__(self, root, split, train=False, size=512, limit=None, aug='flip', zoom_p=0.0, zoom_max=1.5,
+-                 flip_bias=0.0):
++                 flip_bias=0.0, speckle=0.0, gamma_jitter=0.0, photo_p=0.5):
+         self.root = Path(root)
++        # photometric augmentation (training only, opt-in): multiplicative speckle noise with a per-image standard
++        # deviation ~ U(0.02, speckle) (Gamma(L, L) factor, L = 1 / sd^2, mean 1), and a gamma correction
++        # I ** exp(U(-gamma_jitter, gamma_jitter)); each applied with probability photo_p, on [0, 1] intensities
++        self.speckle, self.gamma_jitter, self.photo_p = (speckle, gamma_jitter, photo_p) if train else (0.0, 0.0, 0.0)
+         self.rows, self.coco_images, self.annotations = [], {}, defaultdict(list)
+         for part in split.split('+'):
+             with open(self.root / 'classification' / f'{part}.csv') as f:
+@@ -88,6 +92,17 @@
+         out = F.grid_sample(image[None], grid, mode='bilinear', padding_mode='border', align_corners=False)[0]
+         return out, clipped[keep], keep
+ 
++    def photometric(self, image):
++        """Speckle and gamma jitter on the normalised image: back to [0, 1] intensities, perturb, renormalise."""
++        x = image * STD + MEAN
++        if self.speckle and random.random() < self.photo_p:
++            sd = random.uniform(0.02, self.speckle)
++            looks = torch.tensor(1.0 / (sd * sd))
++            x = x * torch.distributions.Gamma(looks, looks).sample(x.shape)
++        if self.gamma_jitter and random.random() < self.photo_p:
++            x = x.clamp(0, 1) ** math.exp(random.uniform(-self.gamma_jitter, self.gamma_jitter))
++        return (x.clamp(0, 1) - MEAN) / STD
++
+     def __getitem__(self, i):
+         row = self.rows[i]
+         info = self.coco_images[row['image']]
+@@ -107,6 +122,8 @@
+                     lo, hi = boxes[:, axis].clone(), boxes[:, axis + 2].clone()
+                     boxes[:, axis] = (self.size - hi + off).clamp(0, self.size)
+                     boxes[:, axis + 2] = (self.size - lo + off).clamp(0, self.size)
++        if self.speckle or self.gamma_jitter:
++            image = self.photometric(image)
+         if self.aug == 'd4':
+             k = random.randrange(4)
+             if k:
+--- /mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/code/sarbench/postprocess.py	2026-10-20 22:21:45.300121588 +0800
++++ backups/56.49-full-cos200-avgE100-180-DINOv3-LoRA80-Head1536-SP64-Cascade-NWD-SizeIoU-FlipBias-agn-soft0.5-obj0-shift0.2/code/sarbench/postprocess.py	2026-11-01 21:11:18.487719160 +0800
+@@ -37,7 +37,8 @@
+ def detections_from_raw(boxes, class_logits, image_probs=None, *, score_thresh=0.05, nms_thresh=0.5,
+                         per_class=100, total=None, fusion='none', gamma=1.0, topk=9, min_size=1e-2,
+                         image_size=(512, 512), objectness=None, obj_pow=0.0, nms='hard', soft_sigma=0.75,
+-                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None, min_keep=0):
++                        shift=0.0, quality=None, quality_pow=0.0, stage_box='last', stage_inputs=None, min_keep=0,
++                        stage_weights=None):
+     """boxes: [N, C, 4] decoded XYXY boxes per foreground class (C = 9), class_logits: [N, C + 1] (background
+     first), image_probs: [C] softmax of the image classifier (needed for fusion).
+     fusion: 'none'  -> score(c) = p_det(c)                         (torchvision's default)
+@@ -53,8 +54,13 @@
+     if stage_box == 'mean' and stage_inputs is not None:
+         # Cascade: average the boxes every stage outputs for a proposal (stage_inputs [S, N, 4] are the input boxes
+         # of the S stages, so stage_inputs[1:] are the outputs of all but the last stage), as the scores average
+-        # the stages' class probabilities
+-        boxes = (boxes.float() + stage_inputs[1:].float().sum(0)[:, None]) / len(stage_inputs)
++        # the stages' class probabilities; stage_weights (opt-in, one per stage output, oldest first) weights them
++        if stage_weights is not None:
++            w = boxes.new_tensor(stage_weights, dtype=torch.float32); w = w / w.sum()
++            outs = [stage_inputs[i].float()[:, None] for i in range(1, len(stage_inputs))] + [boxes.float()]
++            boxes = sum(wi * o for wi, o in zip(w, outs))
++        else:
++            boxes = (boxes.float() + stage_inputs[1:].float().sum(0)[:, None]) / len(stage_inputs)
+     boxes = boxes.reshape(-1, 4).float()
+     if shift is not None and torch.as_tensor(shift).abs().sum() > 0:
+         # constant translation (px on the network input) correcting a systematic box-position bias; a float moves

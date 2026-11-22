@@ -1,0 +1,22 @@
+{
+  "pid": 1191548,
+  "started_at": "2026-11-01T14:42:16+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101",
+  "gpu_memory_fraction": 0.35,
+  "allocator_config": "expandable_segments:True",
+  "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_e160",
+  "gpus": [
+    0,
+    1
+  ],
+  "global_batch": 16,
+  "schedule_epochs": 200,
+  "stop_after_epoch": 200,
+  "official_submissions": 0,
+  "submissions": {
+    "160": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip"
+  },
+  "stage": "failed",
+  "updated_at": "2026-11-01T14:42:16+08:00",
+  "error": "ValueError: Expected exactly one --save"
+}

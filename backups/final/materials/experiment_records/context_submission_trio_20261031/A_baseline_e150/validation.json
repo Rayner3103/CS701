@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-10-31T11:56:32.450242+08:00",
+  "label": "A_baseline_e150",
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/a.zip",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_fixedLR160_local_s0_20261030_direct/schedule160/ckpt_e150.pt",
+  "checkpoint_epoch": 150,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "images": 1426,
+  "detections": 61855,
+  "boxes_outside_image": 0,
+  "bytes": 9556995,
+  "sha256": "3dcc91ffb6ade82ee4ff12d0398ab1bc2f7aeb985d728d6a6fc746ab64a65d93",
+  "checkpoint_sha256": "1492d89693ceff680dd12a4480fb44fc9f2ad870c946b29788c63b298edfb480",
+  "format_check_passed": true,
+  "crc_passed": true,
+  "uploaded": false,
+  "renamed_from": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_local7512_lr1x_cos160_e150_val_shift-0.2.zip"
+}

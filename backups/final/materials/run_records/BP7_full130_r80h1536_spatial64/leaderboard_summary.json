@@ -1,0 +1,87 @@
+{
+  "updated_at": "2026-10-29T21:05:47.763163+08:00",
+  "phase": 1,
+  "runs": [
+    {
+      "model": "BP7",
+      "epoch": 40,
+      "scores_percent": {
+        "delta_m": 32.89,
+        "macro_f1": 95.61,
+        "mAP": 42.68,
+        "accuracy": 95.93,
+        "AP50": 70.72
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64/previews/e40/leaderboard_score.json"
+    },
+    {
+      "model": "BP7",
+      "epoch": 80,
+      "scores_percent": {
+        "delta_m": 48.39989840673493,
+        "macro_f1": 95.71170691057915,
+        "mAP": 50.75323698892578,
+        "accuracy": 96.00280504908835,
+        "AP50": 73.99936333195546
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64/previews/e80_compare_sc2/leaderboard_score.json"
+    },
+    {
+      "model": "BP7",
+      "epoch": 110,
+      "scores_percent": {
+        "delta_m": 51.603019875059054,
+        "macro_f1": 95.64655475462997,
+        "mAP": 52.44553137225846,
+        "accuracy": 95.93267882187938,
+        "AP50": 73.4753653217561
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64/previews/e110/leaderboard_score.json"
+    },
+    {
+      "model": "BP7",
+      "epoch": 130,
+      "scores_percent": {
+        "delta_m": 51.76,
+        "macro_f1": 95.65,
+        "mAP": 52.53,
+        "accuracy": 95.93,
+        "AP50": 73.32
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full130_r80h1536_spatial64/submission/leaderboard_score.json"
+    },
+    {
+      "model": "SC2",
+      "epoch": 40,
+      "scores_percent": {
+        "delta_m": 30.7,
+        "macro_f1": 95.88,
+        "mAP": 41.45,
+        "accuracy": 96.14,
+        "AP50": 70.0
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/SC2_full150/previews/e40_compare_bp7/leaderboard_score.json"
+    },
+    {
+      "model": "SC2",
+      "epoch": 80,
+      "scores_percent": {
+        "delta_m": 45.833085271309734,
+        "macro_f1": 95.86191152429468,
+        "mAP": 49.36967673283605,
+        "accuracy": 96.07293127629734,
+        "AP50": 72.78339945538022
+      },
+      "source": "/mnt/hdd/junkaichen/CS701/cs701_runs/SC2_full150/previews/e80_compare_bp7/leaderboard_score.json"
+    }
+  ],
+  "SC2_e130_backup_reported_scores_percent": {
+    "delta_m": 51.86,
+    "macro_f1": 95.35,
+    "mAP": 52.66,
+    "accuracy": 95.58,
+    "AP50": 73.18
+  },
+  "best_known_submission": "SC2 e130, delta_m 51.86 (rounded)",
+  "conclusion": "BP7 led at e40 and e80 but did not beat the existing SC2 e130 leaderboard result. Final gap is -0.10 delta_m. No isolated causal conclusion about SpatialPrior or statistical ranking from these single runs."
+}

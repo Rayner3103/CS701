@@ -1,0 +1,18 @@
+{
+  "recorded_at": "2026-10-31T03:12:40.533120+08:00",
+  "source": "User-provided leaderboard screenshot; displayed rounded precision only",
+  "delta_m": 47.12,
+  "macro_f1": 94.58,
+  "mAP": 50.41,
+  "accuracy": 94.95,
+  "AP50": 71.62,
+  "metric_units": "percent except delta_m",
+  "submitted_by_user": true,
+  "uploaded_by_assistant": false,
+  "checkpoint_epoch": 130,
+  "schedule_epochs": 160,
+  "training_images": 7512,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_local7512_lr1x_cos160_e130_val_shift-0.2.zip",
+  "submission_sha256": "dc05f3ee823865fc2fd8ff7329c736746c0f3cb9a0a6274f024579e623a2e4b9",
+  "checkpoint_sha256": "84f8a602c5acd59433ed7c18927374005ad2d67656284a7f2c034bbeffea8e1c"
+}

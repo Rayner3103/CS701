@@ -1,0 +1,48 @@
+{
+  "time": "2026-10-31T19:06:26+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+  "launch": {
+    "pid": 1432089,
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/code/tools/run_lingbot_full_stop130.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile"
+    ],
+    "cwd": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/code"
+  },
+  "cpu_tests_passed": 28,
+  "change": "Removed --compile only; retained gradient checkpointing, LR, batch16 and 160 cosine stop130",
+  "original_failure_preserved": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031",
+  "observed_status": {
+    "pid": 1432089,
+    "started_at": "2026-10-31T19:06:26+08:00",
+    "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+    "gpus": [
+      0,
+      1
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "global_batch": 16,
+    "schedule_epochs": 160,
+    "stop_after_epoch": 130,
+    "training_images": 9392,
+    "maximum_new_training_runs": 1,
+    "official_submissions": 0,
+    "backbone": "lingbot_b",
+    "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+    "stage": "training",
+    "updated_at": "2026-10-31T19:07:38+08:00",
+    "active_trial": "full_train",
+    "child_pid": 1434294
+  },
+  "gpu_smoke_passed": true,
+  "smoke_global_steps": 3,
+  "smoke_prediction_images": 8,
+  "observed_training_progress": "epoch 1 iter 100/587 loss 2.041 (classification 0.986 loss_objectness 0.403 loss_rpn_box_reg 0.022 loss_classifier_s0 0.312 loss_box_reg_s0 0.149 loss_classifier_s1 0.093 loss_box_reg_s1 0.043 loss_classifier_s2 0.027 loss_box_reg_s2 0.005) lr 1.72e-05 26.4 images/s"
+}

@@ -1,0 +1,122 @@
+{
+  "audit_date_sgt": "2026-10-31",
+  "method": "Meta-device architecture construction, pretrained=False; no forward/training/weights. Does not establish checkpoint/forward compatibility or accuracy.",
+  "baseline": "/home/junkaichen@smu.edu.sg/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2",
+  "torch": "2.9.0+cu128",
+  "rows": [
+    {
+      "name": "sc2_dinov3",
+      "parameters": 124866272,
+      "trainable_parameters": 39656672,
+      "buffers": 16,
+      "parameters_plus_buffers": 124866288,
+      "budget_pass": true,
+      "components": {
+        "backbone": {
+          "parameters": 97044480,
+          "trainable_parameters": 11834880,
+          "buffers": 16
+        },
+        "cls_head": {
+          "parameters": 8457,
+          "trainable_parameters": 8457,
+          "buffers": 0
+        },
+        "neck": {
+          "parameters": 5560000,
+          "trainable_parameters": 5560000,
+          "buffers": 0
+        },
+        "rpn": {
+          "parameters": 601645,
+          "trainable_parameters": 601645,
+          "buffers": 0
+        },
+        "roi_heads": {
+          "parameters": 21651690,
+          "trainable_parameters": 21651690,
+          "buffers": 0
+        }
+      },
+      "lora_parameters": 11796480,
+      "backbone_without_lora": 85248000,
+      "lora_wrapped_layers": 48
+    },
+    {
+      "name": "lingbot_b_gray",
+      "parameters": 124894688,
+      "trainable_parameters": 39656672,
+      "buffers": 27664,
+      "parameters_plus_buffers": 124922352,
+      "budget_pass": true,
+      "components": {
+        "backbone": {
+          "parameters": 97072896,
+          "trainable_parameters": 11834880,
+          "buffers": 27664
+        },
+        "cls_head": {
+          "parameters": 8457,
+          "trainable_parameters": 8457,
+          "buffers": 0
+        },
+        "neck": {
+          "parameters": 5560000,
+          "trainable_parameters": 5560000,
+          "buffers": 0
+        },
+        "rpn": {
+          "parameters": 601645,
+          "trainable_parameters": 601645,
+          "buffers": 0
+        },
+        "roi_heads": {
+          "parameters": 21651690,
+          "trainable_parameters": 21651690,
+          "buffers": 0
+        }
+      },
+      "lora_parameters": 11796480,
+      "backbone_without_lora": 85276416,
+      "lora_wrapped_layers": 48
+    },
+    {
+      "name": "lingbot_b_rgb",
+      "parameters": 125287904,
+      "trainable_parameters": 39656672,
+      "buffers": 27664,
+      "parameters_plus_buffers": 125315568,
+      "budget_pass": true,
+      "components": {
+        "backbone": {
+          "parameters": 97466112,
+          "trainable_parameters": 11834880,
+          "buffers": 27664
+        },
+        "cls_head": {
+          "parameters": 8457,
+          "trainable_parameters": 8457,
+          "buffers": 0
+        },
+        "neck": {
+          "parameters": 5560000,
+          "trainable_parameters": 5560000,
+          "buffers": 0
+        },
+        "rpn": {
+          "parameters": 601645,
+          "trainable_parameters": 601645,
+          "buffers": 0
+        },
+        "roi_heads": {
+          "parameters": 21651690,
+          "trainable_parameters": 21651690,
+          "buffers": 0
+        }
+      },
+      "lora_parameters": 11796480,
+      "backbone_without_lora": 85669632,
+      "lora_wrapped_layers": 48
+    }
+  ]
+}

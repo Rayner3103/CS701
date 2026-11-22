@@ -1,0 +1,26 @@
+{
+  "started_at": "2026-11-01T14:42:16+08:00",
+  "pid": 1191548,
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101",
+  "command": [
+    "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+    "-u",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101/code/tools/run_bp7_e160_to200.py",
+    "--suite",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101"
+  ],
+  "stage": "failed_before_training",
+  "source_epoch": 160,
+  "target_epoch": 200,
+  "cpu_tests_passed": 35,
+  "independent_review": "passed",
+  "driver_sha256": "2a0a76d7056c5edcfe852f24158c6b66c452c15be187834c36a55d7e9c47adaf",
+  "free_gpu_memory_mib_at_launch": [
+    19868,
+    20505
+  ],
+  "automatic_upload": false,
+  "error": "ValueError: Expected exactly one --save",
+  "training_started": false,
+  "training_gpu_hours": 0
+}

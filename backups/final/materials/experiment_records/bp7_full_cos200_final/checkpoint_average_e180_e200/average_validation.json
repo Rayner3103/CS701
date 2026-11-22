@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-11-01T17:47:25+08:00",
+  "method": "e180/e200 elementwise parameter average, weights0.5/0.5",
+  "sources": [
+    {
+      "epoch": 180,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/ckpt_e180.pt",
+      "sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a",
+      "coefficient": 0.5
+    },
+    {
+      "epoch": 200,
+      "path": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/model.pt",
+      "sha256": "fe7189c01819d4165d077e46524e77e56f3f9a5c540644aeb55c72d016eea50c",
+      "coefficient": 0.5
+    }
+  ],
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e180_e200/averaged_model.pt",
+  "output_sha256": "c198807d63c9a3f811c4802dd19af1a972855aa226176a12a66d2e050c8d3077",
+  "tensor_count": 234,
+  "stored_parameter_values": 39867360,
+  "total_model_parameters": 125076960,
+  "nonpersistent_float_buffers": 16,
+  "all_finite": true,
+  "identical_keys_shapes_dtypes": true,
+  "verified_roundtrip": true,
+  "optimizer_compatible": false,
+  "rule_status": "User explicitly confirmed TA permits single-model checkpoint parameter averaging",
+  "official_submission_ready": false,
+  "automatic_upload": false,
+  "lora_note": "Parameter average of down/up separately, not exact average of effective BA updates; no dense merge or rank expansion.",
+  "smoke_test_passed": true,
+  "smoke_validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e180_e200/probe_validation.json",
+  "rules_url": "https://web-production-c241e.up.railway.app/docs#terms",
+  "rules_asset_sha256": "3651c33ae12387243723f7065efb3e2e5589c850030254e9de001528f79d8fbc",
+  "rule_clarification_question": "Is a parameter average of checkpoints from one training trajectory, exported as a single unchanged-budget model with one forward per image, permitted?",
+  "rule_confirmation_source": "User answer: 已明确允许; clarification: 不是先分别预测，而是平均参数",
+  "superseded_selection": "User requested earlier checkpoints; selected e160/e170/e180 instead."
+}

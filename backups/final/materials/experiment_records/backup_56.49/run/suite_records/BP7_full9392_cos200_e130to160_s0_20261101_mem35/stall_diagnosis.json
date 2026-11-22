@@ -1,0 +1,9 @@
+{
+  "detected_at": "2026-11-01T13:12:07+08:00",
+  "reason": "DataLoader resource_sharer failed creating /tmp/pymp-* with ENOSPC; main ranks waited without progress after e147.",
+  "complete_epoch": 147,
+  "global_step": 86289,
+  "checkpoint_sha256": "a5290d7a24bf4c8361a826b7e4bcc099aeb3758ebb97df86694e9a1c2082544c",
+  "intervention": "Verified stalled torchrun stopped; model/data/LR/batch unchanged; recovery uses private HDD TMPDIR.",
+  "recovery_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp"
+}

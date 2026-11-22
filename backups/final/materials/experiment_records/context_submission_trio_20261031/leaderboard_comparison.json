@@ -1,0 +1,42 @@
+{
+  "recorded_at": "2026-10-31T12:01:54.194412+08:00",
+  "scores_percent": {
+    "A": {
+      "delta_m": 46.92,
+      "macro_f1": 94.48,
+      "mAP": 50.32,
+      "accuracy": 94.88,
+      "AP50": 71.65
+    },
+    "B": {
+      "delta_m": 46.89,
+      "macro_f1": 94.89,
+      "mAP": 50.19,
+      "accuracy": 95.16,
+      "AP50": 72.07
+    },
+    "C": {
+      "delta_m": 46.93,
+      "macro_f1": 94.78,
+      "mAP": 50.24,
+      "accuracy": 95.09,
+      "AP50": 72.33
+    },
+    "no_context_cos160_e130": {
+      "delta_m": 47.12,
+      "macro_f1": 94.58,
+      "mAP": 50.41,
+      "accuracy": 94.95,
+      "AP50": 71.62
+    },
+    "context_cos160_e160": {
+      "delta_m": 46.8,
+      "macro_f1": 94.89,
+      "mAP": 50.15,
+      "accuracy": 95.16,
+      "AP50": 72.02
+    }
+  },
+  "trio_delta_m_range": 0.04,
+  "conclusion": "No demonstrated aggregate leaderboard gain from context at matched e130/e150. Later checkpoints did not improve displayed score in either observed trajectory. Single-seed small differences are not statistically conclusive; do not extrapolate to all longer training schedules."
+}

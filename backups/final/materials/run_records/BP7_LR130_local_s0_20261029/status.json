@@ -1,0 +1,24 @@
+{
+  "pid": 1116327,
+  "started_at": "2026-10-29T21:23:48+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR130_local_s0_20261029",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "epochs_per_trial": 130,
+  "global_batch": 16,
+  "workers_per_rank": 2,
+  "primary_endpoint": "epoch130 local-val submission-post delta_m",
+  "official_submissions": 0,
+  "completed_trials": [],
+  "stage": "failed",
+  "updated_at": "2026-10-29T21:27:31+08:00",
+  "error": "RuntimeError: Uninterrupted/resumed model diverged: max_abs=0.0013820702442899346"
+}

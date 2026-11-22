@@ -1,0 +1,23 @@
+{
+  "time": "2026-11-01T13:19:44+08:00",
+  "pid": 2590596,
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp",
+  "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+  "command": [
+    "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+    "-u",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/code/tools/run_bp7_e147_recovery.py",
+    "--suite",
+    "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp"
+  ],
+  "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_r147",
+  "cpu_tests_passed": 17,
+  "gpu_validation": "passed complete epoch148 with optimizer/scheduler/two-rank RNG verification",
+  "watchdog_seconds": 300,
+  "gpu_memory_fraction": 0.35,
+  "updated_at": "2026-11-01T14:23:12+08:00",
+  "checkpoint_validation": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/checkpoint_after_resume_validation.json",
+  "observed_progress": "epoch 149 iter 150/587 loss 0.144 (classification 0.000 loss_objectness 0.000 loss_rpn_box_reg 0.001 loss_classifier_s0 ",
+  "stage": "complete",
+  "completed_at": "2026-11-01T14:09:32+08:00"
+}

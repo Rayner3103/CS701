@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\LUATLE~1\AppData\Local\Temp\claude\e8c8fbca90dd0afc\a70bb74a-1874-4b8c-a31c-b0d61219b41e\scratchpad\leak\boot_copy.py", line 65, in <module>
+    for A, B in pairs:
+        ^^^^
+ValueError: not enough values to unpack (expected 2, got 1)

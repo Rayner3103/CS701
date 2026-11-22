@@ -1,0 +1,11 @@
+{
+  "time": "2026-10-31T15:09:50+08:00",
+  "repo": "robbyant/lingbot-vision-vit-base",
+  "revision": "f606f8c6c4002234ea68038f4d7c7cf57da96dfa",
+  "filename": "model.pt",
+  "path": "/mnt/hdd/junkaichen/hf-cache/hub/models--robbyant--lingbot-vision-vit-base/snapshots/f606f8c6c4002234ea68038f4d7c7cf57da96dfa/model.pt",
+  "sha256": "783dfb59014c34e9f0013db60bf6f5cc3c6b0604eb9528fb5df65e80769c5825",
+  "bytes": 342852282,
+  "source": "https://huggingface.co/robbyant/lingbot-vision-vit-base/tree/f606f8c6c4002234ea68038f4d7c7cf57da96dfa",
+  "license": "Apache-2.0"
+}

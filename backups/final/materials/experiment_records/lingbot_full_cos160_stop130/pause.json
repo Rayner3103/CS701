@@ -1,0 +1,17 @@
+{
+  "paused_at": "2026-11-01T00:59:52+08:00",
+  "reason": "Explicit user request: pause LingBot and keep only the existing BP7 training task",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/paused_training_state.pt",
+  "checkpoint_sha256": "104f35b974bd212a1bfcb20c8288f7ca79050f429c05872c4948a2361d91e77d",
+  "completed_epoch": 64,
+  "global_step": 37568,
+  "optimizer_and_two_rank_rng_verified": true,
+  "resume_from_epoch": 65,
+  "partial_epoch65_not_saved": true,
+  "training_processes_exited": true,
+  "gpu_memory_released": true,
+  "automatic_resume": false,
+  "automatic_e130_export": "cancelled while paused",
+  "existing_e60_submission": "submissions/lingb_e60.zip"
+}

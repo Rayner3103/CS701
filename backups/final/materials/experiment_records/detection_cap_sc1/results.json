@@ -1,0 +1,110 @@
+{
+  "run": "/home/junkaichen@smu.edu.sg/cs701_runs/SC1_r80h1536",
+  "data": "/home/junkaichen@smu.edu.sg/cs701_data/dataset/SARFact-Course-20K",
+  "baseline": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": 100,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean"
+  },
+  "alternative": {
+    "score_thresh": 1e-05,
+    "min_keep": 30,
+    "per_class": 100,
+    "total": null,
+    "fusion": "none",
+    "nms": "soft",
+    "soft_sigma": 0.75,
+    "obj_pow": 0.25,
+    "shift": -0.2,
+    "stage_box": "mean"
+  },
+  "selection": "Only one alternative; confirm on test only if val mAP increases",
+  "script_sha256": "ed97446a5217e3b468a86ab4d978c0ea4fb69b7faaa489532e95efedccc06afc",
+  "metric_code_sha256": "72dec26895e5850a5cb559ced6698a4e31333a80cadfbfb83f1364a4e4753ee7",
+  "snapshot_postprocess_sha256": "6928f6e0fabd538e76319d64c70787335013a1460f5ca3f58281e19bad629588",
+  "val": {
+    "metadata": {
+      "images": 940,
+      "counts": {
+        "baseline": {
+          "total": 78365,
+          "mean": 83.36702127659575,
+          "maximum": 100,
+          "images_at_least_100": 603
+        },
+        "per_class100_no_total_cap": {
+          "total": 129283,
+          "mean": 137.5351063829787,
+          "maximum": 641,
+          "images_at_least_100": 603
+        }
+      },
+      "macro_f1": 0.9564682558169917,
+      "raw_sha256": "344c5243e7a6a68edac64b19b83d04007a2c6db3cfe8b55a9662d66b69c894b4",
+      "baseline_prefix_exact_for_every_image": true,
+      "seconds": 21.182425265200436
+    },
+    "metrics": {
+      "baseline": {
+        "mAP": 0.41209804570170827,
+        "AP50": 0.6807079978394136,
+        "AP75": 0.4309891417395209,
+        "size_AP": {
+          "lt8": 0.23640039062682078,
+          "8to16": 0.21270526828087416,
+          "lt16": 0.1955046595148207,
+          "16to32": 0.31457559996272977,
+          "ge32": 0.5276045307569048
+        },
+        "per_class_AP": {
+          "aircraft": 0.5045708993376401,
+          "airport": 0.5921349352522903,
+          "bridge": 0.027114786422061533,
+          "car": 0.6141376072456652,
+          "harbor": 0.5339997397830881,
+          "oil_tank": 0.554995239457872,
+          "playground": 0.056590866768913464,
+          "ship": 0.3871004479719173,
+          "wind_turbine": 0.4382378890759265
+        },
+        "seconds": 3.716534568928182
+      },
+      "per_class100_no_total_cap": {
+        "mAP": 0.41207259124550083,
+        "AP50": 0.6806987420203268,
+        "AP75": 0.4310089386951013,
+        "size_AP": {
+          "lt8": 0.23639610362701058,
+          "8to16": 0.21266292354427663,
+          "lt16": 0.19545345172829662,
+          "16to32": 0.31450623919403325,
+          "ge32": 0.527596380601523
+        },
+        "per_class_AP": {
+          "aircraft": 0.5044283166306269,
+          "airport": 0.5921485938814857,
+          "bridge": 0.027119147264955543,
+          "car": 0.6141905932808888,
+          "harbor": 0.5340551135655859,
+          "oil_tank": 0.554924344779301,
+          "playground": 0.05659381079024786,
+          "ship": 0.38696552392998984,
+          "wind_turbine": 0.4382278770864265
+        },
+        "seconds": 4.8927143681794405
+      }
+    }
+  },
+  "val_improves": false,
+  "test": {
+    "skipped": "No val improvement; preserve the second holdout"
+  },
+  "improves_both_holdouts": false
+}

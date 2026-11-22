@@ -1,0 +1,90 @@
+{
+  "time": "2026-10-31T19:41:52+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031",
+  "launch": {
+    "pid": 2216653,
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031/code/tools/run_bp7_cos200_final.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031"
+    ],
+    "cwd": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031/code"
+  },
+  "cpu_tests_passed": 14,
+  "independent_review": "passed",
+  "gpu_smoke": "passed",
+  "observed_runs": {
+    "BP7_full9392_cos200_stop160_s0_20261031": {
+      "status": {
+        "pid": 2216653,
+        "started_at": "2026-10-31T19:41:52+08:00",
+        "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031",
+        "gpus": [
+          0,
+          1
+        ],
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "global_batch": 16,
+        "schedule_epochs": 200,
+        "stop_after_epoch": 160,
+        "training_images": 9392,
+        "maximum_new_training_runs": 1,
+        "official_submissions": 0,
+        "gpu_memory_fraction": 0.2,
+        "submissions": {},
+        "stage": "training",
+        "updated_at": "2026-10-31T19:43:02+08:00",
+        "active_trial": "full_train",
+        "target_epoch": 130,
+        "child_pid": 2221962
+      },
+      "progress": []
+    },
+    "LingBotB_full9392_cos160_stop130_s0_20261031_nocompile": {
+      "status": {
+        "pid": 1432089,
+        "started_at": "2026-10-31T19:06:26+08:00",
+        "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile",
+        "gpus": [
+          0,
+          1
+        ],
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "global_batch": 16,
+        "schedule_epochs": 160,
+        "stop_after_epoch": 130,
+        "training_images": 9392,
+        "maximum_new_training_runs": 1,
+        "official_submissions": 0,
+        "backbone": "lingbot_b",
+        "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031",
+        "stage": "training",
+        "updated_at": "2026-10-31T19:43:12+08:00",
+        "active_trial": "full_train",
+        "child_pid": 1434294
+      },
+      "progress": [
+        "epoch 11 iter 150/587 loss 0.487 (classification 0.003 loss_objectness 0.033 loss_rpn_box_reg 0.014 loss_classifier_s0 0.086 loss_box_reg_s0 0.119 loss_classifier_s1 0.044 loss_box_reg_s1 0.106 loss_classifier_s2 0.020 loss_box_reg_s2 0.061) lr 9.92e-05 25.0 images/s",
+        "epoch 11 iter 200/587 loss 0.662 (classification 0.307 loss_objectness 0.038 loss_rpn_box_reg 0.006 loss_classifier_s0 0.068 loss_box_reg_s0 0.082 loss_classifier_s1 0.031 loss_box_reg_s1 0.072 loss_classifier_s2 0.012 loss_box_reg_s2 0.046) lr 9.92e-05 16.9 images/s",
+        "epoch 11 iter 250/587 loss 0.820 (classification 0.020 loss_objectness 0.028 loss_rpn_box_reg 0.011 loss_classifier_s0 0.115 loss_box_reg_s0 0.225 loss_classifier_s1 0.061 loss_box_reg_s1 0.204 loss_classifier_s2 0.031 loss_box_reg_s2 0.125) lr 9.91e-05 20.9 images/s"
+      ]
+    }
+  },
+  "gpu_samples": [
+    "0, 99 %, 40918 MiB, 4507 MiB\n1, 98 %, 40317 MiB, 5141 MiB",
+    "0, 100 %, 40918 MiB, 4507 MiB\n1, 100 %, 40317 MiB, 5141 MiB",
+    "0, 99 %, 40918 MiB, 4507 MiB\n1, 99 %, 40317 MiB, 5141 MiB"
+  ],
+  "first_formal_progress_verified": "epoch 1 iter 100/587 loss 1.813 (classification 1.154 loss_objectness 0.390 loss_rpn_box_reg 0.025 loss_classifier_s0 0.122 loss_box_reg_s0 0.028 loss_classifier_s1 0.057 loss_box_reg_s1 0.009 loss_classifier_s2 0.026 loss_box_reg_s2 0.003) lr 1.72e-05 11.7 images/s"
+}

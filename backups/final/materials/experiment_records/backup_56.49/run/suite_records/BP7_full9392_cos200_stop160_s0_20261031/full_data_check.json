@@ -1,0 +1,12 @@
+{
+  "count": 9392,
+  "split_counts": [
+    7512,
+    940,
+    940
+  ],
+  "disjoint": true,
+  "matches_official_training": true,
+  "resolved_training_paths_verified": true,
+  "official_val_used_for_training": false
+}

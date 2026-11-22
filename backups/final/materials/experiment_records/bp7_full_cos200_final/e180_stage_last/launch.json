@@ -1,0 +1,62 @@
+{
+  "stage": "complete_validated",
+  "source_raw": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/raw.pt",
+  "jobs": {
+    "last": {
+      "pid": 2490858,
+      "command": [
+        "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+        "predict.py",
+        "--run",
+        "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200",
+        "--from-raw",
+        "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/raw.pt",
+        "--images",
+        "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/val",
+        "--images-json",
+        "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/val/images.json",
+        "--device",
+        "cpu",
+        "--shift",
+        "-0.2",
+        "--cls-lambda",
+        "2",
+        "--stage-box",
+        "last",
+        "--out",
+        "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_last_cls2.zip"
+      ],
+      "output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_last_cls2.zip"
+    },
+    "mean": {
+      "pid": 2490859,
+      "command": [
+        "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+        "predict.py",
+        "--run",
+        "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200",
+        "--from-raw",
+        "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/raw.pt",
+        "--images",
+        "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/val",
+        "--images-json",
+        "/mnt/hdd/junkaichen/CS701/cs701_data/cs701-sar-course-data/val/images.json",
+        "--device",
+        "cpu",
+        "--shift",
+        "-0.2",
+        "--cls-lambda",
+        "2",
+        "--stage-box",
+        "mean",
+        "--out",
+        "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/mean_reproduction.zip"
+      ],
+      "output": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/mean_reproduction.zip"
+    }
+  },
+  "automatic_upload": false,
+  "execution": "GPU replay of the same raw cache",
+  "gpu_replay_script": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/generate_gpu.py",
+  "submission_validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/submission_validation.json"
+}

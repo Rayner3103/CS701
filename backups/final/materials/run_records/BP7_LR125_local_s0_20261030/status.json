@@ -1,0 +1,27 @@
+{
+  "pid": 2665530,
+  "started_at": "2026-10-30T18:04:50+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR125_local_s0_20261030",
+  "previous_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_LR_Epoch_search_20261029",
+  "maximum_new_training_runs": 1,
+  "deferred_trial": "schedule160",
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "official_submissions": 0,
+  "automatic_full_data_retrain": false,
+  "stage": "stopped_by_user",
+  "updated_at": "2026-10-30T21:30:50.073957+08:00",
+  "adopted_child_pid": 553814,
+  "active_trial": null,
+  "child_pid": 3038550,
+  "reason": "User requested immediate original-LR 160-epoch training; stop LR125 trial and waiting queue."
+}

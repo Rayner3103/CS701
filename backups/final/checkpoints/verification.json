@@ -1,0 +1,10 @@
+{
+  "offline_model_load": "passed",
+  "device": "cpu",
+  "checkpoint_tensors": 234,
+  "checkpoint_values": 39867360,
+  "model_parameters": 125076960,
+  "all_checkpoint_tensors_match_loaded_model": true,
+  "hf_cache": "/mnt/hdd/junkaichen/CS701/CS701/backups/final/checkpoints/hf_cache",
+  "note": "Model reconstruction and weight loading verified offline; full dataset inference was not rerun."
+}

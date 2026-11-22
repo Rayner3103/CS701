@@ -1,0 +1,23 @@
+GPU_RESOURCE_LIMIT {"visible_device": "1", "allocator_fraction": 0.035}
+/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/lib/python3.12/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+2026-11-01 00:43:49,139 - INFO - using mlp layer as FFN
+parameters: 125,105,376 total
+PREDICTION_PROGRESS image_index=0
+PREDICTION_PROGRESS image_index=100
+PREDICTION_PROGRESS image_index=200
+PREDICTION_PROGRESS image_index=300
+PREDICTION_PROGRESS image_index=400
+PREDICTION_PROGRESS image_index=500
+PREDICTION_PROGRESS image_index=600
+PREDICTION_PROGRESS image_index=700
+PREDICTION_PROGRESS image_index=800
+PREDICTION_PROGRESS image_index=900
+PREDICTION_PROGRESS image_index=1000
+PREDICTION_PROGRESS image_index=1100
+PREDICTION_PROGRESS image_index=1200
+PREDICTION_PROGRESS image_index=1300
+PREDICTION_PROGRESS image_index=1400
+wrote /mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/submission.pending.zip: 1426 images, 120104 boxes, 292.4 ms per image
+GPU_RESOURCE_PEAK {"allocated_bytes": 729161216, "reserved_bytes": 792723456}
+[W1101 00:50:50.411822531 AllocatorConfig.cpp:28] Warning: PYTORCH_CUDA_ALLOC_CONF is deprecated, use PYTORCH_ALLOC_CONF instead (function operator())

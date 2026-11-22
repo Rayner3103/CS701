@@ -1,0 +1,18 @@
+2026-11-01T00:43:22+08:00 verifying_inputs {}
+2026-11-01T00:43:23+08:00 smoke_prediction {'child_pid': 181150}
+2026-11-01T00:43:41+08:00 full_prediction {'child_pid': 188835}
+2026-11-01T00:44:11+08:00 full_prediction {}
+2026-11-01T00:44:45+08:00 full_prediction {}
+2026-11-01T00:45:15+08:00 full_prediction {}
+2026-11-01T00:45:45+08:00 full_prediction {}
+2026-11-01T00:46:15+08:00 full_prediction {}
+2026-11-01T00:46:45+08:00 full_prediction {}
+2026-11-01T00:47:15+08:00 full_prediction {}
+2026-11-01T00:47:49+08:00 full_prediction {}
+2026-11-01T00:48:19+08:00 full_prediction {}
+2026-11-01T00:48:49+08:00 full_prediction {}
+2026-11-01T00:49:19+08:00 full_prediction {}
+2026-11-01T00:49:49+08:00 full_prediction {}
+2026-11-01T00:50:19+08:00 full_prediction {}
+2026-11-01T00:50:50+08:00 full_prediction {}
+2026-11-01T00:50:52+08:00 completed {'child_pid': None, 'submission': {'path': '/mnt/hdd/junkaichen/CS701/CS701/submissions/lingb_e60.zip', 'sha256': '47d3437bfed91b56adf99cad282e43799a77c8526e69aa27a8c8973045905fda', 'prediction_images': 1426, 'boxes': 120104, 'bytes': 18550863, 'format_passed': True, 'boxes_within_images': True, 'shift': -0.2, 'uploaded': False, 'epoch': 60, 'checkpoint': '/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train/ckpt_e60.pt', 'checkpoint_sha256': 'debf8f5018d9d59fbe84e7aedaafbad4c46c282c9a070514f36b511b34c9a2b0', 'backbone': 'lingbot_b', 'finished_at': '2026-11-01T00:50:52+08:00'}}

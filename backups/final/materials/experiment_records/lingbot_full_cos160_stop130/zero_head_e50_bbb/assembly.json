@@ -1,0 +1,25 @@
+{
+  "time": "2026-10-31T15:29:22+08:00",
+  "new_training_steps": 0,
+  "new_optimizer_steps": 0,
+  "head_source_checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos160_stop130_s0_20261031/full_train/ckpt_e50.pt",
+  "head_source_sha256": "97ccaab7ef8879e46bade56f5932e46f7dc2f36f530d9e8c7d492fc7d0185fe7",
+  "head_source_epoch": 50,
+  "head_source_training_images": 9392,
+  "copied_head_tensors": 88,
+  "copied_head_parameters": 28032480,
+  "all_heads_identical_to_aaa": true,
+  "pretrained_backbone_tensors_unchanged": true,
+  "lora_up_all_zero": true,
+  "copied_dinov3_backbone_tensors": 0,
+  "weights": "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/zero_head_e50_bbb/model/model.pt",
+  "weights_sha256": "033d4e0ee1b603d9a34dc4d8896331f90026b6523c48399d6ffe7a299914bb57",
+  "budget": {
+    "parameters": 125105376,
+    "floating_buffers": 27664,
+    "configured_trainable_parameters": 39867360
+  },
+  "paired_submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/aaa.zip",
+  "paired_submission_sha256": "9718405062eba7e1a367ba4fef7198aca6141dbb61c00041b586fc5c99910275",
+  "args_note": "Architecture reconstruction and donor recipe only; no optimization after splicing."
+}

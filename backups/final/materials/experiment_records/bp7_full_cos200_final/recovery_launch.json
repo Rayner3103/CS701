@@ -1,0 +1,23 @@
+{
+  "time": "2026-10-31T21:35:59+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable",
+  "launch": {
+    "pid": 35968,
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/code/tools/run_bp7_cos200_final.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable"
+    ]
+  },
+  "cpu_tests_passed": 25,
+  "independent_review": "passed",
+  "recovery_validation": "passed full-data epoch2, complete optimizer/RNG checkpoint, and 8-image prediction",
+  "original_failure_preserved": true,
+  "updated_at": "2026-10-31T21:49:02+08:00",
+  "recovery_validation_file": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/validation/recovery_passed.json",
+  "validated_epoch": 2,
+  "validated_global_step": 1174,
+  "stage": "training",
+  "observed_training_progress": "epoch 3 iter 200/587 at 2026-10-31 21:48 SGT"
+}

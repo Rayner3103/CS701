@@ -1,0 +1,1073 @@
+10-20 06:05 START ref_s0 (reference ViT-B/16 IN21k + LoRA r16, seed 0)
+[ref_s0] epoch 4 val: accuracy 0.8606 macro_f1 0.8736 balanced_accuracy 0.8732 mAP 0.0989 AP50 0.2679
+[ref_s0] epoch 8 val: accuracy 0.8787 macro_f1 0.8901 balanced_accuracy 0.8926 mAP 0.1370 AP50 0.3597
+[ref_s0] epoch 12 val: accuracy 0.9032 macro_f1 0.9127 balanced_accuracy 0.9122 mAP 0.1844 AP50 0.4251
+10-20 06:37 START A00_bench (gpu1)
+[A00_bench] RESULT vit  epoch 1 iter 50/94 loss 2.089 (classification 1.818 loss_objectness 0.187 loss_rpn_box_reg 0.003 loss_classifier 0.071 loss_box_reg 0.009) lr 5.43e-05 51.5 images/s
+[A00_bench] RESULT vit  epoch 1 iter 94/94 loss 1.809 (classification 1.469 loss_objectness 0.062 loss_rpn_box_reg 0.011 loss_classifier 0.180 loss_box_reg 0.087) lr 1.00e-04 54.5 images/s
+[A00_bench] RESULT dino  epoch 1 iter 50/94 loss 2.240 (classification 1.835 loss_objectness 0.193 loss_rpn_box_reg 0.006 loss_classifier 0.184 loss_box_reg 0.022) lr 5.43e-05 42.5 images/s
+[A00_bench] RESULT dino  epoch 1 iter 94/94 loss 1.123 (classification 0.828 loss_objectness 0.062 loss_rpn_box_reg 0.007 loss_classifier 0.156 loss_box_reg 0.071) lr 1.00e-04 44.4 images/s
+[A00_bench] RESULT vit --compile epoch 1 iter 50/94 loss 2.072 (classification 1.799 loss_objectness 0.187 loss_rpn_box_reg 0.003 loss_classifier 0.072 loss_box_reg 0.010) lr 5.43e-05 32.3 images/s
+[A00_bench] RESULT vit --compile epoch 1 iter 94/94 loss 1.707 (classification 1.385 loss_objectness 0.063 loss_rpn_box_reg 0.011 loss_classifier 0.167 loss_box_reg 0.081) lr 1.00e-04 32.4 images/s
+[A00_bench] RESULT dino --compile epoch 1 iter 50/94 loss 2.230 (classification 1.829 loss_objectness 0.194 loss_rpn_box_reg 0.006 loss_classifier 0.180 loss_box_reg 0.021) lr 5.43e-05 42.3 images/s
+[A00_bench] RESULT dino --compile epoch 1 iter 94/94 loss 1.113 (classification 0.816 loss_objectness 0.063 loss_rpn_box_reg 0.007 loss_classifier 0.156 loss_box_reg 0.071) lr 1.00e-04 29.3 images/s
+10-20 06:40 DONE A00_bench (gpu1)
+10-20 06:40 START E01_dino_ref (gpu1)
+[ref_s0] epoch 16 val: accuracy 0.9032 macro_f1 0.9124 balanced_accuracy 0.9130 mAP 0.2031 AP50 0.4566
+[E01_dino_ref] epoch 4 val: accuracy 0.8596 macro_f1 0.8740 balanced_accuracy 0.8770 mAP 0.1265 AP50 0.3458
+[ref_s0] epoch 20 val: accuracy 0.9053 macro_f1 0.9142 balanced_accuracy 0.9155 mAP 0.2207 AP50 0.4832
+[E01_dino_ref] epoch 8 val: accuracy 0.9021 macro_f1 0.9139 balanced_accuracy 0.9144 mAP 0.1672 AP50 0.4202
+[ref_s0] epoch 24 val: accuracy 0.9064 macro_f1 0.9150 balanced_accuracy 0.9155 mAP 0.2241 AP50 0.4863
+[ref_s0] test: accuracy 0.9085 macro_f1 0.9161 balanced_accuracy 0.9166 mAP 0.2331 AP50 0.5277
+10-20 07:05 START A01_bench2 (gpu0)
+[A01_bench2] RESULT dino epoch 2 iter 50/188 loss 1.077 (classification 0.595 loss_objectness 0.064 loss_rpn_box_reg 0.011 loss_classifier 0.168 loss_giou 0.128 loss_box_reg 0.112) lr 8.35e-05 26.3 images/s
+[A01_bench2] RESULT dino epoch 2 iter 100/188 loss 0.894 (classification 0.539 loss_objectness 0.031 loss_rpn_box_reg 0.004 loss_classifier 0.149 loss_giou 0.089 loss_box_reg 0.082) lr 4.50e-05 37.0 images/s
+[A01_bench2] RESULT dino epoch 2 iter 150/188 loss 0.696 (classification 0.339 loss_objectness 0.026 loss_rpn_box_reg 0.003 loss_classifier 0.144 loss_giou 0.097 loss_box_reg 0.086) lr 9.75e-06 36.9 images/s
+[A01_bench2] RESULT dino epoch 2 iter 188/188 loss 0.998 (classification 0.521 loss_objectness 0.031 loss_rpn_box_reg 0.006 loss_classifier 0.162 loss_giou 0.145 loss_box_reg 0.133) lr 0.00e+00 37.0 images/s
+[A01_bench2] RESULT dino--compile epoch 2 iter 50/188 loss 1.097 (classification 0.620 loss_objectness 0.063 loss_rpn_box_reg 0.011 loss_classifier 0.167 loss_giou 0.126 loss_box_reg 0.111) lr 8.35e-05 41.1 images/s
+[A01_bench2] RESULT dino--compile epoch 2 iter 100/188 loss 0.853 (classification 0.507 loss_objectness 0.028 loss_rpn_box_reg 0.004 loss_classifier 0.148 loss_giou 0.087 loss_box_reg 0.079) lr 4.50e-05 40.6 images/s
+[A01_bench2] RESULT dino--compile epoch 2 iter 150/188 loss 0.699 (classification 0.335 loss_objectness 0.027 loss_rpn_box_reg 0.003 loss_classifier 0.149 loss_giou 0.098 loss_box_reg 0.087) lr 9.75e-06 41.8 images/s
+[A01_bench2] RESULT dino--compile epoch 2 iter 188/188 loss 1.006 (classification 0.521 loss_objectness 0.032 loss_rpn_box_reg 0.006 loss_classifier 0.165 loss_giou 0.147 loss_box_reg 0.136) lr 0.00e+00 41.9 images/s
+10-20 07:11 DONE A01_bench2 (gpu0)
+10-20 07:11 START E02_vit_all32 (gpu0)
+[E01_dino_ref] epoch 12 val: accuracy 0.9191 macro_f1 0.9277 balanced_accuracy 0.9300 mAP 0.2060 AP50 0.4648
+[E02_vit_all32] epoch 4 val: accuracy 0.8904 macro_f1 0.9032 balanced_accuracy 0.9014 mAP 0.1089 AP50 0.3078
+[E01_dino_ref] epoch 16 val: accuracy 0.9234 macro_f1 0.9319 balanced_accuracy 0.9337 mAP 0.2358 AP50 0.5141
+[E01_dino_ref] epoch 20 val: accuracy 0.9255 macro_f1 0.9342 balanced_accuracy 0.9355 mAP 0.2493 AP50 0.5344
+[E02_vit_all32] epoch 8 val: accuracy 0.9021 macro_f1 0.9119 balanced_accuracy 0.9138 mAP 0.1580 AP50 0.3744
+[E01_dino_ref] val: accuracy 0.9255 macro_f1 0.9342 balanced_accuracy 0.9354 mAP 0.2549 AP50 0.5383
+[E01_dino_ref] test: accuracy 0.9223 macro_f1 0.9307 balanced_accuracy 0.9319 mAP 0.2680 AP50 0.5668
+[E01_dino_ref] RESULT {"val": {"macro_f1": 0.9342, "mAP": 0.2549, "AP50": 0.5383}, "test": {"macro_f1": 0.9307, "mAP": 0.268, "AP50": 0.5668}}
+10-20 07:44 DONE E01_dino_ref (gpu1)
+10-20 07:44 START p05_E09b_dino_wide64 (gpu1)
+[E02_vit_all32] epoch 12 val: accuracy 0.9106 macro_f1 0.9203 balanced_accuracy 0.9217 mAP 0.1951 AP50 0.4525
+[p05_E09b_dino_wide64] epoch 4 val: accuracy 0.8883 macro_f1 0.8968 balanced_accuracy 0.9040 mAP 0.1131 AP50 0.3036
+[E02_vit_all32] epoch 16 val: accuracy 0.9191 macro_f1 0.9276 balanced_accuracy 0.9277 mAP 0.2307 AP50 0.5044
+[p05_E09b_dino_wide64] epoch 8 val: accuracy 0.9202 macro_f1 0.9251 balanced_accuracy 0.9317 mAP 0.1604 AP50 0.3952
+[E02_vit_all32] epoch 20 val: accuracy 0.9223 macro_f1 0.9299 balanced_accuracy 0.9302 mAP 0.2601 AP50 0.5452
+[p05_E09b_dino_wide64] epoch 12 val: accuracy 0.9298 macro_f1 0.9380 balanced_accuracy 0.9402 mAP 0.1975 AP50 0.4543
+[E02_vit_all32] val: accuracy 0.9213 macro_f1 0.9292 balanced_accuracy 0.9293 mAP 0.2670 AP50 0.5536
+[E02_vit_all32] test: accuracy 0.9309 macro_f1 0.9385 balanced_accuracy 0.9384 mAP 0.2852 AP50 0.6018
+[E02_vit_all32] RESULT {"val": {"macro_f1": 0.9292, "mAP": 0.267, "AP50": 0.5536}, "test": {"macro_f1": 0.9385, "mAP": 0.2852, "AP50": 0.6018}}
+[E02_vit_all32] RESULT pp val: macro_f1 0.9364 mAP 0.2685 AP50 0.5572
+[E02_vit_all32] RESULT pp test: macro_f1 0.9410 mAP 0.2865 AP50 0.6048
+10-20 08:20 DONE E02_vit_all32 (gpu0)
+10-20 08:20 START p10_E03_cnx_all32 (gpu0)
+[p10_E03_cnx_all32] Traceback (most recent call last):
+[p10_E03_cnx_all32] RuntimeError: Function NativeLayerNormBackward0 returned an invalid gradient at index 2 - got [0] but expected shape compatible with [128]
+10-20 08:20 FAIL p10_E03_cnx_all32 rc=1 (gpu0)
+10-20 08:20 START p20_E07_cnxT_full (gpu0)
+[p05_E09b_dino_wide64] epoch 16 val: accuracy 0.9351 macro_f1 0.9412 balanced_accuracy 0.9448 mAP 0.2186 AP50 0.4768
+[p20_E07_cnxT_full] epoch 4 val: accuracy 0.8170 macro_f1 0.8307 balanced_accuracy 0.8190 mAP 0.1204 AP50 0.3071
+[p05_E09b_dino_wide64] epoch 20 val: accuracy 0.9457 macro_f1 0.9517 balanced_accuracy 0.9525 mAP 0.2411 AP50 0.5143
+[p20_E07_cnxT_full] epoch 8 val: accuracy 0.8957 macro_f1 0.9054 balanced_accuracy 0.9039 mAP 0.1712 AP50 0.4030
+[p05_E09b_dino_wide64] val: accuracy 0.9468 macro_f1 0.9523 balanced_accuracy 0.9543 mAP 0.2436 AP50 0.5207
+[p05_E09b_dino_wide64] test: accuracy 0.9415 macro_f1 0.9474 balanced_accuracy 0.9479 mAP 0.2530 AP50 0.5476
+[p05_E09b_dino_wide64] RESULT {"val": {"macro_f1": 0.9523, "mAP": 0.2436, "AP50": 0.5207}, "test": {"macro_f1": 0.9474, "mAP": 0.253, "AP50": 0.5476}}
+[p05_E09b_dino_wide64] RESULT pp val: macro_f1 0.9497 mAP 0.2444 AP50 0.5222
+[p05_E09b_dino_wide64] RESULT pp test: macro_f1 0.9458 mAP 0.2539 AP50 0.5502
+10-20 08:47 DONE p05_E09b_dino_wide64 (gpu1)
+10-20 08:47 START p30_E04r_dino_all32 (gpu1)
+[p20_E07_cnxT_full] epoch 12 val: accuracy 0.9223 macro_f1 0.9298 balanced_accuracy 0.9325 mAP 0.2011 AP50 0.4521
+[p20_E07_cnxT_full] epoch 16 val: accuracy 0.9404 macro_f1 0.9480 balanced_accuracy 0.9487 mAP 0.2207 AP50 0.4788
+[p30_E04r_dino_all32] epoch 4 val: accuracy 0.9117 macro_f1 0.9216 balanced_accuracy 0.9226 mAP 0.1351 AP50 0.3566
+[p20_E07_cnxT_full] epoch 20 val: accuracy 0.9340 macro_f1 0.9422 balanced_accuracy 0.9420 mAP 0.2437 AP50 0.5067
+[p30_E04r_dino_all32] epoch 8 val: accuracy 0.9223 macro_f1 0.9326 balanced_accuracy 0.9316 mAP 0.1827 AP50 0.4440
+[p20_E07_cnxT_full] val: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9476 mAP 0.2498 AP50 0.5179
+[p20_E07_cnxT_full] test: accuracy 0.9309 macro_f1 0.9382 balanced_accuracy 0.9375 mAP 0.2559 AP50 0.5469
+[p20_E07_cnxT_full] RESULT {"val": {"macro_f1": 0.9466, "mAP": 0.2498, "AP50": 0.5179}, "test": {"macro_f1": 0.9382, "mAP": 0.2559, "AP50": 0.5469}}
+[p20_E07_cnxT_full] RESULT pp val: macro_f1 0.9475 mAP 0.2584 AP50 0.5243
+[p20_E07_cnxT_full] RESULT pp test: macro_f1 0.9455 mAP 0.2664 AP50 0.5524
+10-20 09:14 DONE p20_E07_cnxT_full (gpu0)
+10-20 09:14 START p00_A02_redump_E09b (gpu0)
+[p00_A02_redump_E09b] val: accuracy 0.9468 macro_f1 0.9523 balanced_accuracy 0.9543 mAP 0.2560 AP50 0.5264 (22 s)
+[p00_A02_redump_E09b] test: accuracy 0.9415 macro_f1 0.9474 balanced_accuracy 0.9479 mAP 0.2673 AP50 0.5566 (21 s)
+[p00_A02_redump_E09b] RESULT pp val: macro_f1 0.9506 mAP 0.2560 AP50 0.5265
+[p00_A02_redump_E09b] RESULT pp test: macro_f1 0.9468 mAP 0.2676 AP50 0.5564
+10-20 09:16 DONE p00_A02_redump_E09b (gpu0)
+10-20 09:16 START p11_V1_cascade (gpu0)
+[p30_E04r_dino_all32] epoch 12 val: accuracy 0.9415 macro_f1 0.9490 balanced_accuracy 0.9500 mAP 0.2325 AP50 0.5148
+[p30_E04r_dino_all32] epoch 16 val: accuracy 0.9436 macro_f1 0.9513 balanced_accuracy 0.9512 mAP 0.2662 AP50 0.5604
+[p11_V1_cascade] epoch 4 val: accuracy 0.8660 macro_f1 0.8794 balanced_accuracy 0.8845 mAP 0.1146 AP50 0.2915
+[p30_E04r_dino_all32] epoch 20 val: accuracy 0.9415 macro_f1 0.9487 balanced_accuracy 0.9497 mAP 0.2889 AP50 0.5903
+[p11_V1_cascade] epoch 8 val: accuracy 0.9000 macro_f1 0.9083 balanced_accuracy 0.9121 mAP 0.1675 AP50 0.3973
+[p30_E04r_dino_all32] val: accuracy 0.9404 macro_f1 0.9477 balanced_accuracy 0.9490 mAP 0.2965 AP50 0.6020
+[p30_E04r_dino_all32] test: accuracy 0.9415 macro_f1 0.9485 balanced_accuracy 0.9488 mAP 0.3098 AP50 0.6251
+[p30_E04r_dino_all32] RESULT {"val": {"macro_f1": 0.9477, "mAP": 0.2965, "AP50": 0.602}, "test": {"macro_f1": 0.9485, "mAP": 0.3098, "AP50": 0.6251}}
+[p30_E04r_dino_all32] RESULT pp val: macro_f1 0.9521 mAP 0.3110 AP50 0.6067
+[p30_E04r_dino_all32] RESULT pp test: macro_f1 0.9461 mAP 0.3252 AP50 0.6321
+10-20 09:48 DONE p30_E04r_dino_all32 (gpu1)
+10-20 09:48 START p01_A03_interim_E02 (gpu1)
+[p01_A03_interim_E02] RESULT interim zip format OK: 1426 rows, 101757 detections
+10-20 09:48 DONE p01_A03_interim_E02 (gpu1)
+10-20 09:48 START p02_A04_interim_E04r (gpu1)
+[p02_A04_interim_E04r] RESULT interim zip format OK: 1426 rows, 92036 detections
+10-20 09:49 DONE p02_A04_interim_E04r (gpu1)
+10-20 09:49 START p12_D1_cascade (gpu1)
+[p11_V1_cascade] epoch 12 val: accuracy 0.9085 macro_f1 0.9153 balanced_accuracy 0.9205 mAP 0.2148 AP50 0.4616
+[p12_D1_cascade] epoch 4 val: accuracy 0.9085 macro_f1 0.9202 balanced_accuracy 0.9189 mAP 0.1461 AP50 0.3669
+[p11_V1_cascade] epoch 16 val: accuracy 0.9245 macro_f1 0.9320 balanced_accuracy 0.9304 mAP 0.2516 AP50 0.5222
+[p12_D1_cascade] epoch 8 val: accuracy 0.9298 macro_f1 0.9382 balanced_accuracy 0.9365 mAP 0.2048 AP50 0.4586
+[p11_V1_cascade] epoch 20 val: accuracy 0.9372 macro_f1 0.9437 balanced_accuracy 0.9428 mAP 0.2793 AP50 0.5611
+[p12_D1_cascade] epoch 12 val: accuracy 0.9383 macro_f1 0.9455 balanced_accuracy 0.9471 mAP 0.2430 AP50 0.5132
+[p11_V1_cascade] val: accuracy 0.9394 macro_f1 0.9459 balanced_accuracy 0.9455 mAP 0.2834 AP50 0.5673
+[p11_V1_cascade] test: accuracy 0.9372 macro_f1 0.9437 balanced_accuracy 0.9442 mAP 0.3018 AP50 0.5963
+[p11_V1_cascade] RESULT {"val": {"macro_f1": 0.9459, "mAP": 0.2834, "AP50": 0.5673}, "test": {"macro_f1": 0.9437, "mAP": 0.3018, "AP50": 0.5963}}
+[p11_V1_cascade] RESULT pp val: macro_f1 0.9399 mAP 0.2938 AP50 0.5716
+[p11_V1_cascade] RESULT pp test: macro_f1 0.9473 mAP 0.3139 AP50 0.6009
+10-20 10:35 DONE p11_V1_cascade (gpu0)
+10-20 10:35 START p13_D2_nwd (gpu0)
+[p12_D1_cascade] epoch 16 val: accuracy 0.9426 macro_f1 0.9502 balanced_accuracy 0.9506 mAP 0.2835 AP50 0.5626
+[p13_D2_nwd] epoch 4 val: accuracy 0.8777 macro_f1 0.8907 balanced_accuracy 0.8885 mAP 0.1356 AP50 0.3614
+[p12_D1_cascade] epoch 20 val: accuracy 0.9404 macro_f1 0.9480 balanced_accuracy 0.9483 mAP 0.3043 AP50 0.5844
+[p13_D2_nwd] epoch 8 val: accuracy 0.9213 macro_f1 0.9292 balanced_accuracy 0.9284 mAP 0.1897 AP50 0.4582
+[p12_D1_cascade] val: accuracy 0.9415 macro_f1 0.9485 balanced_accuracy 0.9492 mAP 0.3104 AP50 0.5887
+[p12_D1_cascade] test: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9507 mAP 0.3221 AP50 0.6209
+[p12_D1_cascade] RESULT {"val": {"macro_f1": 0.9485, "mAP": 0.3104, "AP50": 0.5887}, "test": {"macro_f1": 0.9499, "mAP": 0.3221, "AP50": 0.6209}}
+[p12_D1_cascade] RESULT pp val: macro_f1 0.9546 mAP 0.3195 AP50 0.5934
+[p12_D1_cascade] RESULT pp test: macro_f1 0.9538 mAP 0.3320 AP50 0.6240
+10-20 11:07 DONE p12_D1_cascade (gpu1)
+10-20 11:07 START p14_W3_dino_spml (gpu1)
+[p13_D2_nwd] epoch 12 val: accuracy 0.9319 macro_f1 0.9351 balanced_accuracy 0.9417 mAP 0.2234 AP50 0.4986
+[p14_W3_dino_spml] epoch 4 val: accuracy 0.9106 macro_f1 0.9204 balanced_accuracy 0.9233 mAP 0.1041 AP50 0.2698
+[p13_D2_nwd] epoch 16 val: accuracy 0.9394 macro_f1 0.9470 balanced_accuracy 0.9474 mAP 0.2814 AP50 0.5771
+[p13_D2_nwd] epoch 20 val: accuracy 0.9394 macro_f1 0.9463 balanced_accuracy 0.9465 mAP 0.3038 AP50 0.6019
+[p14_W3_dino_spml] epoch 8 val: accuracy 0.9117 macro_f1 0.9212 balanced_accuracy 0.9203 mAP 0.1596 AP50 0.3762
+[p13_D2_nwd] val: accuracy 0.9394 macro_f1 0.9462 balanced_accuracy 0.9466 mAP 0.3053 AP50 0.6059
+[p13_D2_nwd] test: accuracy 0.9457 macro_f1 0.9527 balanced_accuracy 0.9525 mAP 0.3155 AP50 0.6293
+[p13_D2_nwd] RESULT {"val": {"macro_f1": 0.9462, "mAP": 0.3053, "AP50": 0.6059}, "test": {"macro_f1": 0.9527, "mAP": 0.3155, "AP50": 0.6293}}
+[p13_D2_nwd] RESULT pp val: macro_f1 0.9511 mAP 0.3203 AP50 0.6110
+[p13_D2_nwd] RESULT pp test: macro_f1 0.9501 mAP 0.3292 AP50 0.6352
+10-20 11:43 DONE p13_D2_nwd (gpu0)
+10-20 11:43 START p15_D4_d4cp (gpu0)
+[p14_W3_dino_spml] epoch 12 val: accuracy 0.9340 macro_f1 0.9398 balanced_accuracy 0.9405 mAP 0.1967 AP50 0.4386
+[p15_D4_d4cp] epoch 4 val: accuracy 0.9053 macro_f1 0.9140 balanced_accuracy 0.9156 mAP 0.1204 AP50 0.3427
+[p14_W3_dino_spml] epoch 16 val: accuracy 0.9340 macro_f1 0.9418 balanced_accuracy 0.9411 mAP 0.2205 AP50 0.4806
+[p15_D4_d4cp] epoch 8 val: accuracy 0.9309 macro_f1 0.9388 balanced_accuracy 0.9394 mAP 0.1705 AP50 0.4147
+[p14_W3_dino_spml] epoch 20 val: accuracy 0.9372 macro_f1 0.9445 balanced_accuracy 0.9446 mAP 0.2365 AP50 0.4988
+[p15_D4_d4cp] epoch 12 val: accuracy 0.9277 macro_f1 0.9372 balanced_accuracy 0.9362 mAP 0.2038 AP50 0.4659
+[p14_W3_dino_spml] val: accuracy 0.9372 macro_f1 0.9444 balanced_accuracy 0.9448 mAP 0.2436 AP50 0.5098
+[p14_W3_dino_spml] test: accuracy 0.9340 macro_f1 0.9418 balanced_accuracy 0.9415 mAP 0.2467 AP50 0.5323
+[p14_W3_dino_spml] RESULT {"val": {"macro_f1": 0.9444, "mAP": 0.2436, "AP50": 0.5098}, "test": {"macro_f1": 0.9418, "mAP": 0.2467, "AP50": 0.5323}}
+[p14_W3_dino_spml] RESULT pp val: macro_f1 0.9433 mAP 0.2617 AP50 0.5268
+[p14_W3_dino_spml] RESULT pp test: macro_f1 0.9426 mAP 0.2643 AP50 0.5506
+10-20 12:19 DONE p14_W3_dino_spml (gpu1)
+10-20 12:19 START p17_L36_dino_36ep (gpu1)
+[p15_D4_d4cp] epoch 16 val: accuracy 0.9234 macro_f1 0.9325 balanced_accuracy 0.9346 mAP 0.2339 AP50 0.5060
+[p17_L36_dino_36ep] epoch 4 val: accuracy 0.9032 macro_f1 0.9133 balanced_accuracy 0.9187 mAP 0.1381 AP50 0.3665
+[p15_D4_d4cp] epoch 20 val: accuracy 0.9383 macro_f1 0.9464 balanced_accuracy 0.9465 mAP 0.2464 AP50 0.5195
+[p17_L36_dino_36ep] epoch 8 val: accuracy 0.9213 macro_f1 0.9284 balanced_accuracy 0.9260 mAP 0.1820 AP50 0.4322
+[p15_D4_d4cp] val: accuracy 0.9372 macro_f1 0.9453 balanced_accuracy 0.9456 mAP 0.2490 AP50 0.5193
+[p15_D4_d4cp] test: accuracy 0.9394 macro_f1 0.9477 balanced_accuracy 0.9479 mAP 0.2580 AP50 0.5456
+[p15_D4_d4cp] RESULT {"val": {"macro_f1": 0.9453, "mAP": 0.249, "AP50": 0.5193}, "test": {"macro_f1": 0.9477, "mAP": 0.258, "AP50": 0.5456}}
+[p15_D4_d4cp] RESULT pp val: macro_f1 0.9472 mAP 0.2606 AP50 0.5268
+[p15_D4_d4cp] RESULT pp test: macro_f1 0.9500 mAP 0.2700 AP50 0.5553
+10-20 12:47 DONE p15_D4_d4cp (gpu0)
+10-20 12:47 START p18_D5_mona (gpu0)
+[p18_D5_mona] Traceback (most recent call last):
+[p18_D5_mona] RuntimeError: cuDNN error: CUDNN_STATUS_BAD_PARAM
+10-20 12:47 FAIL p18_D5_mona rc=1 (gpu0)
+10-20 12:47 START p19_D6_r64 (gpu0)
+[p17_L36_dino_36ep] epoch 12 val: accuracy 0.9287 macro_f1 0.9361 balanced_accuracy 0.9368 mAP 0.2177 AP50 0.4880
+[p19_D6_r64] epoch 4 val: accuracy 0.8819 macro_f1 0.8945 balanced_accuracy 0.8950 mAP 0.1274 AP50 0.3489
+[p17_L36_dino_36ep] epoch 16 val: accuracy 0.9340 macro_f1 0.9415 balanced_accuracy 0.9416 mAP 0.2561 AP50 0.5451
+[p19_D6_r64] epoch 8 val: accuracy 0.9266 macro_f1 0.9333 balanced_accuracy 0.9351 mAP 0.1813 AP50 0.4407
+[p17_L36_dino_36ep] epoch 20 val: accuracy 0.9394 macro_f1 0.9460 balanced_accuracy 0.9469 mAP 0.2905 AP50 0.5879
+[p19_D6_r64] epoch 12 val: accuracy 0.9372 macro_f1 0.9455 balanced_accuracy 0.9471 mAP 0.2345 AP50 0.5114
+[p17_L36_dino_36ep] epoch 24 val: accuracy 0.9404 macro_f1 0.9475 balanced_accuracy 0.9489 mAP 0.3182 AP50 0.6191
+[p17_L36_dino_36ep] epoch 28 val: accuracy 0.9362 macro_f1 0.9437 balanced_accuracy 0.9453 mAP 0.3341 AP50 0.6368
+[p19_D6_r64] epoch 16 val: accuracy 0.9340 macro_f1 0.9413 balanced_accuracy 0.9434 mAP 0.2691 AP50 0.5655
+[p17_L36_dino_36ep] epoch 32 val: accuracy 0.9404 macro_f1 0.9475 balanced_accuracy 0.9489 mAP 0.3447 AP50 0.6474
+[p19_D6_r64] epoch 20 val: accuracy 0.9340 macro_f1 0.9419 balanced_accuracy 0.9431 mAP 0.2994 AP50 0.5924
+[p17_L36_dino_36ep] val: accuracy 0.9383 macro_f1 0.9456 balanced_accuracy 0.9472 mAP 0.3491 AP50 0.6521
+[p17_L36_dino_36ep] test: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9506 mAP 0.3603 AP50 0.6708
+[p17_L36_dino_36ep] RESULT {"val": {"macro_f1": 0.9456, "mAP": 0.3491, "AP50": 0.6521}, "test": {"macro_f1": 0.9502, "mAP": 0.3603, "AP50": 0.6708}}
+[p17_L36_dino_36ep] RESULT pp val: macro_f1 0.9479 mAP 0.3642 AP50 0.6510
+[p17_L36_dino_36ep] RESULT pp test: macro_f1 0.9543 mAP 0.3749 AP50 0.6767
+10-20 13:50 DONE p17_L36_dino_36ep (gpu1)
+[p19_D6_r64] val: accuracy 0.9330 macro_f1 0.9411 balanced_accuracy 0.9423 mAP 0.3070 AP50 0.6044
+[p19_D6_r64] test: accuracy 0.9394 macro_f1 0.9457 balanced_accuracy 0.9471 mAP 0.3094 AP50 0.6283
+[p19_D6_r64] RESULT {"val": {"macro_f1": 0.9411, "mAP": 0.307, "AP50": 0.6044}, "test": {"macro_f1": 0.9457, "mAP": 0.3094, "AP50": 0.6283}}
+[p19_D6_r64] RESULT pp val: macro_f1 0.9486 mAP 0.3217 AP50 0.6106
+[p19_D6_r64] RESULT pp test: macro_f1 0.9481 mAP 0.3203 AP50 0.6323
+10-20 13:51 DONE p19_D6_r64 (gpu0)
+10-20 14:45 START C_casc_nwd_36ep (gpu0)
+10-20 14:45 START C_casc_nwd_48ep (gpu1)
+[C_casc_nwd_48ep] epoch 4 val: accuracy 0.9117 macro_f1 0.9206 balanced_accuracy 0.9216 mAP 0.1479 AP50 0.3817
+[C_casc_nwd_36ep] epoch 4 val: accuracy 0.9053 macro_f1 0.9137 balanced_accuracy 0.9184 mAP 0.1507 AP50 0.3770
+[C_casc_nwd_48ep] epoch 8 val: accuracy 0.9191 macro_f1 0.9297 balanced_accuracy 0.9317 mAP 0.2060 AP50 0.4558
+[C_casc_nwd_36ep] epoch 8 val: accuracy 0.9170 macro_f1 0.9277 balanced_accuracy 0.9267 mAP 0.2101 AP50 0.4573
+[C_casc_nwd_48ep] epoch 12 val: accuracy 0.9277 macro_f1 0.9358 balanced_accuracy 0.9351 mAP 0.2438 AP50 0.5022
+[C_casc_nwd_36ep] epoch 12 val: accuracy 0.9340 macro_f1 0.9412 balanced_accuracy 0.9433 mAP 0.2443 AP50 0.5094
+[C_casc_nwd_48ep] epoch 16 val: accuracy 0.9319 macro_f1 0.9392 balanced_accuracy 0.9377 mAP 0.2584 AP50 0.5201
+[C_casc_nwd_36ep] epoch 16 val: accuracy 0.9404 macro_f1 0.9470 balanced_accuracy 0.9479 mAP 0.2769 AP50 0.5442
+[C_casc_nwd_48ep] epoch 20 val: accuracy 0.9479 macro_f1 0.9522 balanced_accuracy 0.9536 mAP 0.3000 AP50 0.5759
+[C_casc_nwd_36ep] epoch 20 val: accuracy 0.9362 macro_f1 0.9433 balanced_accuracy 0.9441 mAP 0.3064 AP50 0.5885
+[C_casc_nwd_48ep] epoch 24 val: accuracy 0.9468 macro_f1 0.9524 balanced_accuracy 0.9534 mAP 0.3322 AP50 0.6152
+[C_casc_nwd_36ep] epoch 24 val: accuracy 0.9447 macro_f1 0.9520 balanced_accuracy 0.9516 mAP 0.3279 AP50 0.6114
+[C_casc_nwd_48ep] epoch 28 val: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9516 mAP 0.3450 AP50 0.6179
+[C_casc_nwd_36ep] epoch 28 val: accuracy 0.9426 macro_f1 0.9501 balanced_accuracy 0.9500 mAP 0.3515 AP50 0.6302
+[C_casc_nwd_48ep] epoch 32 val: accuracy 0.9479 macro_f1 0.9535 balanced_accuracy 0.9542 mAP 0.3673 AP50 0.6462
+[C_casc_nwd_36ep] epoch 32 val: accuracy 0.9436 macro_f1 0.9510 balanced_accuracy 0.9507 mAP 0.3521 AP50 0.6324
+[C_casc_nwd_48ep] epoch 36 val: accuracy 0.9479 macro_f1 0.9527 balanced_accuracy 0.9540 mAP 0.3806 AP50 0.6593
+[C_casc_nwd_36ep] val: accuracy 0.9426 macro_f1 0.9501 balanced_accuracy 0.9499 mAP 0.3534 AP50 0.6329
+[C_casc_nwd_36ep] test: accuracy 0.9436 macro_f1 0.9507 balanced_accuracy 0.9505 mAP 0.3725 AP50 0.6610
+[C_casc_nwd_36ep] RESULT {"val": {"macro_f1": 0.9501, "mAP": 0.3534, "AP50": 0.6329}, "test": {"macro_f1": 0.9507, "mAP": 0.3725, "AP50": 0.661}}
+[C_casc_nwd_36ep] RESULT pp val: macro_f1 0.9563 mAP 0.3627 AP50 0.6369
+[C_casc_nwd_36ep] RESULT pp test: macro_f1 0.9516 mAP 0.3786 AP50 0.6622
+10-20 16:52 DONE C_casc_nwd_36ep (gpu0)
+10-20 16:52 START p01_FINAL_v1 (gpu0)
+[C_casc_nwd_48ep] epoch 40 val: accuracy 0.9468 macro_f1 0.9517 balanced_accuracy 0.9531 mAP 0.3889 AP50 0.6595
+[C_casc_nwd_48ep] epoch 44 val: accuracy 0.9479 macro_f1 0.9526 balanced_accuracy 0.9540 mAP 0.3920 AP50 0.6611
+[C_casc_nwd_48ep] val: accuracy 0.9479 macro_f1 0.9526 balanced_accuracy 0.9540 mAP 0.3933 AP50 0.6631
+[C_casc_nwd_48ep] test: accuracy 0.9457 macro_f1 0.9519 balanced_accuracy 0.9524 mAP 0.3985 AP50 0.6750
+[C_casc_nwd_48ep] RESULT {"val": {"macro_f1": 0.9526, "mAP": 0.3933, "AP50": 0.6631}, "test": {"macro_f1": 0.9519, "mAP": 0.3985, "AP50": 0.675}}
+[C_casc_nwd_48ep] RESULT pp val: macro_f1 0.9523 mAP 0.3985 AP50 0.6632
+[C_casc_nwd_48ep] RESULT pp test: macro_f1 0.9510 mAP 0.4028 AP50 0.6766
+10-20 17:29 DONE C_casc_nwd_48ep (gpu1)
+10-20 17:29 START p02_FINAL_v2 (gpu1)
+10-20 17:32 FAIL p01_FINAL_v1 rc=1 (gpu0)
+10-20 17:38 FAIL p02_FINAL_v2 rc=1 (gpu1)
+10-20 17:38 START p01_V2L_local (gpu0)
+10-20 17:38 START p02_V2F_full (gpu1)
+10-20 17:40 FAIL p02_V2F_full rc=1 (gpu1)
+10-20 17:40 FAIL p01_V2L_local rc=1 (gpu0)
+10-20 17:59 START p01_V2_ddp (gpu1)
+10-20 17:59 START p02_HOLD_gpu1 (gpu0)
+[V2_ddp] epoch 10 test: accuracy 0.9330 macro_f1 0.9372 balanced_accuracy 0.9418 mAP 0.2352 AP50 0.5067
+[V2_ddp] epoch 20 test: accuracy 0.9383 macro_f1 0.9441 balanced_accuracy 0.9462 mAP 0.3021 AP50 0.5951
+[V2_ddp] epoch 30 test: accuracy 0.9245 macro_f1 0.9309 balanced_accuracy 0.9350 mAP 0.3410 AP50 0.6487
+[V2_ddp] epoch 40 test: accuracy 0.9415 macro_f1 0.9481 balanced_accuracy 0.9503 mAP 0.3907 AP50 0.6853
+[V2_ddp] epoch 50 test: accuracy 0.9447 macro_f1 0.9513 balanced_accuracy 0.9516 mAP 0.4137 AP50 0.6976
+[V2_ddp] epoch 60 test: accuracy 0.9489 macro_f1 0.9555 balanced_accuracy 0.9552 mAP 0.4344 AP50 0.7185
+[V2_ddp] epoch 70 test: accuracy 0.9521 macro_f1 0.9582 balanced_accuracy 0.9579 mAP 0.4479 AP50 0.7287
+[V2_ddp] epoch 80 test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9543 mAP 0.4610 AP50 0.7338
+[V2_ddp] epoch 90 test: accuracy 0.9489 macro_f1 0.9555 balanced_accuracy 0.9552 mAP 0.4648 AP50 0.7287
+[V2_ddp] epoch 100 test: accuracy 0.9511 macro_f1 0.9573 balanced_accuracy 0.9570 mAP 0.4703 AP50 0.7272
+[V2_ddp] epoch 110 test: accuracy 0.9500 macro_f1 0.9563 balanced_accuracy 0.9561 mAP 0.4662 AP50 0.7255
+[p01_V2_ddp] test: accuracy 0.9500 macro_f1 0.9565 balanced_accuracy 0.9561 mAP 0.4686 AP50 0.7247
+[p01_V2_ddp] RESULT {"test": {"macro_f1": 0.9565, "mAP": 0.4686, "AP50": 0.7247}}
+10-20 21:51 DONE p01_V2_ddp (gpu1)
+10-20 21:51 START p03_S8_ddp (gpu1)
+10-20 21:51 FAIL p02_HOLD_gpu1 rc=1 (gpu0)
+10-20 21:51 START p04_S8_hold (gpu0)
+[p03_S8_ddp] epoch 12 val: accuracy 0.9234 macro_f1 0.9333 balanced_accuracy 0.9333 mAP 0.2572 AP50 0.5235 || test: accuracy 0.9223 macro_f1 0.9341 balanced_accuracy 0.9342 mAP 0.2490 AP50 0.5290
+[p03_S8_ddp] epoch 24 val: accuracy 0.9415 macro_f1 0.9466 balanced_accuracy 0.9475 mAP 0.3323 AP50 0.6125 || test: accuracy 0.9447 macro_f1 0.9525 balanced_accuracy 0.9532 mAP 0.3396 AP50 0.6391
+[p03_S8_ddp] val: accuracy 0.9415 macro_f1 0.9468 balanced_accuracy 0.9474 mAP 0.3542 AP50 0.6296
+[p03_S8_ddp] test: accuracy 0.9436 macro_f1 0.9515 balanced_accuracy 0.9523 mAP 0.3671 AP50 0.6578
+[p03_S8_ddp] RESULT {"val": {"macro_f1": 0.9468, "mAP": 0.3542, "AP50": 0.6296}, "test": {"macro_f1": 0.9515, "mAP": 0.3671, "AP50": 0.6578}}
+[p03_S8_ddp] RESULT pp val: macro_f1 0.9491 mAP 0.3702 AP50 0.6385
+[p03_S8_ddp] RESULT pp test: macro_f1 0.9559 mAP 0.3834 AP50 0.6655
+10-21 00:33 DONE p03_S8_ddp (gpu1)
+10-21 00:33 START p05_F1_full_ddp (gpu1)
+10-21 00:33 FAIL p04_S8_hold rc=1 (gpu0)
+10-21 00:33 START p06_F1_hold (gpu0)
+[p05_F1_full_ddp] RESULT {}
+[p05_F1_full_ddp] RESULT F1_full submission written
+10-21 04:06 DONE p05_F1_full_ddp (gpu1)
+[p06_F1_hold] RESULT hold released
+10-21 04:06 DONE p06_F1_hold (gpu0)
+10-21 04:07 MANUAL backlog -> pending: a0_E1_ema
+10-21 04:07 MANUAL backlog -> pending: a1_A4_sizeiou
+10-21 04:07 START a0_E1_ema (gpu1)
+10-21 04:07 START a1_A4_sizeiou (gpu0)
+[a0_E1_ema] epoch 4 val: accuracy 0.9234 macro_f1 0.9320 balanced_accuracy 0.9347 mAP 0.1573 AP50 0.3857 || test: accuracy 0.9330 macro_f1 0.9412 balanced_accuracy 0.9425 mAP 0.1547 AP50 0.3974
+[a1_A4_sizeiou] epoch 4 val: accuracy 0.9096 macro_f1 0.9202 balanced_accuracy 0.9222 mAP 0.1424 AP50 0.3713 || test: accuracy 0.9053 macro_f1 0.9154 balanced_accuracy 0.9185 mAP 0.1359 AP50 0.3784
+[a0_E1_ema] epoch 8 val: accuracy 0.9372 macro_f1 0.9436 balanced_accuracy 0.9453 mAP 0.2213 AP50 0.4625 || test: accuracy 0.9362 macro_f1 0.9423 balanced_accuracy 0.9442 mAP 0.2198 AP50 0.4926
+[a1_A4_sizeiou] epoch 8 val: accuracy 0.9043 macro_f1 0.9144 balanced_accuracy 0.9160 mAP 0.2051 AP50 0.4594 || test: accuracy 0.9149 macro_f1 0.9241 balanced_accuracy 0.9253 mAP 0.1977 AP50 0.4635
+[a0_E1_ema] epoch 12 val: accuracy 0.9415 macro_f1 0.9472 balanced_accuracy 0.9489 mAP 0.2550 AP50 0.5143 || test: accuracy 0.9372 macro_f1 0.9439 balanced_accuracy 0.9443 mAP 0.2633 AP50 0.5473
+[a1_A4_sizeiou] epoch 12 val: accuracy 0.9245 macro_f1 0.9328 balanced_accuracy 0.9323 mAP 0.2370 AP50 0.5045 || test: accuracy 0.9394 macro_f1 0.9462 balanced_accuracy 0.9476 mAP 0.2420 AP50 0.5380
+[a0_E1_ema] epoch 16 val: accuracy 0.9489 macro_f1 0.9542 balanced_accuracy 0.9552 mAP 0.2873 AP50 0.5562 || test: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9496 mAP 0.2938 AP50 0.5878
+[a1_A4_sizeiou] epoch 16 val: accuracy 0.9340 macro_f1 0.9420 balanced_accuracy 0.9416 mAP 0.2755 AP50 0.5561 || test: accuracy 0.9319 macro_f1 0.9391 balanced_accuracy 0.9374 mAP 0.2796 AP50 0.5851
+[a0_E1_ema] epoch 20 val: accuracy 0.9532 macro_f1 0.9586 balanced_accuracy 0.9596 mAP 0.3148 AP50 0.5880 || test: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9496 mAP 0.3250 AP50 0.6200
+[a1_A4_sizeiou] epoch 20 val: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9504 mAP 0.3126 AP50 0.6038 || test: accuracy 0.9426 macro_f1 0.9483 balanced_accuracy 0.9488 mAP 0.3280 AP50 0.6382
+[a0_E1_ema] epoch 24 val: accuracy 0.9521 macro_f1 0.9573 balanced_accuracy 0.9579 mAP 0.3347 AP50 0.6140 || test: accuracy 0.9383 macro_f1 0.9450 balanced_accuracy 0.9460 mAP 0.3490 AP50 0.6436
+[a1_A4_sizeiou] epoch 24 val: accuracy 0.9457 macro_f1 0.9518 balanced_accuracy 0.9531 mAP 0.3327 AP50 0.6239 || test: accuracy 0.9383 macro_f1 0.9447 balanced_accuracy 0.9461 mAP 0.3458 AP50 0.6525
+[a0_E1_ema] epoch 28 val: accuracy 0.9532 macro_f1 0.9581 balanced_accuracy 0.9587 mAP 0.3484 AP50 0.6306 || test: accuracy 0.9372 macro_f1 0.9442 balanced_accuracy 0.9451 mAP 0.3617 AP50 0.6558
+[a1_A4_sizeiou] epoch 28 val: accuracy 0.9447 macro_f1 0.9505 balanced_accuracy 0.9515 mAP 0.3539 AP50 0.6457 || test: accuracy 0.9404 macro_f1 0.9467 balanced_accuracy 0.9481 mAP 0.3666 AP50 0.6672
+[a0_E1_ema] epoch 32 val: accuracy 0.9532 macro_f1 0.9581 balanced_accuracy 0.9587 mAP 0.3544 AP50 0.6351 || test: accuracy 0.9404 macro_f1 0.9473 balanced_accuracy 0.9486 mAP 0.3690 AP50 0.6610
+[a1_A4_sizeiou] epoch 32 val: accuracy 0.9457 macro_f1 0.9514 balanced_accuracy 0.9524 mAP 0.3603 AP50 0.6477 || test: accuracy 0.9404 macro_f1 0.9467 balanced_accuracy 0.9480 mAP 0.3751 AP50 0.6753
+[a0_E1_ema] test (last-iterate weights): accuracy 0.9415 macro_f1 0.9483 balanced_accuracy 0.9496 mAP 0.3703 AP50 0.6630
+[a0_E1_ema] val: accuracy 0.9532 macro_f1 0.9581 balanced_accuracy 0.9587 mAP 0.3560 AP50 0.6367
+[a0_E1_ema] test: accuracy 0.9394 macro_f1 0.9464 balanced_accuracy 0.9477 mAP 0.3701 AP50 0.6614
+[a0_E1_ema] RESULT {"val": {"macro_f1": 0.9581, "mAP": 0.356, "AP50": 0.6367}, "test": {"macro_f1": 0.9464, "mAP": 0.3701, "AP50": 0.6614}}
+[a0_E1_ema] RESULT pp val: macro_f1 0.9598 mAP 0.3740 AP50 0.6439
+[a0_E1_ema] RESULT pp test: macro_f1 0.9502 mAP 0.3874 AP50 0.6694
+10-21 06:09 DONE a0_E1_ema (gpu1)
+10-21 06:09 WATCHDOG backlog -> pending: a2_B1_iou
+10-21 06:09 START a2_B1_iou (gpu1)
+[a1_A4_sizeiou] val: accuracy 0.9457 macro_f1 0.9514 balanced_accuracy 0.9523 mAP 0.3608 AP50 0.6455
+[a1_A4_sizeiou] test: accuracy 0.9404 macro_f1 0.9467 balanced_accuracy 0.9480 mAP 0.3765 AP50 0.6753
+[a1_A4_sizeiou] RESULT {"val": {"macro_f1": 0.9514, "mAP": 0.3608, "AP50": 0.6455}, "test": {"macro_f1": 0.9467, "mAP": 0.3765, "AP50": 0.6753}}
+[a1_A4_sizeiou] RESULT pp val: macro_f1 0.9527 mAP 0.3815 AP50 0.6546
+[a1_A4_sizeiou] RESULT pp test: macro_f1 0.9527 mAP 0.3978 AP50 0.6842
+10-21 06:14 DONE a1_A4_sizeiou (gpu0)
+10-21 06:15 WATCHDOG backlog -> pending: a3_A2_flipfix
+10-21 06:15 START a3_A2_flipfix (gpu0)
+[a2_B1_iou] epoch 4 val: accuracy 0.9032 macro_f1 0.9122 balanced_accuracy 0.9165 mAP 0.1447 AP50 0.3623 || test: accuracy 0.9106 macro_f1 0.9181 balanced_accuracy 0.9225 mAP 0.1303 AP50 0.3485
+[a3_A2_flipfix] epoch 4 val: accuracy 0.8979 macro_f1 0.9086 balanced_accuracy 0.9122 mAP 0.1569 AP50 0.3857 || test: accuracy 0.9021 macro_f1 0.9122 balanced_accuracy 0.9155 mAP 0.1552 AP50 0.3947
+[a2_B1_iou] epoch 8 val: accuracy 0.9309 macro_f1 0.9382 balanced_accuracy 0.9407 mAP 0.1804 AP50 0.4305 || test: accuracy 0.9149 macro_f1 0.9210 balanced_accuracy 0.9253 mAP 0.1837 AP50 0.4521
+[a3_A2_flipfix] epoch 8 val: accuracy 0.9117 macro_f1 0.9218 balanced_accuracy 0.9236 mAP 0.2058 AP50 0.4549 || test: accuracy 0.9160 macro_f1 0.9256 balanced_accuracy 0.9239 mAP 0.1995 AP50 0.4702
+[a2_B1_iou] epoch 12 val: accuracy 0.9245 macro_f1 0.9317 balanced_accuracy 0.9341 mAP 0.2338 AP50 0.4946 || test: accuracy 0.9245 macro_f1 0.9335 balanced_accuracy 0.9362 mAP 0.2327 AP50 0.5175
+[a3_A2_flipfix] epoch 12 val: accuracy 0.9351 macro_f1 0.9424 balanced_accuracy 0.9439 mAP 0.2439 AP50 0.5155 || test: accuracy 0.9309 macro_f1 0.9387 balanced_accuracy 0.9396 mAP 0.2521 AP50 0.5519
+[a2_B1_iou] epoch 16 val: accuracy 0.9340 macro_f1 0.9414 balanced_accuracy 0.9412 mAP 0.2721 AP50 0.5416 || test: accuracy 0.9404 macro_f1 0.9475 balanced_accuracy 0.9483 mAP 0.2768 AP50 0.5680
+[a3_A2_flipfix] epoch 16 val: accuracy 0.9457 macro_f1 0.9520 balanced_accuracy 0.9534 mAP 0.2824 AP50 0.5536 || test: accuracy 0.9298 macro_f1 0.9382 balanced_accuracy 0.9390 mAP 0.2872 AP50 0.5745
+[a2_B1_iou] epoch 20 val: accuracy 0.9479 macro_f1 0.9540 balanced_accuracy 0.9544 mAP 0.3036 AP50 0.5791 || test: accuracy 0.9394 macro_f1 0.9468 balanced_accuracy 0.9478 mAP 0.3199 AP50 0.6181
+[a3_A2_flipfix] epoch 20 val: accuracy 0.9394 macro_f1 0.9469 balanced_accuracy 0.9471 mAP 0.3129 AP50 0.5939 || test: accuracy 0.9372 macro_f1 0.9444 balanced_accuracy 0.9435 mAP 0.3294 AP50 0.6208
+[a2_B1_iou] epoch 24 val: accuracy 0.9468 macro_f1 0.9531 balanced_accuracy 0.9534 mAP 0.3292 AP50 0.6111 || test: accuracy 0.9426 macro_f1 0.9497 balanced_accuracy 0.9497 mAP 0.3425 AP50 0.6412
+[a3_A2_flipfix] epoch 24 val: accuracy 0.9468 macro_f1 0.9527 balanced_accuracy 0.9542 mAP 0.3381 AP50 0.6177 || test: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9516 mAP 0.3545 AP50 0.6522
+[a2_B1_iou] epoch 28 val: accuracy 0.9447 macro_f1 0.9509 balanced_accuracy 0.9517 mAP 0.3484 AP50 0.6258 || test: accuracy 0.9394 macro_f1 0.9467 balanced_accuracy 0.9478 mAP 0.3598 AP50 0.6559
+[a3_A2_flipfix] epoch 28 val: accuracy 0.9457 macro_f1 0.9520 balanced_accuracy 0.9533 mAP 0.3605 AP50 0.6360 || test: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9498 mAP 0.3800 AP50 0.6680
+[a2_B1_iou] epoch 32 val: accuracy 0.9457 macro_f1 0.9518 balanced_accuracy 0.9518 mAP 0.3577 AP50 0.6389 || test: accuracy 0.9415 macro_f1 0.9486 balanced_accuracy 0.9495 mAP 0.3685 AP50 0.6650
+[a3_A2_flipfix] epoch 32 val: accuracy 0.9489 macro_f1 0.9546 balanced_accuracy 0.9559 mAP 0.3673 AP50 0.6388 || test: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9499 mAP 0.3838 AP50 0.6674
+[a2_B1_iou] val: accuracy 0.9436 macro_f1 0.9500 balanced_accuracy 0.9501 mAP 0.3578 AP50 0.6348
+[a2_B1_iou] test: accuracy 0.9415 macro_f1 0.9482 balanced_accuracy 0.9488 mAP 0.3693 AP50 0.6658
+[a2_B1_iou] RESULT {"val": {"macro_f1": 0.95, "mAP": 0.3578, "AP50": 0.6348}, "test": {"macro_f1": 0.9482, "mAP": 0.3693, "AP50": 0.6658}}
+[a2_B1_iou] RESULT pp val: macro_f1 0.9527 mAP 0.3725 AP50 0.6375
+[a2_B1_iou] RESULT pp test: macro_f1 0.9501 mAP 0.3875 AP50 0.6702
+10-21 08:12 DONE a2_B1_iou (gpu1)
+10-21 08:13 WATCHDOG backlog -> pending: a3a1_F2_full_ddp
+10-21 08:13 START a3a1_F2_full_ddp (gpu1)
+[a3_A2_flipfix] val: accuracy 0.9500 macro_f1 0.9555 balanced_accuracy 0.9568 mAP 0.3671 AP50 0.6397
+[a3_A2_flipfix] test: accuracy 0.9447 macro_f1 0.9504 balanced_accuracy 0.9508 mAP 0.3866 AP50 0.6698
+[a3_A2_flipfix] RESULT {"val": {"macro_f1": 0.9555, "mAP": 0.3671, "AP50": 0.6397}, "test": {"macro_f1": 0.9504, "mAP": 0.3866, "AP50": 0.6698}}
+[a3_A2_flipfix] RESULT pp val: macro_f1 0.9574 mAP 0.3786 AP50 0.6429
+[a3_A2_flipfix] RESULT pp test: macro_f1 0.9500 mAP 0.3961 AP50 0.6686
+10-21 08:25 DONE a3_A2_flipfix (gpu0)
+10-21 08:26 WATCHDOG backlog -> pending: a3a2_F2_hold
+10-21 08:26 START a3a2_F2_hold (gpu0)
+[a3a1_F2_full_ddp] RESULT {}
+[a3a1_F2_full_ddp] RESULT F2_full submission written
+10-21 12:02 DONE a3a1_F2_full_ddp (gpu1)
+10-21 12:02 WATCHDOG backlog -> pending: a3a3_A4b_small16
+[a3a2_F2_hold] RESULT hold released
+10-21 12:02 DONE a3a2_F2_hold (gpu0)
+10-21 12:02 START a3a3_A4b_small16 (gpu0)
+10-21 12:03 WATCHDOG backlog -> pending: a3b_L1_d4long
+10-21 12:03 START a3b_L1_d4long (gpu1)
+[a3a3_A4b_small16] epoch 4 val: accuracy 0.8989 macro_f1 0.9103 balanced_accuracy 0.9127 mAP 0.1375 AP50 0.3772 || test: accuracy 0.8957 macro_f1 0.9050 balanced_accuracy 0.9093 mAP 0.1271 AP50 0.3592
+[a3a3_A4b_small16] epoch 8 val: accuracy 0.8968 macro_f1 0.9079 balanced_accuracy 0.9089 mAP 0.1969 AP50 0.4534 || test: accuracy 0.9085 macro_f1 0.9167 balanced_accuracy 0.9168 mAP 0.1989 AP50 0.4603
+[L1_d4long] epoch 10 test: accuracy 0.9340 macro_f1 0.9419 balanced_accuracy 0.9421 mAP 0.2043 AP50 0.4692
+[a3a3_A4b_small16] epoch 12 val: accuracy 0.9330 macro_f1 0.9407 balanced_accuracy 0.9422 mAP 0.2362 AP50 0.5008 || test: accuracy 0.9330 macro_f1 0.9422 balanced_accuracy 0.9426 mAP 0.2416 AP50 0.5292
+[a3a3_A4b_small16] epoch 16 val: accuracy 0.9489 macro_f1 0.9542 balanced_accuracy 0.9551 mAP 0.2818 AP50 0.5707 || test: accuracy 0.9351 macro_f1 0.9426 balanced_accuracy 0.9435 mAP 0.2869 AP50 0.5962
+[a3a3_A4b_small16] epoch 20 val: accuracy 0.9415 macro_f1 0.9466 balanced_accuracy 0.9441 mAP 0.3008 AP50 0.5807 || test: accuracy 0.9372 macro_f1 0.9431 balanced_accuracy 0.9420 mAP 0.3073 AP50 0.6146
+[L1_d4long] epoch 20 test: accuracy 0.9309 macro_f1 0.9380 balanced_accuracy 0.9402 mAP 0.2667 AP50 0.5609
+[a3a3_A4b_small16] epoch 24 val: accuracy 0.9511 macro_f1 0.9564 balanced_accuracy 0.9569 mAP 0.3322 AP50 0.6221 || test: accuracy 0.9468 macro_f1 0.9530 balanced_accuracy 0.9535 mAP 0.3439 AP50 0.6493
+[a3a3_A4b_small16] epoch 28 val: accuracy 0.9479 macro_f1 0.9536 balanced_accuracy 0.9542 mAP 0.3542 AP50 0.6446 || test: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9506 mAP 0.3662 AP50 0.6668
+[L1_d4long] epoch 30 test: accuracy 0.9319 macro_f1 0.9403 balanced_accuracy 0.9396 mAP 0.3027 AP50 0.5967
+[a3a3_A4b_small16] epoch 32 val: accuracy 0.9500 macro_f1 0.9554 balanced_accuracy 0.9559 mAP 0.3610 AP50 0.6478 || test: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9506 mAP 0.3684 AP50 0.6671
+[a3a3_A4b_small16] val: accuracy 0.9489 macro_f1 0.9545 balanced_accuracy 0.9550 mAP 0.3616 AP50 0.6453
+[a3a3_A4b_small16] test: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9506 mAP 0.3728 AP50 0.6682
+[a3a3_A4b_small16] RESULT {"val": {"macro_f1": 0.9545, "mAP": 0.3616, "AP50": 0.6453}, "test": {"macro_f1": 0.9501, "mAP": 0.3728, "AP50": 0.6682}}
+[a3a3_A4b_small16] RESULT pp val: macro_f1 0.9594 mAP 0.3782 AP50 0.6555
+[a3a3_A4b_small16] RESULT pp test: macro_f1 0.9502 mAP 0.3941 AP50 0.6807
+10-21 14:09 DONE a3a3_A4b_small16 (gpu0)
+10-21 14:09 WATCHDOG backlog -> pending: a3c_L2_zoomlong
+10-21 14:09 START a3b5_AA_a4a2 (gpu0)
+[a3b5_AA_a4a2] epoch 4 val: accuracy 0.9064 macro_f1 0.9159 balanced_accuracy 0.9175 mAP 0.1546 AP50 0.3921 || test: accuracy 0.9106 macro_f1 0.9175 balanced_accuracy 0.9223 mAP 0.1526 AP50 0.4034
+[L1_d4long] epoch 40 test: accuracy 0.9383 macro_f1 0.9462 balanced_accuracy 0.9470 mAP 0.3433 AP50 0.6467
+[a3b5_AA_a4a2] epoch 8 val: accuracy 0.9223 macro_f1 0.9318 balanced_accuracy 0.9325 mAP 0.2087 AP50 0.4726 || test: accuracy 0.9213 macro_f1 0.9294 balanced_accuracy 0.9309 mAP 0.2121 AP50 0.4929
+[a3b5_AA_a4a2] epoch 12 val: accuracy 0.9277 macro_f1 0.9358 balanced_accuracy 0.9326 mAP 0.2564 AP50 0.5326 || test: accuracy 0.9277 macro_f1 0.9373 balanced_accuracy 0.9357 mAP 0.2604 AP50 0.5548
+[a3b5_AA_a4a2] epoch 16 val: accuracy 0.9340 macro_f1 0.9407 balanced_accuracy 0.9394 mAP 0.2744 AP50 0.5588 || test: accuracy 0.9223 macro_f1 0.9307 balanced_accuracy 0.9289 mAP 0.2771 AP50 0.5811
+[L1_d4long] epoch 50 test: accuracy 0.9489 macro_f1 0.9552 balanced_accuracy 0.9560 mAP 0.3731 AP50 0.6733
+[a3b5_AA_a4a2] epoch 20 val: accuracy 0.9436 macro_f1 0.9491 balanced_accuracy 0.9492 mAP 0.3133 AP50 0.6063 || test: accuracy 0.9426 macro_f1 0.9500 balanced_accuracy 0.9508 mAP 0.3303 AP50 0.6460
+[a3b5_AA_a4a2] epoch 24 val: accuracy 0.9415 macro_f1 0.9474 balanced_accuracy 0.9490 mAP 0.3367 AP50 0.6253 || test: accuracy 0.9468 macro_f1 0.9536 balanced_accuracy 0.9542 mAP 0.3542 AP50 0.6660
+[L1_d4long] epoch 60 test: accuracy 0.9511 macro_f1 0.9576 balanced_accuracy 0.9578 mAP 0.4010 AP50 0.6969
+[a3b5_AA_a4a2] epoch 28 val: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9473 mAP 0.3633 AP50 0.6505 || test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9551 mAP 0.3822 AP50 0.6780
+[a3b5_AA_a4a2] epoch 32 val: accuracy 0.9426 macro_f1 0.9485 balanced_accuracy 0.9492 mAP 0.3697 AP50 0.6548 || test: accuracy 0.9489 macro_f1 0.9554 balanced_accuracy 0.9560 mAP 0.3867 AP50 0.6820
+[a3b5_AA_a4a2] val: accuracy 0.9426 macro_f1 0.9480 balanced_accuracy 0.9491 mAP 0.3734 AP50 0.6567
+[a3b5_AA_a4a2] test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9551 mAP 0.3881 AP50 0.6804
+[a3b5_AA_a4a2] RESULT {"val": {"macro_f1": 0.948, "mAP": 0.3734, "AP50": 0.6567}, "test": {"macro_f1": 0.9545, "mAP": 0.3881, "AP50": 0.6804}}
+[a3b5_AA_a4a2] RESULT pp val: macro_f1 0.9505 mAP 0.3843 AP50 0.6585
+[a3b5_AA_a4a2] RESULT pp test: macro_f1 0.9555 mAP 0.4001 AP50 0.6827
+10-21 16:17 DONE a3b5_AA_a4a2 (gpu0)
+10-21 16:17 WATCHDOG backlog -> pending: a3c_L2_zoomlong
+10-21 16:17 START a3c_L2_zoomlong (gpu0)
+[L1_d4long] epoch 70 test: accuracy 0.9479 macro_f1 0.9544 balanced_accuracy 0.9543 mAP 0.4165 AP50 0.7029
+[L2_zoomlong] epoch 10 test: accuracy 0.9266 macro_f1 0.9348 balanced_accuracy 0.9361 mAP 0.2206 AP50 0.4866
+[L1_d4long] epoch 80 test: accuracy 0.9457 macro_f1 0.9524 balanced_accuracy 0.9525 mAP 0.4301 AP50 0.7099
+[L2_zoomlong] epoch 20 test: accuracy 0.9096 macro_f1 0.9173 balanced_accuracy 0.9200 mAP 0.2728 AP50 0.5599
+[L1_d4long] epoch 90 test: accuracy 0.9457 macro_f1 0.9524 balanced_accuracy 0.9525 mAP 0.4360 AP50 0.7124
+[L2_zoomlong] epoch 30 test: accuracy 0.9372 macro_f1 0.9432 balanced_accuracy 0.9454 mAP 0.3316 AP50 0.6270
+[a3b_L1_d4long] test: accuracy 0.9468 macro_f1 0.9534 balanced_accuracy 0.9534 mAP 0.4370 AP50 0.7155
+[a3b_L1_d4long] RESULT {"test": {"macro_f1": 0.9534, "mAP": 0.437, "AP50": 0.7155}}
+[a3b_L1_d4long] RESULT pp test: macro_f1 0.9589 mAP 0.4543 AP50 0.7149
+10-21 18:13 DONE a3b_L1_d4long (gpu1)
+10-21 18:13 WATCHDOG backlog -> pending: a4_R1_nwd16
+10-21 18:13 START a4_R1_nwd16 (gpu1)
+[a4_R1_nwd16] epoch 4 val: accuracy 0.9085 macro_f1 0.9196 balanced_accuracy 0.9215 mAP 0.1428 AP50 0.3721 || test: accuracy 0.9170 macro_f1 0.9271 balanced_accuracy 0.9286 mAP 0.1408 AP50 0.3752
+[a4_R1_nwd16] epoch 8 val: accuracy 0.9287 macro_f1 0.9356 balanced_accuracy 0.9347 mAP 0.2012 AP50 0.4507 || test: accuracy 0.9309 macro_f1 0.9373 balanced_accuracy 0.9403 mAP 0.1970 AP50 0.4692
+[L2_zoomlong] epoch 40 test: accuracy 0.9457 macro_f1 0.9513 balanced_accuracy 0.9508 mAP 0.3589 AP50 0.6561
+[a4_R1_nwd16] epoch 12 val: accuracy 0.9351 macro_f1 0.9421 balanced_accuracy 0.9439 mAP 0.2330 AP50 0.5011 || test: accuracy 0.9298 macro_f1 0.9378 balanced_accuracy 0.9404 mAP 0.2385 AP50 0.5334
+[a4_R1_nwd16] epoch 16 val: accuracy 0.9468 macro_f1 0.9530 balanced_accuracy 0.9544 mAP 0.2800 AP50 0.5556 || test: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9469 mAP 0.2851 AP50 0.5807
+[a4_R1_nwd16] epoch 20 val: accuracy 0.9468 macro_f1 0.9527 balanced_accuracy 0.9514 mAP 0.3089 AP50 0.5934 || test: accuracy 0.9457 macro_f1 0.9526 balanced_accuracy 0.9528 mAP 0.3199 AP50 0.6301
+[L2_zoomlong] epoch 50 test: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9517 mAP 0.3979 AP50 0.6895
+[a4_R1_nwd16] epoch 24 val: accuracy 0.9394 macro_f1 0.9473 balanced_accuracy 0.9473 mAP 0.3313 AP50 0.6129 || test: accuracy 0.9426 macro_f1 0.9497 balanced_accuracy 0.9499 mAP 0.3397 AP50 0.6412
+[a4_R1_nwd16] epoch 28 val: accuracy 0.9521 macro_f1 0.9581 balanced_accuracy 0.9587 mAP 0.3554 AP50 0.6439 || test: accuracy 0.9489 macro_f1 0.9551 balanced_accuracy 0.9560 mAP 0.3648 AP50 0.6659
+[a4_R1_nwd16] epoch 32 val: accuracy 0.9521 macro_f1 0.9582 balanced_accuracy 0.9588 mAP 0.3628 AP50 0.6415 || test: accuracy 0.9468 macro_f1 0.9534 balanced_accuracy 0.9543 mAP 0.3693 AP50 0.6636
+[L2_zoomlong] epoch 60 test: accuracy 0.9404 macro_f1 0.9468 balanced_accuracy 0.9471 mAP 0.4194 AP50 0.7028
+[a4_R1_nwd16] val: accuracy 0.9521 macro_f1 0.9582 balanced_accuracy 0.9588 mAP 0.3638 AP50 0.6413
+[a4_R1_nwd16] test: accuracy 0.9479 macro_f1 0.9542 balanced_accuracy 0.9551 mAP 0.3698 AP50 0.6655
+[a4_R1_nwd16] RESULT {"val": {"macro_f1": 0.9582, "mAP": 0.3638, "AP50": 0.6413}, "test": {"macro_f1": 0.9542, "mAP": 0.3698, "AP50": 0.6655}}
+[a4_R1_nwd16] RESULT pp val: macro_f1 0.9564 mAP 0.3805 AP50 0.6529
+[a4_R1_nwd16] RESULT pp test: macro_f1 0.9539 mAP 0.3908 AP50 0.6741
+10-21 20:14 DONE a4_R1_nwd16 (gpu1)
+10-21 20:14 WATCHDOG backlog -> pending: a5_R2_roi1024
+10-21 20:14 START a5_R2_roi1024 (gpu1)
+[a5_R2_roi1024] epoch 4 val: accuracy 0.9128 macro_f1 0.9216 balanced_accuracy 0.9249 mAP 0.1278 AP50 0.3379 || test: accuracy 0.9085 macro_f1 0.9181 balanced_accuracy 0.9215 mAP 0.1243 AP50 0.3405
+[L2_zoomlong] epoch 70 test: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9533 mAP 0.4347 AP50 0.7096
+[a5_R2_roi1024] epoch 8 val: accuracy 0.9064 macro_f1 0.9174 balanced_accuracy 0.9181 mAP 0.1876 AP50 0.4246 || test: accuracy 0.9043 macro_f1 0.9158 balanced_accuracy 0.9156 mAP 0.1837 AP50 0.4230
+[a5_R2_roi1024] epoch 12 val: accuracy 0.9351 macro_f1 0.9420 balanced_accuracy 0.9420 mAP 0.2171 AP50 0.4716 || test: accuracy 0.9340 macro_f1 0.9420 balanced_accuracy 0.9408 mAP 0.2178 AP50 0.4895
+[L2_zoomlong] epoch 80 test: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9533 mAP 0.4476 AP50 0.7200
+[a5_R2_roi1024] epoch 16 val: accuracy 0.9457 macro_f1 0.9523 balanced_accuracy 0.9518 mAP 0.2566 AP50 0.5254 || test: accuracy 0.9351 macro_f1 0.9428 balanced_accuracy 0.9418 mAP 0.2622 AP50 0.5491
+[a5_R2_roi1024] epoch 20 val: accuracy 0.9447 macro_f1 0.9512 balanced_accuracy 0.9530 mAP 0.2819 AP50 0.5524 || test: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9454 mAP 0.2945 AP50 0.5914
+[a5_R2_roi1024] epoch 24 val: accuracy 0.9521 macro_f1 0.9574 balanced_accuracy 0.9588 mAP 0.3053 AP50 0.5773 || test: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9499 mAP 0.3183 AP50 0.6074
+[L2_zoomlong] epoch 90 test: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9525 mAP 0.4551 AP50 0.7249
+[a5_R2_roi1024] epoch 28 val: accuracy 0.9489 macro_f1 0.9551 balanced_accuracy 0.9561 mAP 0.3279 AP50 0.5986 || test: accuracy 0.9457 macro_f1 0.9524 balanced_accuracy 0.9518 mAP 0.3383 AP50 0.6260
+[a5_R2_roi1024] epoch 32 val: accuracy 0.9500 macro_f1 0.9555 balanced_accuracy 0.9569 mAP 0.3336 AP50 0.6080 || test: accuracy 0.9468 macro_f1 0.9528 balanced_accuracy 0.9528 mAP 0.3486 AP50 0.6353
+[a3c_L2_zoomlong] test: accuracy 0.9479 macro_f1 0.9541 balanced_accuracy 0.9551 mAP 0.4567 AP50 0.7272
+[a3c_L2_zoomlong] RESULT {"test": {"macro_f1": 0.9541, "mAP": 0.4567, "AP50": 0.7272}}
+[a3c_L2_zoomlong] RESULT pp test: macro_f1 0.9568 mAP 0.4768 AP50 0.7305
+10-21 22:36 DONE a3c_L2_zoomlong (gpu0)
+10-21 22:36 WATCHDOG backlog -> pending: d1_S5_sp
+10-21 22:36 START d1_S5_sp (gpu0)
+[a5_R2_roi1024] val: accuracy 0.9500 macro_f1 0.9560 balanced_accuracy 0.9569 mAP 0.3375 AP50 0.6095
+[a5_R2_roi1024] test: accuracy 0.9479 macro_f1 0.9542 balanced_accuracy 0.9536 mAP 0.3532 AP50 0.6379
+[a5_R2_roi1024] RESULT {"val": {"macro_f1": 0.956, "mAP": 0.3375, "AP50": 0.6095}, "test": {"macro_f1": 0.9542, "mAP": 0.3532, "AP50": 0.6379}}
+[a5_R2_roi1024] RESULT pp val: macro_f1 0.9591 mAP 0.3538 AP50 0.6173
+[a5_R2_roi1024] RESULT pp test: macro_f1 0.9562 mAP 0.3708 AP50 0.6487
+10-21 22:45 DONE a5_R2_roi1024 (gpu1)
+10-21 22:46 WATCHDOG backlog -> pending: d2_S6_pe
+10-21 22:46 START d2_S6_pe (gpu1)
+[d1_S5_sp] epoch 4 val: accuracy 0.9138 macro_f1 0.9224 balanced_accuracy 0.9242 mAP 0.1611 AP50 0.3919 || test: accuracy 0.9128 macro_f1 0.9211 balanced_accuracy 0.9233 mAP 0.1587 AP50 0.4059
+[d2_S6_pe] epoch 4 val: accuracy 0.8979 macro_f1 0.9101 balanced_accuracy 0.9118 mAP 0.1565 AP50 0.3904 || test: accuracy 0.9021 macro_f1 0.9125 balanced_accuracy 0.9137 mAP 0.1516 AP50 0.3983
+[d1_S5_sp] epoch 8 val: accuracy 0.9074 macro_f1 0.9188 balanced_accuracy 0.9196 mAP 0.2070 AP50 0.4529 || test: accuracy 0.9160 macro_f1 0.9257 balanced_accuracy 0.9275 mAP 0.2010 AP50 0.4630
+[d2_S6_pe] epoch 8 val: accuracy 0.9170 macro_f1 0.9267 balanced_accuracy 0.9235 mAP 0.2049 AP50 0.4591 || test: accuracy 0.9128 macro_f1 0.9225 balanced_accuracy 0.9223 mAP 0.1956 AP50 0.4599
+[d1_S5_sp] epoch 12 val: accuracy 0.9309 macro_f1 0.9400 balanced_accuracy 0.9399 mAP 0.2397 AP50 0.5039 || test: accuracy 0.9319 macro_f1 0.9411 balanced_accuracy 0.9399 mAP 0.2389 AP50 0.5292
+[d2_S6_pe] epoch 12 val: accuracy 0.9426 macro_f1 0.9481 balanced_accuracy 0.9489 mAP 0.2302 AP50 0.4883 || test: accuracy 0.9319 macro_f1 0.9403 balanced_accuracy 0.9405 mAP 0.2420 AP50 0.5231
+[d1_S5_sp] epoch 16 val: accuracy 0.9426 macro_f1 0.9487 balanced_accuracy 0.9500 mAP 0.2886 AP50 0.5728 || test: accuracy 0.9394 macro_f1 0.9478 balanced_accuracy 0.9476 mAP 0.2921 AP50 0.5937
+[d2_S6_pe] epoch 16 val: accuracy 0.9340 macro_f1 0.9401 balanced_accuracy 0.9429 mAP 0.2819 AP50 0.5515 || test: accuracy 0.9383 macro_f1 0.9452 balanced_accuracy 0.9468 mAP 0.2878 AP50 0.5796
+[d2_S6_pe] epoch 20 val: accuracy 0.9394 macro_f1 0.9472 balanced_accuracy 0.9464 mAP 0.3050 AP50 0.5835 || test: accuracy 0.9330 macro_f1 0.9417 balanced_accuracy 0.9415 mAP 0.3148 AP50 0.6109
+[d1_S5_sp] epoch 20 val: accuracy 0.9457 macro_f1 0.9527 balanced_accuracy 0.9527 mAP 0.3200 AP50 0.6109 || test: accuracy 0.9372 macro_f1 0.9443 balanced_accuracy 0.9439 mAP 0.3253 AP50 0.6346
+[d2_S6_pe] epoch 24 val: accuracy 0.9468 macro_f1 0.9524 balanced_accuracy 0.9544 mAP 0.3255 AP50 0.6073 || test: accuracy 0.9394 macro_f1 0.9470 balanced_accuracy 0.9480 mAP 0.3418 AP50 0.6455
+[d1_S5_sp] epoch 24 val: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9523 mAP 0.3360 AP50 0.6286 || test: accuracy 0.9383 macro_f1 0.9455 balanced_accuracy 0.9446 mAP 0.3483 AP50 0.6509
+[d2_S6_pe] epoch 28 val: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9509 mAP 0.3459 AP50 0.6258 || test: accuracy 0.9426 macro_f1 0.9499 balanced_accuracy 0.9507 mAP 0.3656 AP50 0.6568
+[d1_S5_sp] epoch 28 val: accuracy 0.9457 macro_f1 0.9516 balanced_accuracy 0.9540 mAP 0.3542 AP50 0.6442 || test: accuracy 0.9426 macro_f1 0.9499 balanced_accuracy 0.9507 mAP 0.3672 AP50 0.6657
+[d2_S6_pe] epoch 32 val: accuracy 0.9436 macro_f1 0.9492 balanced_accuracy 0.9508 mAP 0.3560 AP50 0.6336 || test: accuracy 0.9404 macro_f1 0.9480 balanced_accuracy 0.9489 mAP 0.3712 AP50 0.6661
+[d1_S5_sp] epoch 32 val: accuracy 0.9447 macro_f1 0.9503 balanced_accuracy 0.9521 mAP 0.3642 AP50 0.6527 || test: accuracy 0.9426 macro_f1 0.9493 balanced_accuracy 0.9500 mAP 0.3768 AP50 0.6753
+[d2_S6_pe] val: accuracy 0.9436 macro_f1 0.9492 balanced_accuracy 0.9508 mAP 0.3569 AP50 0.6387
+[d2_S6_pe] test: accuracy 0.9404 macro_f1 0.9480 balanced_accuracy 0.9489 mAP 0.3726 AP50 0.6651
+[d2_S6_pe] RESULT {"val": {"macro_f1": 0.9492, "mAP": 0.3569, "AP50": 0.6387}, "test": {"macro_f1": 0.948, "mAP": 0.3726, "AP50": 0.6651}}
+[d2_S6_pe] RESULT pp val: macro_f1 0.9498 mAP 0.3762 AP50 0.6452
+[d2_S6_pe] RESULT pp test: macro_f1 0.9523 mAP 0.3939 AP50 0.6731
+10-22 00:48 DONE d2_S6_pe (gpu1)
+10-22 00:49 WATCHDOG backlog -> pending: d3_N1_top2full
+10-22 00:49 START d3_N1_top2full (gpu1)
+[d1_S5_sp] val: accuracy 0.9447 macro_f1 0.9503 balanced_accuracy 0.9521 mAP 0.3653 AP50 0.6520
+[d1_S5_sp] test: accuracy 0.9415 macro_f1 0.9483 balanced_accuracy 0.9490 mAP 0.3794 AP50 0.6743
+[d1_S5_sp] RESULT {"val": {"macro_f1": 0.9503, "mAP": 0.3653, "AP50": 0.652}, "test": {"macro_f1": 0.9483, "mAP": 0.3794, "AP50": 0.6743}}
+[d1_S5_sp] RESULT pp val: macro_f1 0.9539 mAP 0.3823 AP50 0.6578
+[d1_S5_sp] RESULT pp test: macro_f1 0.9504 mAP 0.3979 AP50 0.6806
+10-22 00:57 DONE d1_S5_sp (gpu0)
+10-22 00:57 WATCHDOG fallback: queued seed replicate SEED_11
+10-22 00:57 START SEED_11 (gpu0)
+[d3_N1_top2full] epoch 4 val: accuracy 0.9106 macro_f1 0.9178 balanced_accuracy 0.9196 mAP 0.1506 AP50 0.3624 || test: accuracy 0.9213 macro_f1 0.9294 balanced_accuracy 0.9314 mAP 0.1374 AP50 0.3575
+[SEED_11] epoch 4 val: accuracy 0.9106 macro_f1 0.9191 balanced_accuracy 0.9239 mAP 0.1353 AP50 0.3558 || test: accuracy 0.9117 macro_f1 0.9208 balanced_accuracy 0.9236 mAP 0.1325 AP50 0.3646
+[d3_N1_top2full] epoch 8 val: accuracy 0.8979 macro_f1 0.9066 balanced_accuracy 0.9037 mAP 0.1770 AP50 0.4230 || test: accuracy 0.9011 macro_f1 0.9087 balanced_accuracy 0.9045 mAP 0.1734 AP50 0.4203
+[SEED_11] epoch 8 val: accuracy 0.9213 macro_f1 0.9298 balanced_accuracy 0.9274 mAP 0.2095 AP50 0.4550 || test: accuracy 0.9043 macro_f1 0.9164 balanced_accuracy 0.9150 mAP 0.2003 AP50 0.4606
+[d3_N1_top2full] epoch 12 val: accuracy 0.9117 macro_f1 0.9194 balanced_accuracy 0.9240 mAP 0.2338 AP50 0.4878 || test: accuracy 0.9181 macro_f1 0.9227 balanced_accuracy 0.9278 mAP 0.2341 AP50 0.5219
+[SEED_11] epoch 12 val: accuracy 0.9330 macro_f1 0.9410 balanced_accuracy 0.9429 mAP 0.2436 AP50 0.5035 || test: accuracy 0.9277 macro_f1 0.9353 balanced_accuracy 0.9377 mAP 0.2368 AP50 0.5275
+[d3_N1_top2full] epoch 16 val: accuracy 0.9319 macro_f1 0.9399 balanced_accuracy 0.9400 mAP 0.2752 AP50 0.5394 || test: accuracy 0.9319 macro_f1 0.9386 balanced_accuracy 0.9402 mAP 0.2863 AP50 0.5787
+[SEED_11] epoch 16 val: accuracy 0.9362 macro_f1 0.9429 balanced_accuracy 0.9438 mAP 0.2669 AP50 0.5293 || test: accuracy 0.9394 macro_f1 0.9454 balanced_accuracy 0.9458 mAP 0.2725 AP50 0.5654
+[d3_N1_top2full] epoch 20 val: accuracy 0.9426 macro_f1 0.9489 balanced_accuracy 0.9499 mAP 0.3107 AP50 0.5897 || test: accuracy 0.9426 macro_f1 0.9482 balanced_accuracy 0.9488 mAP 0.3252 AP50 0.6260
+[SEED_11] epoch 20 val: accuracy 0.9436 macro_f1 0.9510 balanced_accuracy 0.9511 mAP 0.3075 AP50 0.5840 || test: accuracy 0.9436 macro_f1 0.9505 balanced_accuracy 0.9510 mAP 0.3169 AP50 0.6155
+[d3_N1_top2full] epoch 24 val: accuracy 0.9415 macro_f1 0.9472 balanced_accuracy 0.9490 mAP 0.3374 AP50 0.6147 || test: accuracy 0.9479 macro_f1 0.9540 balanced_accuracy 0.9550 mAP 0.3565 AP50 0.6563
+[SEED_11] epoch 24 val: accuracy 0.9436 macro_f1 0.9506 balanced_accuracy 0.9509 mAP 0.3316 AP50 0.6107 || test: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9514 mAP 0.3461 AP50 0.6404
+[d3_N1_top2full] epoch 28 val: accuracy 0.9426 macro_f1 0.9482 balanced_accuracy 0.9498 mAP 0.3546 AP50 0.6295 || test: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9532 mAP 0.3702 AP50 0.6664
+[SEED_11] epoch 28 val: accuracy 0.9436 macro_f1 0.9504 balanced_accuracy 0.9508 mAP 0.3521 AP50 0.6291 || test: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9504 mAP 0.3650 AP50 0.6548
+[d3_N1_top2full] epoch 32 val: accuracy 0.9426 macro_f1 0.9482 balanced_accuracy 0.9498 mAP 0.3587 AP50 0.6319 || test: accuracy 0.9468 macro_f1 0.9531 balanced_accuracy 0.9541 mAP 0.3769 AP50 0.6670
+[SEED_11] epoch 32 val: accuracy 0.9511 macro_f1 0.9573 balanced_accuracy 0.9579 mAP 0.3619 AP50 0.6388 || test: accuracy 0.9426 macro_f1 0.9492 balanced_accuracy 0.9504 mAP 0.3717 AP50 0.6581
+[d3_N1_top2full] val: accuracy 0.9426 macro_f1 0.9482 balanced_accuracy 0.9498 mAP 0.3603 AP50 0.6309
+[d3_N1_top2full] test: accuracy 0.9447 macro_f1 0.9512 balanced_accuracy 0.9523 mAP 0.3757 AP50 0.6636
+[d3_N1_top2full] RESULT {"val": {"macro_f1": 0.9482, "mAP": 0.3603, "AP50": 0.6309}, "test": {"macro_f1": 0.9512, "mAP": 0.3757, "AP50": 0.6636}}
+[d3_N1_top2full] RESULT pp val: macro_f1 0.9505 mAP 0.3805 AP50 0.6433
+[d3_N1_top2full] RESULT pp test: macro_f1 0.9521 mAP 0.3969 AP50 0.6764
+10-22 02:53 DONE d3_N1_top2full (gpu1)
+10-22 02:53 WATCHDOG fallback: queued seed replicate SEED_12
+10-22 02:53 START SEED_12 (gpu1)
+[SEED_11] val: accuracy 0.9511 macro_f1 0.9573 balanced_accuracy 0.9579 mAP 0.3620 AP50 0.6369
+[SEED_11] test: accuracy 0.9426 macro_f1 0.9492 balanced_accuracy 0.9504 mAP 0.3748 AP50 0.6626
+[SEED_11] RESULT {"val": {"macro_f1": 0.9573, "mAP": 0.362, "AP50": 0.6369}, "test": {"macro_f1": 0.9492, "mAP": 0.3748, "AP50": 0.6626}}
+[SEED_11] RESULT pp val: macro_f1 0.9608 mAP 0.3782 AP50 0.6470
+[SEED_11] RESULT pp test: macro_f1 0.9543 mAP 0.3924 AP50 0.6696
+10-22 03:04 DONE SEED_11 (gpu0)
+10-22 03:05 WATCHDOG fallback: queued seed replicate SEED_13
+10-22 03:05 START SEED_13 (gpu0)
+[SEED_12] epoch 4 val: accuracy 0.9085 macro_f1 0.9194 balanced_accuracy 0.9192 mAP 0.1446 AP50 0.3723 || test: accuracy 0.9160 macro_f1 0.9272 balanced_accuracy 0.9262 mAP 0.1422 AP50 0.3816
+[SEED_13] epoch 4 val: accuracy 0.9170 macro_f1 0.9265 balanced_accuracy 0.9261 mAP 0.1398 AP50 0.3773 || test: accuracy 0.9160 macro_f1 0.9247 balanced_accuracy 0.9241 mAP 0.1333 AP50 0.3723
+[SEED_12] epoch 8 val: accuracy 0.9309 macro_f1 0.9397 balanced_accuracy 0.9393 mAP 0.2119 AP50 0.4514 || test: accuracy 0.9309 macro_f1 0.9384 balanced_accuracy 0.9376 mAP 0.2051 AP50 0.4545
+[SEED_13] epoch 8 val: accuracy 0.9160 macro_f1 0.9249 balanced_accuracy 0.9257 mAP 0.2083 AP50 0.4600 || test: accuracy 0.9085 macro_f1 0.9154 balanced_accuracy 0.9183 mAP 0.2153 AP50 0.4849
+[SEED_12] epoch 12 val: accuracy 0.9223 macro_f1 0.9314 balanced_accuracy 0.9309 mAP 0.2406 AP50 0.4966 || test: accuracy 0.9287 macro_f1 0.9378 balanced_accuracy 0.9367 mAP 0.2356 AP50 0.5178
+[SEED_13] epoch 12 val: accuracy 0.9298 macro_f1 0.9371 balanced_accuracy 0.9363 mAP 0.2409 AP50 0.4931 || test: accuracy 0.9213 macro_f1 0.9311 balanced_accuracy 0.9311 mAP 0.2412 AP50 0.5101
+[SEED_12] epoch 16 val: accuracy 0.9372 macro_f1 0.9448 balanced_accuracy 0.9472 mAP 0.2811 AP50 0.5434 || test: accuracy 0.9340 macro_f1 0.9416 balanced_accuracy 0.9430 mAP 0.2838 AP50 0.5790
+[SEED_12] epoch 20 val: accuracy 0.9383 macro_f1 0.9448 balanced_accuracy 0.9462 mAP 0.3086 AP50 0.5818 || test: accuracy 0.9404 macro_f1 0.9473 balanced_accuracy 0.9462 mAP 0.3198 AP50 0.6106
+[SEED_13] epoch 16 val: accuracy 0.9213 macro_f1 0.9293 balanced_accuracy 0.9316 mAP 0.2727 AP50 0.5473 || test: accuracy 0.9351 macro_f1 0.9423 balanced_accuracy 0.9429 mAP 0.2826 AP50 0.5780
+[SEED_12] epoch 24 val: accuracy 0.9436 macro_f1 0.9504 balanced_accuracy 0.9523 mAP 0.3341 AP50 0.6063 || test: accuracy 0.9383 macro_f1 0.9452 balanced_accuracy 0.9452 mAP 0.3394 AP50 0.6289
+[SEED_13] epoch 20 val: accuracy 0.9447 macro_f1 0.9496 balanced_accuracy 0.9516 mAP 0.3107 AP50 0.5825 || test: accuracy 0.9404 macro_f1 0.9465 balanced_accuracy 0.9463 mAP 0.3243 AP50 0.6165
+[SEED_12] epoch 28 val: accuracy 0.9468 macro_f1 0.9529 balanced_accuracy 0.9550 mAP 0.3549 AP50 0.6301 || test: accuracy 0.9404 macro_f1 0.9468 balanced_accuracy 0.9470 mAP 0.3580 AP50 0.6525
+[SEED_13] epoch 24 val: accuracy 0.9468 macro_f1 0.9520 balanced_accuracy 0.9533 mAP 0.3386 AP50 0.6195 || test: accuracy 0.9404 macro_f1 0.9467 balanced_accuracy 0.9462 mAP 0.3513 AP50 0.6468
+[SEED_12] epoch 32 val: accuracy 0.9479 macro_f1 0.9539 balanced_accuracy 0.9560 mAP 0.3609 AP50 0.6323 || test: accuracy 0.9383 macro_f1 0.9451 balanced_accuracy 0.9452 mAP 0.3665 AP50 0.6578
+[SEED_13] epoch 28 val: accuracy 0.9457 macro_f1 0.9510 balanced_accuracy 0.9524 mAP 0.3505 AP50 0.6353 || test: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9463 mAP 0.3614 AP50 0.6577
+[SEED_12] val: accuracy 0.9468 macro_f1 0.9529 balanced_accuracy 0.9551 mAP 0.3628 AP50 0.6356
+[SEED_12] test: accuracy 0.9394 macro_f1 0.9460 balanced_accuracy 0.9461 mAP 0.3669 AP50 0.6590
+[SEED_12] RESULT {"val": {"macro_f1": 0.9529, "mAP": 0.3628, "AP50": 0.6356}, "test": {"macro_f1": 0.946, "mAP": 0.3669, "AP50": 0.659}}
+[SEED_12] RESULT pp val: macro_f1 0.9556 mAP 0.3800 AP50 0.6455
+[SEED_12] RESULT pp test: macro_f1 0.9519 mAP 0.3852 AP50 0.6627
+10-22 04:55 DONE SEED_12 (gpu1)
+10-22 04:56 WATCHDOG fallback: queued seed replicate SEED_14
+10-22 04:56 START SEED_14 (gpu1)
+[SEED_13] epoch 32 val: accuracy 0.9479 macro_f1 0.9528 balanced_accuracy 0.9543 mAP 0.3607 AP50 0.6417 || test: accuracy 0.9415 macro_f1 0.9475 balanced_accuracy 0.9473 mAP 0.3723 AP50 0.6602
+[SEED_14] epoch 4 val: accuracy 0.8819 macro_f1 0.8934 balanced_accuracy 0.8926 mAP 0.1334 AP50 0.3530 || test: accuracy 0.9032 macro_f1 0.9119 balanced_accuracy 0.9122 mAP 0.1319 AP50 0.3517
+[SEED_13] val: accuracy 0.9489 macro_f1 0.9537 balanced_accuracy 0.9552 mAP 0.3649 AP50 0.6482
+[SEED_13] test: accuracy 0.9415 macro_f1 0.9475 balanced_accuracy 0.9473 mAP 0.3750 AP50 0.6620
+[SEED_13] RESULT {"val": {"macro_f1": 0.9537, "mAP": 0.3649, "AP50": 0.6482}, "test": {"macro_f1": 0.9475, "mAP": 0.375, "AP50": 0.662}}
+[SEED_13] RESULT pp val: macro_f1 0.9555 mAP 0.3816 AP50 0.6542
+[SEED_13] RESULT pp test: macro_f1 0.9477 mAP 0.3943 AP50 0.6698
+10-22 05:11 DONE SEED_13 (gpu0)
+10-22 05:12 WATCHDOG fallback: queued seed replicate SEED_15
+10-22 05:12 START SEED_15 (gpu0)
+[SEED_14] epoch 8 val: accuracy 0.9277 macro_f1 0.9346 balanced_accuracy 0.9376 mAP 0.2034 AP50 0.4428 || test: accuracy 0.9287 macro_f1 0.9370 balanced_accuracy 0.9382 mAP 0.2044 AP50 0.4640
+[SEED_15] epoch 4 val: accuracy 0.9011 macro_f1 0.9080 balanced_accuracy 0.9104 mAP 0.1450 AP50 0.3665 || test: accuracy 0.8968 macro_f1 0.9071 balanced_accuracy 0.9087 mAP 0.1500 AP50 0.3835
+[SEED_14] epoch 12 val: accuracy 0.9032 macro_f1 0.9108 balanced_accuracy 0.9121 mAP 0.2269 AP50 0.4812 || test: accuracy 0.9106 macro_f1 0.9197 balanced_accuracy 0.9200 mAP 0.2219 AP50 0.4914
+[SEED_15] epoch 8 val: accuracy 0.9415 macro_f1 0.9469 balanced_accuracy 0.9492 mAP 0.2059 AP50 0.4629 || test: accuracy 0.9298 macro_f1 0.9373 balanced_accuracy 0.9372 mAP 0.2073 AP50 0.4759
+[SEED_14] epoch 16 val: accuracy 0.9362 macro_f1 0.9416 balanced_accuracy 0.9441 mAP 0.2647 AP50 0.5330 || test: accuracy 0.9266 macro_f1 0.9338 balanced_accuracy 0.9366 mAP 0.2707 AP50 0.5695
+[SEED_15] epoch 12 val: accuracy 0.9436 macro_f1 0.9492 balanced_accuracy 0.9502 mAP 0.2492 AP50 0.5104 || test: accuracy 0.9351 macro_f1 0.9413 balanced_accuracy 0.9428 mAP 0.2455 AP50 0.5369
+[SEED_14] epoch 20 val: accuracy 0.9404 macro_f1 0.9468 balanced_accuracy 0.9488 mAP 0.2988 AP50 0.5801 || test: accuracy 0.9447 macro_f1 0.9519 balanced_accuracy 0.9516 mAP 0.3062 AP50 0.6119
+[SEED_15] epoch 16 val: accuracy 0.9415 macro_f1 0.9482 balanced_accuracy 0.9483 mAP 0.2758 AP50 0.5520 || test: accuracy 0.9383 macro_f1 0.9462 balanced_accuracy 0.9441 mAP 0.2855 AP50 0.5743
+[SEED_14] epoch 24 val: accuracy 0.9426 macro_f1 0.9479 balanced_accuracy 0.9507 mAP 0.3227 AP50 0.6053 || test: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9462 mAP 0.3396 AP50 0.6436
+[SEED_15] epoch 20 val: accuracy 0.9500 macro_f1 0.9560 balanced_accuracy 0.9571 mAP 0.3074 AP50 0.5822 || test: accuracy 0.9404 macro_f1 0.9488 balanced_accuracy 0.9495 mAP 0.3200 AP50 0.6166
+[SEED_14] epoch 28 val: accuracy 0.9436 macro_f1 0.9487 balanced_accuracy 0.9514 mAP 0.3394 AP50 0.6248 || test: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9499 mAP 0.3564 AP50 0.6553
+[SEED_15] epoch 24 val: accuracy 0.9457 macro_f1 0.9524 balanced_accuracy 0.9526 mAP 0.3270 AP50 0.6119 || test: accuracy 0.9426 macro_f1 0.9504 balanced_accuracy 0.9505 mAP 0.3442 AP50 0.6363
+[SEED_14] epoch 32 val: accuracy 0.9415 macro_f1 0.9470 balanced_accuracy 0.9496 mAP 0.3485 AP50 0.6309 || test: accuracy 0.9426 macro_f1 0.9490 balanced_accuracy 0.9497 mAP 0.3640 AP50 0.6572
+[SEED_15] epoch 28 val: accuracy 0.9436 macro_f1 0.9505 balanced_accuracy 0.9516 mAP 0.3501 AP50 0.6266 || test: accuracy 0.9447 macro_f1 0.9514 balanced_accuracy 0.9523 mAP 0.3721 AP50 0.6612
+[SEED_14] val: accuracy 0.9436 macro_f1 0.9488 balanced_accuracy 0.9514 mAP 0.3504 AP50 0.6340
+[SEED_14] test: accuracy 0.9426 macro_f1 0.9490 balanced_accuracy 0.9497 mAP 0.3675 AP50 0.6591
+[SEED_14] RESULT {"val": {"macro_f1": 0.9488, "mAP": 0.3504, "AP50": 0.634}, "test": {"macro_f1": 0.949, "mAP": 0.3675, "AP50": 0.6591}}
+[SEED_14] RESULT pp val: macro_f1 0.9522 mAP 0.3666 AP50 0.6399
+[SEED_14] RESULT pp test: macro_f1 0.9486 mAP 0.3861 AP50 0.6677
+10-22 06:58 DONE SEED_14 (gpu1)
+10-22 06:59 WATCHDOG fallback: queued seed replicate SEED_16
+10-22 06:59 START SEED_16 (gpu1)
+[SEED_15] epoch 32 val: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9498 mAP 0.3589 AP50 0.6366 || test: accuracy 0.9426 macro_f1 0.9503 balanced_accuracy 0.9505 mAP 0.3795 AP50 0.6678
+[SEED_16] epoch 4 val: accuracy 0.8957 macro_f1 0.9074 balanced_accuracy 0.9070 mAP 0.1433 AP50 0.3744 || test: accuracy 0.9074 macro_f1 0.9183 balanced_accuracy 0.9155 mAP 0.1334 AP50 0.3617
+[SEED_15] val: accuracy 0.9436 macro_f1 0.9504 balanced_accuracy 0.9515 mAP 0.3613 AP50 0.6383
+[SEED_15] test: accuracy 0.9436 macro_f1 0.9513 balanced_accuracy 0.9514 mAP 0.3796 AP50 0.6659
+[SEED_15] RESULT {"val": {"macro_f1": 0.9504, "mAP": 0.3613, "AP50": 0.6383}, "test": {"macro_f1": 0.9513, "mAP": 0.3796, "AP50": 0.6659}}
+[SEED_15] RESULT pp val: macro_f1 0.9567 mAP 0.3780 AP50 0.6463
+[SEED_15] RESULT pp test: macro_f1 0.9533 mAP 0.3952 AP50 0.6716
+10-22 07:18 DONE SEED_15 (gpu0)
+10-22 07:19 WATCHDOG fallback: queued seed replicate SEED_17
+10-22 07:19 START SEED_17 (gpu0)
+[SEED_16] epoch 8 val: accuracy 0.9191 macro_f1 0.9291 balanced_accuracy 0.9304 mAP 0.2084 AP50 0.4568 || test: accuracy 0.9117 macro_f1 0.9237 balanced_accuracy 0.9196 mAP 0.2046 AP50 0.4668
+[SEED_17] epoch 4 val: accuracy 0.8777 macro_f1 0.8827 balanced_accuracy 0.8950 mAP 0.1441 AP50 0.3590 || test: accuracy 0.8809 macro_f1 0.8880 balanced_accuracy 0.8978 mAP 0.1387 AP50 0.3690
+[SEED_16] epoch 12 val: accuracy 0.9340 macro_f1 0.9410 balanced_accuracy 0.9442 mAP 0.2458 AP50 0.5083 || test: accuracy 0.9330 macro_f1 0.9393 balanced_accuracy 0.9411 mAP 0.2490 AP50 0.5411
+[SEED_17] epoch 8 val: accuracy 0.9234 macro_f1 0.9317 balanced_accuracy 0.9343 mAP 0.2049 AP50 0.4490 || test: accuracy 0.9213 macro_f1 0.9309 balanced_accuracy 0.9316 mAP 0.2021 AP50 0.4592
+[SEED_16] epoch 16 val: accuracy 0.9426 macro_f1 0.9489 balanced_accuracy 0.9495 mAP 0.2805 AP50 0.5491 || test: accuracy 0.9415 macro_f1 0.9483 balanced_accuracy 0.9477 mAP 0.2907 AP50 0.5854
+[SEED_17] epoch 12 val: accuracy 0.9362 macro_f1 0.9455 balanced_accuracy 0.9456 mAP 0.2390 AP50 0.5020 || test: accuracy 0.9404 macro_f1 0.9481 balanced_accuracy 0.9479 mAP 0.2396 AP50 0.5205
+[SEED_16] epoch 20 val: accuracy 0.9500 macro_f1 0.9565 balanced_accuracy 0.9570 mAP 0.3090 AP50 0.5832 || test: accuracy 0.9394 macro_f1 0.9464 balanced_accuracy 0.9470 mAP 0.3211 AP50 0.6156
+[SEED_17] epoch 16 val: accuracy 0.9383 macro_f1 0.9463 balanced_accuracy 0.9470 mAP 0.2592 AP50 0.5289 || test: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9444 mAP 0.2714 AP50 0.5615
+[SEED_16] epoch 24 val: accuracy 0.9521 macro_f1 0.9580 balanced_accuracy 0.9587 mAP 0.3369 AP50 0.6171 || test: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9515 mAP 0.3493 AP50 0.6429
+[SEED_17] epoch 20 val: accuracy 0.9468 macro_f1 0.9520 balanced_accuracy 0.9527 mAP 0.2966 AP50 0.5717 || test: accuracy 0.9383 macro_f1 0.9450 balanced_accuracy 0.9453 mAP 0.3085 AP50 0.6098
+[SEED_16] epoch 28 val: accuracy 0.9468 macro_f1 0.9530 balanced_accuracy 0.9524 mAP 0.3461 AP50 0.6344 || test: accuracy 0.9479 macro_f1 0.9538 balanced_accuracy 0.9542 mAP 0.3635 AP50 0.6518
+[SEED_17] epoch 24 val: accuracy 0.9543 macro_f1 0.9595 balanced_accuracy 0.9597 mAP 0.3247 AP50 0.6098 || test: accuracy 0.9383 macro_f1 0.9451 balanced_accuracy 0.9453 mAP 0.3414 AP50 0.6365
+[SEED_16] epoch 32 val: accuracy 0.9500 macro_f1 0.9561 balanced_accuracy 0.9560 mAP 0.3569 AP50 0.6426 || test: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9516 mAP 0.3704 AP50 0.6536
+[SEED_17] epoch 28 val: accuracy 0.9511 macro_f1 0.9571 balanced_accuracy 0.9570 mAP 0.3456 AP50 0.6244 || test: accuracy 0.9404 macro_f1 0.9469 balanced_accuracy 0.9471 mAP 0.3612 AP50 0.6533
+[SEED_16] val: accuracy 0.9479 macro_f1 0.9539 balanced_accuracy 0.9533 mAP 0.3580 AP50 0.6439
+[SEED_16] test: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9516 mAP 0.3731 AP50 0.6588
+[SEED_16] RESULT {"val": {"macro_f1": 0.9539, "mAP": 0.358, "AP50": 0.6439}, "test": {"macro_f1": 0.9511, "mAP": 0.3731, "AP50": 0.6588}}
+[SEED_16] RESULT pp val: macro_f1 0.9532 mAP 0.3746 AP50 0.6507
+[SEED_16] RESULT pp test: macro_f1 0.9555 mAP 0.3881 AP50 0.6614
+10-22 09:01 DONE SEED_16 (gpu1)
+10-22 09:02 WATCHDOG fallback: queued seed replicate SEED_18
+10-22 09:02 START SEED_18 (gpu1)
+[SEED_17] epoch 32 val: accuracy 0.9511 macro_f1 0.9574 balanced_accuracy 0.9578 mAP 0.3504 AP50 0.6369 || test: accuracy 0.9383 macro_f1 0.9447 balanced_accuracy 0.9453 mAP 0.3678 AP50 0.6552
+[SEED_18] epoch 4 val: accuracy 0.9085 macro_f1 0.9181 balanced_accuracy 0.9147 mAP 0.1457 AP50 0.3737 || test: accuracy 0.9011 macro_f1 0.9141 balanced_accuracy 0.9103 mAP 0.1396 AP50 0.3745
+[SEED_17] val: accuracy 0.9511 macro_f1 0.9575 balanced_accuracy 0.9578 mAP 0.3531 AP50 0.6392
+[SEED_17] test: accuracy 0.9383 macro_f1 0.9447 balanced_accuracy 0.9452 mAP 0.3694 AP50 0.6580
+[SEED_17] RESULT {"val": {"macro_f1": 0.9575, "mAP": 0.3531, "AP50": 0.6392}, "test": {"macro_f1": 0.9447, "mAP": 0.3694, "AP50": 0.658}}
+[SEED_17] RESULT pp val: macro_f1 0.9569 mAP 0.3698 AP50 0.6438
+[SEED_17] RESULT pp test: macro_f1 0.9475 mAP 0.3864 AP50 0.6671
+10-22 09:25 DONE SEED_17 (gpu0)
+10-22 09:26 WATCHDOG fallback: queued seed replicate SEED_19
+10-22 09:26 START SEED_19 (gpu0)
+[SEED_18] epoch 8 val: accuracy 0.9266 macro_f1 0.9349 balanced_accuracy 0.9368 mAP 0.2096 AP50 0.4480 || test: accuracy 0.9340 macro_f1 0.9420 balanced_accuracy 0.9439 mAP 0.2030 AP50 0.4636
+[SEED_19] epoch 4 val: accuracy 0.9011 macro_f1 0.9070 balanced_accuracy 0.9152 mAP 0.1422 AP50 0.3582 || test: accuracy 0.9032 macro_f1 0.9061 balanced_accuracy 0.9154 mAP 0.1385 AP50 0.3708
+[SEED_18] epoch 12 val: accuracy 0.9223 macro_f1 0.9298 balanced_accuracy 0.9320 mAP 0.2419 AP50 0.4921 || test: accuracy 0.9298 macro_f1 0.9360 balanced_accuracy 0.9398 mAP 0.2437 AP50 0.5132
+[SEED_19] epoch 8 val: accuracy 0.9351 macro_f1 0.9405 balanced_accuracy 0.9440 mAP 0.2035 AP50 0.4561 || test: accuracy 0.9298 macro_f1 0.9359 balanced_accuracy 0.9392 mAP 0.2069 AP50 0.4727
+[SEED_18] epoch 16 val: accuracy 0.9394 macro_f1 0.9458 balanced_accuracy 0.9454 mAP 0.2759 AP50 0.5471 || test: accuracy 0.9447 macro_f1 0.9518 balanced_accuracy 0.9523 mAP 0.2824 AP50 0.5708
+[SEED_19] epoch 12 val: accuracy 0.9319 macro_f1 0.9391 balanced_accuracy 0.9383 mAP 0.2390 AP50 0.5064 || test: accuracy 0.9309 macro_f1 0.9385 balanced_accuracy 0.9382 mAP 0.2500 AP50 0.5311
+[SEED_18] epoch 20 val: accuracy 0.9340 macro_f1 0.9412 balanced_accuracy 0.9406 mAP 0.3061 AP50 0.5707 || test: accuracy 0.9415 macro_f1 0.9487 balanced_accuracy 0.9479 mAP 0.3107 AP50 0.6007
+[SEED_19] epoch 16 val: accuracy 0.9340 macro_f1 0.9408 balanced_accuracy 0.9411 mAP 0.2795 AP50 0.5507 || test: accuracy 0.9383 macro_f1 0.9457 balanced_accuracy 0.9451 mAP 0.2878 AP50 0.5767
+[SEED_18] epoch 24 val: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9477 mAP 0.3313 AP50 0.6066 || test: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9506 mAP 0.3429 AP50 0.6315
+[SEED_19] epoch 20 val: accuracy 0.9436 macro_f1 0.9494 balanced_accuracy 0.9505 mAP 0.3087 AP50 0.5874 || test: accuracy 0.9383 macro_f1 0.9452 balanced_accuracy 0.9468 mAP 0.3291 AP50 0.6301
+[SEED_18] epoch 28 val: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9513 mAP 0.3456 AP50 0.6235 || test: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9462 mAP 0.3619 AP50 0.6550
+[SEED_19] epoch 24 val: accuracy 0.9457 macro_f1 0.9515 balanced_accuracy 0.9523 mAP 0.3274 AP50 0.6137 || test: accuracy 0.9404 macro_f1 0.9469 balanced_accuracy 0.9478 mAP 0.3477 AP50 0.6407
+[SEED_18] epoch 32 val: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9495 mAP 0.3545 AP50 0.6317 || test: accuracy 0.9415 macro_f1 0.9486 balanced_accuracy 0.9489 mAP 0.3691 AP50 0.6590
+[SEED_18] val: accuracy 0.9436 macro_f1 0.9497 balanced_accuracy 0.9504 mAP 0.3564 AP50 0.6340
+[SEED_18] test: accuracy 0.9415 macro_f1 0.9482 balanced_accuracy 0.9489 mAP 0.3721 AP50 0.6594
+[SEED_18] RESULT {"val": {"macro_f1": 0.9497, "mAP": 0.3564, "AP50": 0.634}, "test": {"macro_f1": 0.9482, "mAP": 0.3721, "AP50": 0.6594}}
+[SEED_19] epoch 28 val: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9498 mAP 0.3513 AP50 0.6330 || test: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9514 mAP 0.3736 AP50 0.6563
+[SEED_18] RESULT pp val: macro_f1 0.9530 mAP 0.3723 AP50 0.6409
+[SEED_18] RESULT pp test: macro_f1 0.9478 mAP 0.3911 AP50 0.6665
+10-22 11:04 DONE SEED_18 (gpu1)
+10-22 11:05 WATCHDOG fallback: queued seed replicate SEED_20
+10-22 11:05 START SEED_20 (gpu1)
+[SEED_19] epoch 32 val: accuracy 0.9447 macro_f1 0.9507 balanced_accuracy 0.9515 mAP 0.3577 AP50 0.6411 || test: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9506 mAP 0.3765 AP50 0.6560
+[SEED_20] epoch 4 val: accuracy 0.8787 macro_f1 0.8869 balanced_accuracy 0.8867 mAP 0.1228 AP50 0.3203 || test: accuracy 0.8830 macro_f1 0.8914 balanced_accuracy 0.8902 mAP 0.1247 AP50 0.3241
+[SEED_19] val: accuracy 0.9468 macro_f1 0.9523 balanced_accuracy 0.9531 mAP 0.3579 AP50 0.6419
+[SEED_19] test: accuracy 0.9447 macro_f1 0.9509 balanced_accuracy 0.9523 mAP 0.3788 AP50 0.6569
+[SEED_19] RESULT {"val": {"macro_f1": 0.9523, "mAP": 0.3579, "AP50": 0.6419}, "test": {"macro_f1": 0.9509, "mAP": 0.3788, "AP50": 0.6569}}
+[SEED_19] RESULT pp val: macro_f1 0.9524 mAP 0.3756 AP50 0.6432
+[SEED_19] RESULT pp test: macro_f1 0.9482 mAP 0.3961 AP50 0.6686
+10-22 11:32 DONE SEED_19 (gpu0)
+10-22 11:32 WATCHDOG fallback: queued seed replicate SEED_21
+10-22 11:32 START SEED_21 (gpu0)
+[SEED_20] epoch 8 val: accuracy 0.9277 macro_f1 0.9343 balanced_accuracy 0.9348 mAP 0.1926 AP50 0.4338 || test: accuracy 0.9213 macro_f1 0.9283 balanced_accuracy 0.9288 mAP 0.1902 AP50 0.4415
+[SEED_20] epoch 12 val: accuracy 0.9245 macro_f1 0.9305 balanced_accuracy 0.9329 mAP 0.2300 AP50 0.4956 || test: accuracy 0.9245 macro_f1 0.9327 balanced_accuracy 0.9358 mAP 0.2354 AP50 0.5136
+[SEED_21] epoch 4 val: accuracy 0.9021 macro_f1 0.9096 balanced_accuracy 0.9125 mAP 0.1560 AP50 0.3837 || test: accuracy 0.9138 macro_f1 0.9215 balanced_accuracy 0.9246 mAP 0.1511 AP50 0.3818
+[SEED_20] epoch 16 val: accuracy 0.9394 macro_f1 0.9467 balanced_accuracy 0.9487 mAP 0.2791 AP50 0.5375 || test: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9515 mAP 0.2819 AP50 0.5660
+[SEED_21] epoch 8 val: accuracy 0.9309 macro_f1 0.9380 balanced_accuracy 0.9402 mAP 0.2032 AP50 0.4564 || test: accuracy 0.9170 macro_f1 0.9271 balanced_accuracy 0.9305 mAP 0.2005 AP50 0.4743
+[SEED_20] epoch 20 val: accuracy 0.9404 macro_f1 0.9475 balanced_accuracy 0.9470 mAP 0.3056 AP50 0.5784 || test: accuracy 0.9319 macro_f1 0.9395 balanced_accuracy 0.9396 mAP 0.3089 AP50 0.6035
+[SEED_21] epoch 12 val: accuracy 0.8979 macro_f1 0.9096 balanced_accuracy 0.9137 mAP 0.2347 AP50 0.4982 || test: accuracy 0.9000 macro_f1 0.9104 balanced_accuracy 0.9165 mAP 0.2376 AP50 0.5068
+[SEED_20] epoch 24 val: accuracy 0.9532 macro_f1 0.9591 balanced_accuracy 0.9597 mAP 0.3268 AP50 0.6060 || test: accuracy 0.9383 macro_f1 0.9449 balanced_accuracy 0.9461 mAP 0.3398 AP50 0.6359
+[SEED_21] epoch 16 val: accuracy 0.9340 macro_f1 0.9412 balanced_accuracy 0.9424 mAP 0.2765 AP50 0.5556 || test: accuracy 0.9298 macro_f1 0.9365 balanced_accuracy 0.9386 mAP 0.2855 AP50 0.5748
+[SEED_20] epoch 28 val: accuracy 0.9479 macro_f1 0.9542 balanced_accuracy 0.9544 mAP 0.3453 AP50 0.6258 || test: accuracy 0.9426 macro_f1 0.9486 balanced_accuracy 0.9497 mAP 0.3542 AP50 0.6503
+[SEED_21] epoch 20 val: accuracy 0.9521 macro_f1 0.9574 balanced_accuracy 0.9579 mAP 0.3090 AP50 0.5893 || test: accuracy 0.9457 macro_f1 0.9515 balanced_accuracy 0.9533 mAP 0.3171 AP50 0.6142
+[SEED_20] epoch 32 val: accuracy 0.9479 macro_f1 0.9542 balanced_accuracy 0.9544 mAP 0.3565 AP50 0.6332 || test: accuracy 0.9383 macro_f1 0.9449 balanced_accuracy 0.9460 mAP 0.3656 AP50 0.6564
+[SEED_21] epoch 24 val: accuracy 0.9457 macro_f1 0.9505 balanced_accuracy 0.9518 mAP 0.3368 AP50 0.6255 || test: accuracy 0.9426 macro_f1 0.9486 balanced_accuracy 0.9506 mAP 0.3518 AP50 0.6462
+[SEED_20] val: accuracy 0.9489 macro_f1 0.9551 balanced_accuracy 0.9553 mAP 0.3579 AP50 0.6336
+[SEED_20] test: accuracy 0.9404 macro_f1 0.9467 balanced_accuracy 0.9479 mAP 0.3679 AP50 0.6599
+[SEED_20] RESULT {"val": {"macro_f1": 0.9551, "mAP": 0.3579, "AP50": 0.6336}, "test": {"macro_f1": 0.9467, "mAP": 0.3679, "AP50": 0.6599}}
+[SEED_20] RESULT pp val: macro_f1 0.9519 mAP 0.3721 AP50 0.6409
+[SEED_20] RESULT pp test: macro_f1 0.9492 mAP 0.3829 AP50 0.6635
+10-22 13:07 DONE SEED_20 (gpu1)
+10-22 13:07 WATCHDOG fallback: queued seed replicate SEED_22
+10-22 13:07 START SEED_22 (gpu1)
+[SEED_21] epoch 28 val: accuracy 0.9479 macro_f1 0.9532 balanced_accuracy 0.9551 mAP 0.3485 AP50 0.6351 || test: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9513 mAP 0.3595 AP50 0.6543
+[SEED_22] epoch 4 val: accuracy 0.9181 macro_f1 0.9268 balanced_accuracy 0.9278 mAP 0.1502 AP50 0.3657 || test: accuracy 0.9149 macro_f1 0.9204 balanced_accuracy 0.9257 mAP 0.1411 AP50 0.3646
+[SEED_21] epoch 32 val: accuracy 0.9511 macro_f1 0.9561 balanced_accuracy 0.9570 mAP 0.3575 AP50 0.6366 || test: accuracy 0.9426 macro_f1 0.9489 balanced_accuracy 0.9513 mAP 0.3740 AP50 0.6642
+[SEED_22] epoch 8 val: accuracy 0.9319 macro_f1 0.9399 balanced_accuracy 0.9404 mAP 0.2008 AP50 0.4456 || test: accuracy 0.9319 macro_f1 0.9403 balanced_accuracy 0.9397 mAP 0.1961 AP50 0.4455
+[SEED_21] val: accuracy 0.9511 macro_f1 0.9557 balanced_accuracy 0.9570 mAP 0.3579 AP50 0.6366
+[SEED_21] test: accuracy 0.9426 macro_f1 0.9489 balanced_accuracy 0.9513 mAP 0.3750 AP50 0.6634
+[SEED_21] RESULT {"val": {"macro_f1": 0.9557, "mAP": 0.3579, "AP50": 0.6366}, "test": {"macro_f1": 0.9489, "mAP": 0.375, "AP50": 0.6634}}
+[SEED_21] RESULT pp val: macro_f1 0.9531 mAP 0.3751 AP50 0.6467
+[SEED_21] RESULT pp test: macro_f1 0.9503 mAP 0.3931 AP50 0.6740
+10-22 13:38 DONE SEED_21 (gpu0)
+10-22 13:39 WATCHDOG fallback: queued seed replicate SEED_23
+10-22 13:39 START SEED_23 (gpu0)
+[SEED_22] epoch 12 val: accuracy 0.9330 macro_f1 0.9407 balanced_accuracy 0.9430 mAP 0.2372 AP50 0.4887 || test: accuracy 0.9287 macro_f1 0.9369 balanced_accuracy 0.9373 mAP 0.2329 AP50 0.5061
+[SEED_23] epoch 4 val: accuracy 0.9128 macro_f1 0.9219 balanced_accuracy 0.9262 mAP 0.1479 AP50 0.3738 || test: accuracy 0.9074 macro_f1 0.9133 balanced_accuracy 0.9190 mAP 0.1435 AP50 0.3732
+[SEED_22] epoch 16 val: accuracy 0.9457 macro_f1 0.9514 balanced_accuracy 0.9531 mAP 0.2761 AP50 0.5447 || test: accuracy 0.9404 macro_f1 0.9473 balanced_accuracy 0.9478 mAP 0.2816 AP50 0.5758
+[SEED_23] epoch 8 val: accuracy 0.9277 macro_f1 0.9347 balanced_accuracy 0.9332 mAP 0.1927 AP50 0.4412 || test: accuracy 0.9277 macro_f1 0.9339 balanced_accuracy 0.9314 mAP 0.1932 AP50 0.4609
+[SEED_22] epoch 20 val: accuracy 0.9447 macro_f1 0.9501 balanced_accuracy 0.9523 mAP 0.3059 AP50 0.5779 || test: accuracy 0.9394 macro_f1 0.9448 balanced_accuracy 0.9453 mAP 0.3166 AP50 0.6132
+[SEED_23] epoch 12 val: accuracy 0.9362 macro_f1 0.9424 balanced_accuracy 0.9416 mAP 0.2272 AP50 0.5025 || test: accuracy 0.9245 macro_f1 0.9312 balanced_accuracy 0.9324 mAP 0.2194 AP50 0.5129
+[SEED_22] epoch 24 val: accuracy 0.9436 macro_f1 0.9487 balanced_accuracy 0.9514 mAP 0.3278 AP50 0.6087 || test: accuracy 0.9394 macro_f1 0.9450 balanced_accuracy 0.9454 mAP 0.3388 AP50 0.6311
+[SEED_23] epoch 16 val: accuracy 0.9426 macro_f1 0.9480 balanced_accuracy 0.9486 mAP 0.2778 AP50 0.5414 || test: accuracy 0.9436 macro_f1 0.9508 balanced_accuracy 0.9502 mAP 0.2829 AP50 0.5683
+[SEED_22] epoch 28 val: accuracy 0.9489 macro_f1 0.9544 balanced_accuracy 0.9558 mAP 0.3471 AP50 0.6233 || test: accuracy 0.9383 macro_f1 0.9449 balanced_accuracy 0.9461 mAP 0.3579 AP50 0.6438
+[SEED_23] epoch 20 val: accuracy 0.9500 macro_f1 0.9554 balanced_accuracy 0.9560 mAP 0.3079 AP50 0.5854 || test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9550 mAP 0.3237 AP50 0.6130
+[SEED_22] epoch 32 val: accuracy 0.9500 macro_f1 0.9558 balanced_accuracy 0.9568 mAP 0.3553 AP50 0.6302 || test: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9461 mAP 0.3658 AP50 0.6494
+[SEED_23] epoch 24 val: accuracy 0.9479 macro_f1 0.9542 balanced_accuracy 0.9545 mAP 0.3265 AP50 0.6142 || test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9549 mAP 0.3487 AP50 0.6429
+[SEED_22] val: accuracy 0.9500 macro_f1 0.9558 balanced_accuracy 0.9568 mAP 0.3585 AP50 0.6349
+[SEED_22] test: accuracy 0.9394 macro_f1 0.9462 balanced_accuracy 0.9470 mAP 0.3681 AP50 0.6527
+[SEED_22] RESULT {"val": {"macro_f1": 0.9558, "mAP": 0.3585, "AP50": 0.6349}, "test": {"macro_f1": 0.9462, "mAP": 0.3681, "AP50": 0.6527}}
+[SEED_22] RESULT pp val: macro_f1 0.9560 mAP 0.3747 AP50 0.6446
+[SEED_22] RESULT pp test: macro_f1 0.9541 mAP 0.3871 AP50 0.6584
+10-22 15:09 DONE SEED_22 (gpu1)
+10-22 15:09 WATCHDOG fallback: queued seed replicate SEED_24
+10-22 15:09 START SEED_24 (gpu1)
+[SEED_23] epoch 28 val: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9527 mAP 0.3471 AP50 0.6287 || test: accuracy 0.9489 macro_f1 0.9555 balanced_accuracy 0.9560 mAP 0.3690 AP50 0.6637
+[SEED_24] epoch 4 val: accuracy 0.9149 macro_f1 0.9232 balanced_accuracy 0.9249 mAP 0.1378 AP50 0.3641 || test: accuracy 0.9128 macro_f1 0.9195 balanced_accuracy 0.9213 mAP 0.1222 AP50 0.3477
+[SEED_23] epoch 32 val: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9509 mAP 0.3575 AP50 0.6374 || test: accuracy 0.9511 macro_f1 0.9574 balanced_accuracy 0.9577 mAP 0.3749 AP50 0.6604
+[SEED_24] epoch 8 val: accuracy 0.9287 macro_f1 0.9363 balanced_accuracy 0.9348 mAP 0.1981 AP50 0.4464 || test: accuracy 0.9287 macro_f1 0.9357 balanced_accuracy 0.9348 mAP 0.1887 AP50 0.4438
+[SEED_23] val: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9518 mAP 0.3572 AP50 0.6368
+[SEED_23] test: accuracy 0.9489 macro_f1 0.9555 balanced_accuracy 0.9559 mAP 0.3771 AP50 0.6651
+[SEED_23] RESULT {"val": {"macro_f1": 0.9511, "mAP": 0.3572, "AP50": 0.6368}, "test": {"macro_f1": 0.9555, "mAP": 0.3771, "AP50": 0.6651}}
+[SEED_23] RESULT pp val: macro_f1 0.9542 mAP 0.3742 AP50 0.6463
+[SEED_23] RESULT pp test: macro_f1 0.9529 mAP 0.3949 AP50 0.6718
+10-22 15:45 DONE SEED_23 (gpu0)
+10-22 15:45 WATCHDOG fallback: queued seed replicate SEED_25
+10-22 15:45 START SEED_25 (gpu0)
+[SEED_24] epoch 12 val: accuracy 0.9372 macro_f1 0.9426 balanced_accuracy 0.9437 mAP 0.2391 AP50 0.4969 || test: accuracy 0.9277 macro_f1 0.9356 balanced_accuracy 0.9344 mAP 0.2307 AP50 0.5053
+[SEED_25] epoch 4 val: accuracy 0.9096 macro_f1 0.9193 balanced_accuracy 0.9191 mAP 0.1530 AP50 0.3739 || test: accuracy 0.9096 macro_f1 0.9172 balanced_accuracy 0.9174 mAP 0.1461 AP50 0.3715
+[SEED_24] epoch 16 val: accuracy 0.9309 macro_f1 0.9385 balanced_accuracy 0.9396 mAP 0.2736 AP50 0.5489 || test: accuracy 0.9287 macro_f1 0.9351 balanced_accuracy 0.9358 mAP 0.2735 AP50 0.5737
+[SEED_25] epoch 8 val: accuracy 0.9085 macro_f1 0.9138 balanced_accuracy 0.9148 mAP 0.2086 AP50 0.4599 || test: accuracy 0.9074 macro_f1 0.9151 balanced_accuracy 0.9178 mAP 0.2038 AP50 0.4647
+[SEED_24] epoch 20 val: accuracy 0.9500 macro_f1 0.9555 balanced_accuracy 0.9567 mAP 0.3066 AP50 0.5793 || test: accuracy 0.9479 macro_f1 0.9541 balanced_accuracy 0.9551 mAP 0.3141 AP50 0.6129
+[SEED_25] epoch 12 val: accuracy 0.9330 macro_f1 0.9420 balanced_accuracy 0.9412 mAP 0.2369 AP50 0.4931 || test: accuracy 0.9404 macro_f1 0.9486 balanced_accuracy 0.9481 mAP 0.2374 AP50 0.5066
+[SEED_24] epoch 24 val: accuracy 0.9489 macro_f1 0.9551 balanced_accuracy 0.9560 mAP 0.3335 AP50 0.6133 || test: accuracy 0.9447 macro_f1 0.9509 balanced_accuracy 0.9516 mAP 0.3405 AP50 0.6386
+[SEED_25] epoch 16 val: accuracy 0.9340 macro_f1 0.9414 balanced_accuracy 0.9440 mAP 0.2706 AP50 0.5509 || test: accuracy 0.9457 macro_f1 0.9527 balanced_accuracy 0.9521 mAP 0.2788 AP50 0.5633
+[SEED_24] epoch 28 val: accuracy 0.9500 macro_f1 0.9558 balanced_accuracy 0.9567 mAP 0.3502 AP50 0.6311 || test: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9525 mAP 0.3578 AP50 0.6571
+[SEED_25] epoch 20 val: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9523 mAP 0.3082 AP50 0.5859 || test: accuracy 0.9468 macro_f1 0.9543 balanced_accuracy 0.9540 mAP 0.3192 AP50 0.6170
+[SEED_24] epoch 32 val: accuracy 0.9521 macro_f1 0.9576 balanced_accuracy 0.9587 mAP 0.3609 AP50 0.6372 || test: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9515 mAP 0.3687 AP50 0.6638
+[SEED_25] epoch 24 val: accuracy 0.9426 macro_f1 0.9482 balanced_accuracy 0.9498 mAP 0.3253 AP50 0.6117 || test: accuracy 0.9468 macro_f1 0.9532 balanced_accuracy 0.9522 mAP 0.3382 AP50 0.6370
+[SEED_24] val: accuracy 0.9521 macro_f1 0.9576 balanced_accuracy 0.9587 mAP 0.3605 AP50 0.6354
+[SEED_24] test: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9514 mAP 0.3686 AP50 0.6629
+[SEED_24] RESULT {"val": {"macro_f1": 0.9576, "mAP": 0.3605, "AP50": 0.6354}, "test": {"macro_f1": 0.9499, "mAP": 0.3686, "AP50": 0.6629}}
+[SEED_24] RESULT pp val: macro_f1 0.9560 mAP 0.3781 AP50 0.6442
+[SEED_24] RESULT pp test: macro_f1 0.9483 mAP 0.3867 AP50 0.6685
+10-22 17:11 DONE SEED_24 (gpu1)
+10-22 17:12 WATCHDOG fallback: queued seed replicate SEED_26
+10-22 17:12 START SEED_26 (gpu1)
+[SEED_25] epoch 28 val: accuracy 0.9447 macro_f1 0.9502 balanced_accuracy 0.9516 mAP 0.3471 AP50 0.6329 || test: accuracy 0.9489 macro_f1 0.9554 balanced_accuracy 0.9549 mAP 0.3598 AP50 0.6540
+[SEED_26] epoch 4 val: accuracy 0.9000 macro_f1 0.9123 balanced_accuracy 0.9117 mAP 0.1400 AP50 0.3628 || test: accuracy 0.9096 macro_f1 0.9199 balanced_accuracy 0.9168 mAP 0.1313 AP50 0.3571
+[SEED_25] epoch 32 val: accuracy 0.9415 macro_f1 0.9475 balanced_accuracy 0.9489 mAP 0.3560 AP50 0.6371 || test: accuracy 0.9500 macro_f1 0.9571 balanced_accuracy 0.9574 mAP 0.3667 AP50 0.6608
+[SEED_26] epoch 8 val: accuracy 0.9245 macro_f1 0.9329 balanced_accuracy 0.9340 mAP 0.2038 AP50 0.4468 || test: accuracy 0.9223 macro_f1 0.9313 balanced_accuracy 0.9321 mAP 0.1983 AP50 0.4625
+[SEED_25] val: accuracy 0.9415 macro_f1 0.9475 balanced_accuracy 0.9488 mAP 0.3552 AP50 0.6366
+[SEED_25] test: accuracy 0.9521 macro_f1 0.9590 balanced_accuracy 0.9592 mAP 0.3692 AP50 0.6596
+[SEED_25] RESULT {"val": {"macro_f1": 0.9475, "mAP": 0.3552, "AP50": 0.6366}, "test": {"macro_f1": 0.959, "mAP": 0.3692, "AP50": 0.6596}}
+[SEED_25] RESULT pp val: macro_f1 0.9504 mAP 0.3731 AP50 0.6473
+[SEED_25] RESULT pp test: macro_f1 0.9550 mAP 0.3871 AP50 0.6650
+10-22 17:51 DONE SEED_25 (gpu0)
+10-22 17:52 WATCHDOG fallback: queued seed replicate SEED_27
+10-22 17:52 START SEED_27 (gpu0)
+[SEED_26] epoch 12 val: accuracy 0.9351 macro_f1 0.9420 balanced_accuracy 0.9443 mAP 0.2422 AP50 0.5028 || test: accuracy 0.9372 macro_f1 0.9451 balanced_accuracy 0.9451 mAP 0.2377 AP50 0.5221
+[SEED_26] epoch 16 val: accuracy 0.9415 macro_f1 0.9480 balanced_accuracy 0.9500 mAP 0.2721 AP50 0.5420 || test: accuracy 0.9351 macro_f1 0.9416 balanced_accuracy 0.9439 mAP 0.2799 AP50 0.5777
+[SEED_27] epoch 4 val: accuracy 0.9096 macro_f1 0.9170 balanced_accuracy 0.9198 mAP 0.1199 AP50 0.3544 || test: accuracy 0.9064 macro_f1 0.9133 balanced_accuracy 0.9179 mAP 0.1146 AP50 0.3392
+[SEED_26] epoch 20 val: accuracy 0.9426 macro_f1 0.9485 balanced_accuracy 0.9498 mAP 0.2898 AP50 0.5596 || test: accuracy 0.9468 macro_f1 0.9517 balanced_accuracy 0.9533 mAP 0.3029 AP50 0.5939
+[SEED_27] epoch 8 val: accuracy 0.9128 macro_f1 0.9195 balanced_accuracy 0.9259 mAP 0.2094 AP50 0.4514 || test: accuracy 0.9074 macro_f1 0.9108 balanced_accuracy 0.9203 mAP 0.2047 AP50 0.4671
+[SEED_26] epoch 24 val: accuracy 0.9532 macro_f1 0.9582 balanced_accuracy 0.9588 mAP 0.3232 AP50 0.6009 || test: accuracy 0.9511 macro_f1 0.9555 balanced_accuracy 0.9570 mAP 0.3370 AP50 0.6361
+[SEED_27] epoch 12 val: accuracy 0.9404 macro_f1 0.9474 balanced_accuracy 0.9472 mAP 0.2441 AP50 0.5026 || test: accuracy 0.9309 macro_f1 0.9374 balanced_accuracy 0.9364 mAP 0.2385 AP50 0.5207
+[SEED_26] epoch 28 val: accuracy 0.9521 macro_f1 0.9574 balanced_accuracy 0.9578 mAP 0.3414 AP50 0.6212 || test: accuracy 0.9468 macro_f1 0.9514 balanced_accuracy 0.9526 mAP 0.3508 AP50 0.6519
+[SEED_27] epoch 16 val: accuracy 0.9362 macro_f1 0.9442 balanced_accuracy 0.9446 mAP 0.2735 AP50 0.5265 || test: accuracy 0.9330 macro_f1 0.9414 balanced_accuracy 0.9415 mAP 0.2838 AP50 0.5646
+[SEED_26] epoch 32 val: accuracy 0.9521 macro_f1 0.9574 balanced_accuracy 0.9578 mAP 0.3534 AP50 0.6346 || test: accuracy 0.9468 macro_f1 0.9514 balanced_accuracy 0.9526 mAP 0.3662 AP50 0.6565
+[SEED_27] epoch 20 val: accuracy 0.9468 macro_f1 0.9531 balanced_accuracy 0.9533 mAP 0.2990 AP50 0.5655 || test: accuracy 0.9362 macro_f1 0.9428 balanced_accuracy 0.9434 mAP 0.3058 AP50 0.5888
+[SEED_26] val: accuracy 0.9521 macro_f1 0.9574 balanced_accuracy 0.9578 mAP 0.3528 AP50 0.6351
+[SEED_26] test: accuracy 0.9468 macro_f1 0.9514 balanced_accuracy 0.9526 mAP 0.3663 AP50 0.6580
+[SEED_26] RESULT {"val": {"macro_f1": 0.9574, "mAP": 0.3528, "AP50": 0.6351}, "test": {"macro_f1": 0.9514, "mAP": 0.3663, "AP50": 0.658}}
+[SEED_26] RESULT pp val: macro_f1 0.9595 mAP 0.3717 AP50 0.6432
+[SEED_26] RESULT pp test: macro_f1 0.9542 mAP 0.3838 AP50 0.6643
+10-22 19:14 DONE SEED_26 (gpu1)
+10-22 19:15 WATCHDOG fallback: queued seed replicate SEED_28
+10-22 19:15 START SEED_28 (gpu1)
+[SEED_27] epoch 24 val: accuracy 0.9436 macro_f1 0.9507 balanced_accuracy 0.9509 mAP 0.3374 AP50 0.6105 || test: accuracy 0.9394 macro_f1 0.9457 balanced_accuracy 0.9464 mAP 0.3469 AP50 0.6409
+[SEED_28] epoch 4 val: accuracy 0.9191 macro_f1 0.9266 balanced_accuracy 0.9278 mAP 0.1502 AP50 0.3694 || test: accuracy 0.9128 macro_f1 0.9214 balanced_accuracy 0.9217 mAP 0.1533 AP50 0.3737
+[SEED_27] epoch 28 val: accuracy 0.9457 macro_f1 0.9526 balanced_accuracy 0.9526 mAP 0.3461 AP50 0.6226 || test: accuracy 0.9415 macro_f1 0.9477 balanced_accuracy 0.9480 mAP 0.3611 AP50 0.6478
+[SEED_28] epoch 8 val: accuracy 0.9266 macro_f1 0.9300 balanced_accuracy 0.9364 mAP 0.2076 AP50 0.4538 || test: accuracy 0.9170 macro_f1 0.9224 balanced_accuracy 0.9267 mAP 0.2027 AP50 0.4593
+[SEED_27] epoch 32 val: accuracy 0.9447 macro_f1 0.9516 balanced_accuracy 0.9518 mAP 0.3563 AP50 0.6292 || test: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9471 mAP 0.3712 AP50 0.6577
+[SEED_28] epoch 12 val: accuracy 0.9362 macro_f1 0.9432 balanced_accuracy 0.9428 mAP 0.2364 AP50 0.4977 || test: accuracy 0.9255 macro_f1 0.9348 balanced_accuracy 0.9345 mAP 0.2391 AP50 0.5173
+[SEED_27] val: accuracy 0.9457 macro_f1 0.9525 balanced_accuracy 0.9526 mAP 0.3580 AP50 0.6322
+[SEED_27] test: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9471 mAP 0.3712 AP50 0.6554
+[SEED_27] RESULT {"val": {"macro_f1": 0.9525, "mAP": 0.358, "AP50": 0.6322}, "test": {"macro_f1": 0.9466, "mAP": 0.3712, "AP50": 0.6554}}
+[SEED_27] RESULT pp val: macro_f1 0.9588 mAP 0.3750 AP50 0.6392
+[SEED_27] RESULT pp test: macro_f1 0.9462 mAP 0.3868 AP50 0.6627
+10-22 19:58 DONE SEED_27 (gpu0)
+10-22 19:58 WATCHDOG fallback: queued seed replicate SEED_29
+10-22 19:58 START SEED_29 (gpu0)
+[SEED_28] epoch 16 val: accuracy 0.9404 macro_f1 0.9478 balanced_accuracy 0.9464 mAP 0.2692 AP50 0.5478 || test: accuracy 0.9287 macro_f1 0.9380 balanced_accuracy 0.9375 mAP 0.2797 AP50 0.5763
+[SEED_29] epoch 4 val: accuracy 0.9032 macro_f1 0.9118 balanced_accuracy 0.9148 mAP 0.1483 AP50 0.3664 || test: accuracy 0.9053 macro_f1 0.9146 balanced_accuracy 0.9164 mAP 0.1428 AP50 0.3703
+[SEED_28] epoch 20 val: accuracy 0.9394 macro_f1 0.9451 balanced_accuracy 0.9469 mAP 0.3047 AP50 0.5814 || test: accuracy 0.9404 macro_f1 0.9471 balanced_accuracy 0.9478 mAP 0.3075 AP50 0.6087
+[SEED_29] epoch 8 val: accuracy 0.9255 macro_f1 0.9337 balanced_accuracy 0.9350 mAP 0.2059 AP50 0.4390 || test: accuracy 0.9266 macro_f1 0.9338 balanced_accuracy 0.9351 mAP 0.2005 AP50 0.4449
+[SEED_28] epoch 24 val: accuracy 0.9436 macro_f1 0.9493 balanced_accuracy 0.9499 mAP 0.3322 AP50 0.6126 || test: accuracy 0.9404 macro_f1 0.9479 balanced_accuracy 0.9489 mAP 0.3462 AP50 0.6477
+[SEED_29] epoch 12 val: accuracy 0.9298 macro_f1 0.9390 balanced_accuracy 0.9385 mAP 0.2316 AP50 0.4848 || test: accuracy 0.9340 macro_f1 0.9425 balanced_accuracy 0.9420 mAP 0.2332 AP50 0.5135
+[SEED_28] epoch 28 val: accuracy 0.9436 macro_f1 0.9490 balanced_accuracy 0.9499 mAP 0.3477 AP50 0.6247 || test: accuracy 0.9404 macro_f1 0.9476 balanced_accuracy 0.9480 mAP 0.3651 AP50 0.6568
+[SEED_29] epoch 16 val: accuracy 0.9394 macro_f1 0.9456 balanced_accuracy 0.9465 mAP 0.2636 AP50 0.5197 || test: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9499 mAP 0.2687 AP50 0.5594
+[SEED_28] epoch 32 val: accuracy 0.9457 macro_f1 0.9508 balanced_accuracy 0.9517 mAP 0.3535 AP50 0.6365 || test: accuracy 0.9415 macro_f1 0.9488 balanced_accuracy 0.9497 mAP 0.3686 AP50 0.6610
+[SEED_29] epoch 20 val: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9507 mAP 0.3045 AP50 0.5758 || test: accuracy 0.9457 macro_f1 0.9518 balanced_accuracy 0.9508 mAP 0.3159 AP50 0.6137
+[SEED_28] val: accuracy 0.9457 macro_f1 0.9508 balanced_accuracy 0.9517 mAP 0.3530 AP50 0.6371
+[SEED_28] test: accuracy 0.9415 macro_f1 0.9488 balanced_accuracy 0.9497 mAP 0.3672 AP50 0.6624
+[SEED_28] RESULT {"val": {"macro_f1": 0.9508, "mAP": 0.353, "AP50": 0.6371}, "test": {"macro_f1": 0.9488, "mAP": 0.3672, "AP50": 0.6624}}
+[SEED_28] RESULT pp val: macro_f1 0.9508 mAP 0.3715 AP50 0.6441
+[SEED_28] RESULT pp test: macro_f1 0.9484 mAP 0.3868 AP50 0.6687
+10-22 21:17 DONE SEED_28 (gpu1)
+10-22 21:18 WATCHDOG fallback: queued seed replicate SEED_30
+10-22 21:18 START SEED_30 (gpu1)
+[SEED_29] epoch 24 val: accuracy 0.9383 macro_f1 0.9453 balanced_accuracy 0.9466 mAP 0.3216 AP50 0.5977 || test: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9498 mAP 0.3345 AP50 0.6281
+[SEED_30] epoch 4 val: accuracy 0.8968 macro_f1 0.9132 balanced_accuracy 0.9102 mAP 0.1510 AP50 0.3839 || test: accuracy 0.9191 macro_f1 0.9321 balanced_accuracy 0.9308 mAP 0.1394 AP50 0.3710
+[SEED_29] epoch 28 val: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9500 mAP 0.3453 AP50 0.6227 || test: accuracy 0.9479 macro_f1 0.9538 balanced_accuracy 0.9533 mAP 0.3591 AP50 0.6513
+[SEED_30] epoch 8 val: accuracy 0.8968 macro_f1 0.9073 balanced_accuracy 0.9030 mAP 0.2066 AP50 0.4438 || test: accuracy 0.9074 macro_f1 0.9184 balanced_accuracy 0.9172 mAP 0.2031 AP50 0.4575
+[SEED_29] epoch 32 val: accuracy 0.9426 macro_f1 0.9492 balanced_accuracy 0.9500 mAP 0.3520 AP50 0.6270 || test: accuracy 0.9468 macro_f1 0.9528 balanced_accuracy 0.9525 mAP 0.3656 AP50 0.6556
+[SEED_30] epoch 12 val: accuracy 0.9319 macro_f1 0.9399 balanced_accuracy 0.9387 mAP 0.2314 AP50 0.4858 || test: accuracy 0.9372 macro_f1 0.9454 balanced_accuracy 0.9455 mAP 0.2393 AP50 0.5162
+[SEED_29] val: accuracy 0.9426 macro_f1 0.9491 balanced_accuracy 0.9500 mAP 0.3544 AP50 0.6304
+[SEED_29] test: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9507 mAP 0.3678 AP50 0.6588
+[SEED_29] RESULT {"val": {"macro_f1": 0.9491, "mAP": 0.3544, "AP50": 0.6304}, "test": {"macro_f1": 0.9511, "mAP": 0.3678, "AP50": 0.6588}}
+[SEED_29] RESULT pp val: macro_f1 0.9505 mAP 0.3738 AP50 0.6420
+[SEED_29] RESULT pp test: macro_f1 0.9544 mAP 0.3855 AP50 0.6630
+10-22 22:04 DONE SEED_29 (gpu0)
+10-22 22:04 WATCHDOG fallback: queued seed replicate SEED_31
+10-22 22:04 START SEED_31 (gpu0)
+[SEED_30] epoch 16 val: accuracy 0.9489 macro_f1 0.9541 balanced_accuracy 0.9534 mAP 0.2671 AP50 0.5440 || test: accuracy 0.9404 macro_f1 0.9466 balanced_accuracy 0.9480 mAP 0.2727 AP50 0.5686
+[SEED_31] epoch 4 val: accuracy 0.8894 macro_f1 0.8987 balanced_accuracy 0.9042 mAP 0.1372 AP50 0.3664 || test: accuracy 0.8957 macro_f1 0.9046 balanced_accuracy 0.9076 mAP 0.1339 AP50 0.3634
+[SEED_30] epoch 20 val: accuracy 0.9521 macro_f1 0.9576 balanced_accuracy 0.9580 mAP 0.3099 AP50 0.5883 || test: accuracy 0.9479 macro_f1 0.9537 balanced_accuracy 0.9553 mAP 0.3243 AP50 0.6250
+[SEED_31] epoch 8 val: accuracy 0.8947 macro_f1 0.8986 balanced_accuracy 0.8976 mAP 0.2025 AP50 0.4396 || test: accuracy 0.8968 macro_f1 0.9031 balanced_accuracy 0.9037 mAP 0.1975 AP50 0.4589
+[SEED_30] epoch 24 val: accuracy 0.9479 macro_f1 0.9536 balanced_accuracy 0.9543 mAP 0.3328 AP50 0.6100 || test: accuracy 0.9436 macro_f1 0.9497 balanced_accuracy 0.9517 mAP 0.3406 AP50 0.6499
+[SEED_31] epoch 12 val: accuracy 0.9383 macro_f1 0.9445 balanced_accuracy 0.9444 mAP 0.2368 AP50 0.4936 || test: accuracy 0.9383 macro_f1 0.9458 balanced_accuracy 0.9449 mAP 0.2389 AP50 0.5217
+[SEED_30] epoch 28 val: accuracy 0.9479 macro_f1 0.9537 balanced_accuracy 0.9543 mAP 0.3522 AP50 0.6294 || test: accuracy 0.9457 macro_f1 0.9522 balanced_accuracy 0.9541 mAP 0.3626 AP50 0.6599
+[SEED_31] epoch 16 val: accuracy 0.9213 macro_f1 0.9309 balanced_accuracy 0.9302 mAP 0.2662 AP50 0.5354 || test: accuracy 0.9160 macro_f1 0.9266 balanced_accuracy 0.9243 mAP 0.2721 AP50 0.5611
+[SEED_30] epoch 32 val: accuracy 0.9500 macro_f1 0.9554 balanced_accuracy 0.9561 mAP 0.3593 AP50 0.6341 || test: accuracy 0.9447 macro_f1 0.9513 balanced_accuracy 0.9524 mAP 0.3683 AP50 0.6626
+[SEED_31] epoch 20 val: accuracy 0.9415 macro_f1 0.9481 balanced_accuracy 0.9479 mAP 0.3083 AP50 0.5810 || test: accuracy 0.9404 macro_f1 0.9482 balanced_accuracy 0.9476 mAP 0.3105 AP50 0.6016
+[SEED_30] val: accuracy 0.9511 macro_f1 0.9563 balanced_accuracy 0.9569 mAP 0.3611 AP50 0.6378
+[SEED_30] test: accuracy 0.9447 macro_f1 0.9513 balanced_accuracy 0.9532 mAP 0.3696 AP50 0.6639
+[SEED_30] RESULT {"val": {"macro_f1": 0.9563, "mAP": 0.3611, "AP50": 0.6378}, "test": {"macro_f1": 0.9513, "mAP": 0.3696, "AP50": 0.6639}}
+[SEED_30] RESULT pp val: macro_f1 0.9550 mAP 0.3752 AP50 0.6426
+[SEED_30] RESULT pp test: macro_f1 0.9550 mAP 0.3879 AP50 0.6663
+10-22 23:20 DONE SEED_30 (gpu1)
+10-22 23:21 WATCHDOG fallback: queued seed replicate SEED_32
+10-22 23:21 START SEED_32 (gpu1)
+[SEED_31] epoch 24 val: accuracy 0.9468 macro_f1 0.9533 balanced_accuracy 0.9528 mAP 0.3307 AP50 0.6036 || test: accuracy 0.9404 macro_f1 0.9477 balanced_accuracy 0.9471 mAP 0.3399 AP50 0.6316
+[SEED_32] epoch 4 val: accuracy 0.8819 macro_f1 0.8906 balanced_accuracy 0.8965 mAP 0.1466 AP50 0.3673 || test: accuracy 0.8862 macro_f1 0.8987 balanced_accuracy 0.9008 mAP 0.1376 AP50 0.3565
+[SEED_31] epoch 28 val: accuracy 0.9457 macro_f1 0.9520 balanced_accuracy 0.9518 mAP 0.3495 AP50 0.6296 || test: accuracy 0.9426 macro_f1 0.9498 balanced_accuracy 0.9497 mAP 0.3581 AP50 0.6519
+[SEED_32] epoch 8 val: accuracy 0.9309 macro_f1 0.9376 balanced_accuracy 0.9391 mAP 0.1985 AP50 0.4536 || test: accuracy 0.9340 macro_f1 0.9417 balanced_accuracy 0.9431 mAP 0.1976 AP50 0.4550
+[SEED_31] epoch 32 val: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9500 mAP 0.3551 AP50 0.6311 || test: accuracy 0.9415 macro_f1 0.9484 balanced_accuracy 0.9479 mAP 0.3674 AP50 0.6569
+[SEED_32] epoch 12 val: accuracy 0.9330 macro_f1 0.9386 balanced_accuracy 0.9382 mAP 0.2392 AP50 0.4899 || test: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9470 mAP 0.2418 AP50 0.5139
+[SEED_31] val: accuracy 0.9426 macro_f1 0.9493 balanced_accuracy 0.9491 mAP 0.3585 AP50 0.6309
+[SEED_31] test: accuracy 0.9415 macro_f1 0.9484 balanced_accuracy 0.9479 mAP 0.3710 AP50 0.6575
+[SEED_31] RESULT {"val": {"macro_f1": 0.9493, "mAP": 0.3585, "AP50": 0.6309}, "test": {"macro_f1": 0.9484, "mAP": 0.371, "AP50": 0.6575}}
+[SEED_31] RESULT pp val: macro_f1 0.9537 mAP 0.3754 AP50 0.6434
+[SEED_31] RESULT pp test: macro_f1 0.9515 mAP 0.3881 AP50 0.6662
+10-23 00:10 DONE SEED_31 (gpu0)
+10-23 00:10 WATCHDOG fallback: queued seed replicate SEED_33
+10-23 00:10 START SEED_33 (gpu0)
+[SEED_32] epoch 16 val: accuracy 0.9372 macro_f1 0.9432 balanced_accuracy 0.9444 mAP 0.2679 AP50 0.5426 || test: accuracy 0.9436 macro_f1 0.9497 balanced_accuracy 0.9508 mAP 0.2733 AP50 0.5665
+[SEED_33] epoch 4 val: accuracy 0.8936 macro_f1 0.8989 balanced_accuracy 0.9085 mAP 0.1401 AP50 0.3658 || test: accuracy 0.8883 macro_f1 0.8944 balanced_accuracy 0.9023 mAP 0.1360 AP50 0.3679
+[SEED_32] epoch 20 val: accuracy 0.9415 macro_f1 0.9469 balanced_accuracy 0.9493 mAP 0.3007 AP50 0.5802 || test: accuracy 0.9479 macro_f1 0.9546 balanced_accuracy 0.9549 mAP 0.3118 AP50 0.6165
+[SEED_33] epoch 8 val: accuracy 0.9340 macro_f1 0.9407 balanced_accuracy 0.9409 mAP 0.2143 AP50 0.4523 || test: accuracy 0.9128 macro_f1 0.9222 balanced_accuracy 0.9239 mAP 0.2053 AP50 0.4662
+[SEED_32] epoch 24 val: accuracy 0.9436 macro_f1 0.9491 balanced_accuracy 0.9505 mAP 0.3298 AP50 0.6160 || test: accuracy 0.9511 macro_f1 0.9570 balanced_accuracy 0.9570 mAP 0.3427 AP50 0.6381
+[SEED_33] epoch 12 val: accuracy 0.9330 macro_f1 0.9402 balanced_accuracy 0.9385 mAP 0.2416 AP50 0.5022 || test: accuracy 0.9340 macro_f1 0.9406 balanced_accuracy 0.9410 mAP 0.2338 AP50 0.5230
+[SEED_32] epoch 28 val: accuracy 0.9457 macro_f1 0.9504 balanced_accuracy 0.9514 mAP 0.3432 AP50 0.6307 || test: accuracy 0.9511 macro_f1 0.9569 balanced_accuracy 0.9570 mAP 0.3530 AP50 0.6522
+[SEED_33] epoch 16 val: accuracy 0.9436 macro_f1 0.9503 balanced_accuracy 0.9501 mAP 0.2733 AP50 0.5453 || test: accuracy 0.9298 macro_f1 0.9376 balanced_accuracy 0.9387 mAP 0.2847 AP50 0.5765
+[SEED_32] epoch 32 val: accuracy 0.9479 macro_f1 0.9522 balanced_accuracy 0.9533 mAP 0.3558 AP50 0.6402 || test: accuracy 0.9521 macro_f1 0.9579 balanced_accuracy 0.9579 mAP 0.3680 AP50 0.6592
+[SEED_33] epoch 20 val: accuracy 0.9404 macro_f1 0.9469 balanced_accuracy 0.9480 mAP 0.3110 AP50 0.5858 || test: accuracy 0.9394 macro_f1 0.9461 balanced_accuracy 0.9463 mAP 0.3210 AP50 0.6222
+[SEED_32] val: accuracy 0.9489 macro_f1 0.9532 balanced_accuracy 0.9542 mAP 0.3566 AP50 0.6403
+[SEED_32] test: accuracy 0.9521 macro_f1 0.9579 balanced_accuracy 0.9579 mAP 0.3658 AP50 0.6555
+[SEED_32] RESULT {"val": {"macro_f1": 0.9532, "mAP": 0.3566, "AP50": 0.6403}, "test": {"macro_f1": 0.9579, "mAP": 0.3658, "AP50": 0.6555}}
+[SEED_32] RESULT pp val: macro_f1 0.9578 mAP 0.3721 AP50 0.6466
+[SEED_32] RESULT pp test: macro_f1 0.9594 mAP 0.3861 AP50 0.6662
+10-23 01:23 DONE SEED_32 (gpu1)
+10-23 01:24 WATCHDOG fallback: queued seed replicate SEED_34
+10-23 01:24 START SEED_34 (gpu1)
+[SEED_33] epoch 24 val: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9507 mAP 0.3297 AP50 0.6148 || test: accuracy 0.9404 macro_f1 0.9479 balanced_accuracy 0.9479 mAP 0.3436 AP50 0.6508
+[SEED_34] epoch 4 val: accuracy 0.9074 macro_f1 0.9149 balanced_accuracy 0.9111 mAP 0.1479 AP50 0.3699 || test: accuracy 0.9106 macro_f1 0.9174 balanced_accuracy 0.9186 mAP 0.1458 AP50 0.3729
+[SEED_33] epoch 28 val: accuracy 0.9436 macro_f1 0.9498 balanced_accuracy 0.9499 mAP 0.3513 AP50 0.6301 || test: accuracy 0.9394 macro_f1 0.9471 balanced_accuracy 0.9471 mAP 0.3691 AP50 0.6650
+[SEED_34] epoch 8 val: accuracy 0.9170 macro_f1 0.9274 balanced_accuracy 0.9273 mAP 0.1979 AP50 0.4485 || test: accuracy 0.9213 macro_f1 0.9314 balanced_accuracy 0.9308 mAP 0.1930 AP50 0.4590
+[SEED_33] epoch 32 val: accuracy 0.9436 macro_f1 0.9502 balanced_accuracy 0.9508 mAP 0.3584 AP50 0.6338 || test: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9471 mAP 0.3748 AP50 0.6672
+[SEED_34] epoch 12 val: accuracy 0.9362 macro_f1 0.9403 balanced_accuracy 0.9441 mAP 0.2346 AP50 0.4971 || test: accuracy 0.9213 macro_f1 0.9282 balanced_accuracy 0.9310 mAP 0.2410 AP50 0.5197
+[SEED_33] val: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9516 mAP 0.3582 AP50 0.6343
+[SEED_33] test: accuracy 0.9394 macro_f1 0.9466 balanced_accuracy 0.9471 mAP 0.3749 AP50 0.6627
+[SEED_33] RESULT {"val": {"macro_f1": 0.951, "mAP": 0.3582, "AP50": 0.6343}, "test": {"macro_f1": 0.9466, "mAP": 0.3749, "AP50": 0.6627}}
+[SEED_33] RESULT pp val: macro_f1 0.9505 mAP 0.3752 AP50 0.6435
+[SEED_33] RESULT pp test: macro_f1 0.9495 mAP 0.3940 AP50 0.6722
+10-23 02:16 DONE SEED_33 (gpu0)
+10-23 02:17 WATCHDOG fallback: queued seed replicate SEED_35
+10-23 02:17 START SEED_35 (gpu0)
+[SEED_34] epoch 16 val: accuracy 0.9447 macro_f1 0.9503 balanced_accuracy 0.9508 mAP 0.2729 AP50 0.5390 || test: accuracy 0.9404 macro_f1 0.9459 balanced_accuracy 0.9467 mAP 0.2823 AP50 0.5653
+[SEED_35] epoch 4 val: accuracy 0.9223 macro_f1 0.9313 balanced_accuracy 0.9335 mAP 0.1397 AP50 0.3584 || test: accuracy 0.9170 macro_f1 0.9262 balanced_accuracy 0.9262 mAP 0.1315 AP50 0.3563
+[SEED_34] epoch 20 val: accuracy 0.9457 macro_f1 0.9517 balanced_accuracy 0.9524 mAP 0.3068 AP50 0.5860 || test: accuracy 0.9479 macro_f1 0.9529 balanced_accuracy 0.9534 mAP 0.3217 AP50 0.6151
+[SEED_34] epoch 24 val: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9515 mAP 0.3299 AP50 0.6169 || test: accuracy 0.9468 macro_f1 0.9519 balanced_accuracy 0.9525 mAP 0.3422 AP50 0.6390
+[SEED_35] epoch 8 val: accuracy 0.9266 macro_f1 0.9357 balanced_accuracy 0.9344 mAP 0.2069 AP50 0.4564 || test: accuracy 0.9202 macro_f1 0.9295 balanced_accuracy 0.9261 mAP 0.1973 AP50 0.4590
+[SEED_34] epoch 28 val: accuracy 0.9457 macro_f1 0.9510 balanced_accuracy 0.9523 mAP 0.3509 AP50 0.6343 || test: accuracy 0.9489 macro_f1 0.9538 balanced_accuracy 0.9543 mAP 0.3610 AP50 0.6496
+[SEED_35] epoch 12 val: accuracy 0.9277 macro_f1 0.9362 balanced_accuracy 0.9327 mAP 0.2328 AP50 0.4940 || test: accuracy 0.9234 macro_f1 0.9315 balanced_accuracy 0.9276 mAP 0.2255 AP50 0.4984
+[SEED_34] epoch 32 val: accuracy 0.9500 macro_f1 0.9560 balanced_accuracy 0.9560 mAP 0.3591 AP50 0.6418 || test: accuracy 0.9500 macro_f1 0.9550 balanced_accuracy 0.9560 mAP 0.3723 AP50 0.6644
+[SEED_35] epoch 16 val: accuracy 0.9415 macro_f1 0.9492 balanced_accuracy 0.9495 mAP 0.2734 AP50 0.5504 || test: accuracy 0.9426 macro_f1 0.9496 balanced_accuracy 0.9495 mAP 0.2805 AP50 0.5802
+[SEED_34] val: accuracy 0.9489 macro_f1 0.9549 balanced_accuracy 0.9550 mAP 0.3590 AP50 0.6438
+[SEED_34] test: accuracy 0.9489 macro_f1 0.9541 balanced_accuracy 0.9551 mAP 0.3717 AP50 0.6621
+[SEED_34] RESULT {"val": {"macro_f1": 0.9549, "mAP": 0.359, "AP50": 0.6438}, "test": {"macro_f1": 0.9541, "mAP": 0.3717, "AP50": 0.6621}}
+[SEED_34] RESULT pp val: macro_f1 0.9510 mAP 0.3760 AP50 0.6474
+[SEED_34] RESULT pp test: macro_f1 0.9491 mAP 0.3899 AP50 0.6678
+10-23 03:26 DONE SEED_34 (gpu1)
+[SEED_35] epoch 20 val: accuracy 0.9500 macro_f1 0.9564 balanced_accuracy 0.9568 mAP 0.3070 AP50 0.5918 || test: accuracy 0.9415 macro_f1 0.9493 balanced_accuracy 0.9488 mAP 0.3161 AP50 0.6189
+10-23 03:27 WATCHDOG fallback: queued seed replicate SEED_36
+10-23 03:27 START SEED_36 (gpu1)
+[SEED_35] epoch 24 val: accuracy 0.9521 macro_f1 0.9580 balanced_accuracy 0.9580 mAP 0.3274 AP50 0.6084 || test: accuracy 0.9457 macro_f1 0.9515 balanced_accuracy 0.9527 mAP 0.3377 AP50 0.6399
+[SEED_36] epoch 4 val: accuracy 0.9223 macro_f1 0.9295 balanced_accuracy 0.9293 mAP 0.1502 AP50 0.3782 || test: accuracy 0.9117 macro_f1 0.9232 balanced_accuracy 0.9223 mAP 0.1424 AP50 0.3671
+[SEED_36] epoch 8 val: accuracy 0.9149 macro_f1 0.9259 balanced_accuracy 0.9278 mAP 0.2070 AP50 0.4396 || test: accuracy 0.9181 macro_f1 0.9278 balanced_accuracy 0.9275 mAP 0.2006 AP50 0.4568
+[SEED_35] epoch 28 val: accuracy 0.9543 macro_f1 0.9598 balanced_accuracy 0.9598 mAP 0.3444 AP50 0.6235 || test: accuracy 0.9489 macro_f1 0.9555 balanced_accuracy 0.9561 mAP 0.3561 AP50 0.6556
+[SEED_36] epoch 12 val: accuracy 0.9255 macro_f1 0.9320 balanced_accuracy 0.9344 mAP 0.2486 AP50 0.5058 || test: accuracy 0.9191 macro_f1 0.9270 balanced_accuracy 0.9299 mAP 0.2502 AP50 0.5331
+[SEED_35] epoch 32 val: accuracy 0.9532 macro_f1 0.9589 balanced_accuracy 0.9589 mAP 0.3503 AP50 0.6312 || test: accuracy 0.9468 macro_f1 0.9534 balanced_accuracy 0.9534 mAP 0.3693 AP50 0.6662
+[SEED_36] epoch 16 val: accuracy 0.9436 macro_f1 0.9490 balanced_accuracy 0.9483 mAP 0.2835 AP50 0.5581 || test: accuracy 0.9319 macro_f1 0.9376 balanced_accuracy 0.9368 mAP 0.2840 AP50 0.5811
+[SEED_35] val: accuracy 0.9521 macro_f1 0.9580 balanced_accuracy 0.9580 mAP 0.3532 AP50 0.6331
+[SEED_35] test: accuracy 0.9468 macro_f1 0.9534 balanced_accuracy 0.9534 mAP 0.3719 AP50 0.6648
+[SEED_35] RESULT {"val": {"macro_f1": 0.958, "mAP": 0.3532, "AP50": 0.6331}, "test": {"macro_f1": 0.9534, "mAP": 0.3719, "AP50": 0.6648}}
+[SEED_35] RESULT pp val: macro_f1 0.9531 mAP 0.3695 AP50 0.6389
+[SEED_35] RESULT pp test: macro_f1 0.9576 mAP 0.3886 AP50 0.6712
+10-23 04:23 DONE SEED_35 (gpu0)
+10-23 04:23 WATCHDOG fallback: queued seed replicate SEED_37
+10-23 04:23 START SEED_37 (gpu0)
+[SEED_36] epoch 20 val: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9516 mAP 0.3047 AP50 0.5778 || test: accuracy 0.9415 macro_f1 0.9479 balanced_accuracy 0.9487 mAP 0.3180 AP50 0.6135
+[SEED_37] epoch 4 val: accuracy 0.9074 macro_f1 0.9189 balanced_accuracy 0.9188 mAP 0.1394 AP50 0.3706 || test: accuracy 0.9074 macro_f1 0.9183 balanced_accuracy 0.9171 mAP 0.1325 AP50 0.3701
+[SEED_36] epoch 24 val: accuracy 0.9415 macro_f1 0.9478 balanced_accuracy 0.9490 mAP 0.3314 AP50 0.6162 || test: accuracy 0.9436 macro_f1 0.9491 balanced_accuracy 0.9507 mAP 0.3454 AP50 0.6473
+[SEED_37] epoch 8 val: accuracy 0.9223 macro_f1 0.9298 balanced_accuracy 0.9312 mAP 0.1918 AP50 0.4301 || test: accuracy 0.9245 macro_f1 0.9338 balanced_accuracy 0.9357 mAP 0.1898 AP50 0.4593
+[SEED_36] epoch 28 val: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9507 mAP 0.3495 AP50 0.6309 || test: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9506 mAP 0.3611 AP50 0.6606
+[SEED_37] epoch 12 val: accuracy 0.9319 macro_f1 0.9395 balanced_accuracy 0.9387 mAP 0.2340 AP50 0.4961 || test: accuracy 0.9309 macro_f1 0.9387 balanced_accuracy 0.9391 mAP 0.2373 AP50 0.5253
+[SEED_36] epoch 32 val: accuracy 0.9436 macro_f1 0.9497 balanced_accuracy 0.9509 mAP 0.3568 AP50 0.6381 || test: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9506 mAP 0.3695 AP50 0.6656
+[SEED_37] epoch 16 val: accuracy 0.9447 macro_f1 0.9495 balanced_accuracy 0.9503 mAP 0.2670 AP50 0.5466 || test: accuracy 0.9362 macro_f1 0.9432 balanced_accuracy 0.9451 mAP 0.2770 AP50 0.5835
+[SEED_36] val: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9499 mAP 0.3571 AP50 0.6394
+[SEED_36] test: accuracy 0.9436 macro_f1 0.9496 balanced_accuracy 0.9506 mAP 0.3711 AP50 0.6689
+[SEED_36] RESULT {"val": {"macro_f1": 0.9488, "mAP": 0.3571, "AP50": 0.6394}, "test": {"macro_f1": 0.9496, "mAP": 0.3711, "AP50": 0.6689}}
+[SEED_36] RESULT pp val: macro_f1 0.9499 mAP 0.3734 AP50 0.6431
+[SEED_36] RESULT pp test: macro_f1 0.9516 mAP 0.3907 AP50 0.6766
+10-23 05:29 DONE SEED_36 (gpu1)
+10-23 05:30 WATCHDOG fallback: queued seed replicate SEED_38
+10-23 05:30 START SEED_38 (gpu1)
+[SEED_37] epoch 20 val: accuracy 0.9521 macro_f1 0.9571 balanced_accuracy 0.9571 mAP 0.3077 AP50 0.5942 || test: accuracy 0.9447 macro_f1 0.9525 balanced_accuracy 0.9526 mAP 0.3106 AP50 0.6212
+[SEED_38] epoch 4 val: accuracy 0.8989 macro_f1 0.9079 balanced_accuracy 0.9095 mAP 0.1529 AP50 0.3692 || test: accuracy 0.8989 macro_f1 0.9078 balanced_accuracy 0.9075 mAP 0.1432 AP50 0.3741
+[SEED_37] epoch 24 val: accuracy 0.9511 macro_f1 0.9564 balanced_accuracy 0.9562 mAP 0.3263 AP50 0.6139 || test: accuracy 0.9426 macro_f1 0.9503 balanced_accuracy 0.9507 mAP 0.3366 AP50 0.6427
+[SEED_38] epoch 8 val: accuracy 0.9255 macro_f1 0.9330 balanced_accuracy 0.9345 mAP 0.1973 AP50 0.4343 || test: accuracy 0.9255 macro_f1 0.9335 balanced_accuracy 0.9343 mAP 0.1907 AP50 0.4478
+[SEED_37] epoch 28 val: accuracy 0.9500 macro_f1 0.9550 balanced_accuracy 0.9553 mAP 0.3471 AP50 0.6330 || test: accuracy 0.9426 macro_f1 0.9504 balanced_accuracy 0.9508 mAP 0.3561 AP50 0.6645
+[SEED_38] epoch 12 val: accuracy 0.9330 macro_f1 0.9422 balanced_accuracy 0.9407 mAP 0.2427 AP50 0.4976 || test: accuracy 0.9191 macro_f1 0.9321 balanced_accuracy 0.9296 mAP 0.2397 AP50 0.5227
+[SEED_37] epoch 32 val: accuracy 0.9500 macro_f1 0.9551 balanced_accuracy 0.9552 mAP 0.3599 AP50 0.6414 || test: accuracy 0.9436 macro_f1 0.9511 balanced_accuracy 0.9517 mAP 0.3656 AP50 0.6665
+[SEED_38] epoch 16 val: accuracy 0.9415 macro_f1 0.9470 balanced_accuracy 0.9494 mAP 0.2712 AP50 0.5376 || test: accuracy 0.9362 macro_f1 0.9443 balanced_accuracy 0.9444 mAP 0.2733 AP50 0.5663
+[SEED_37] val: accuracy 0.9511 macro_f1 0.9560 balanced_accuracy 0.9561 mAP 0.3624 AP50 0.6428
+[SEED_37] test: accuracy 0.9436 macro_f1 0.9512 balanced_accuracy 0.9517 mAP 0.3695 AP50 0.6696
+[SEED_37] RESULT {"val": {"macro_f1": 0.956, "mAP": 0.3624, "AP50": 0.6428}, "test": {"macro_f1": 0.9512, "mAP": 0.3695, "AP50": 0.6696}}
+[SEED_37] RESULT pp val: macro_f1 0.9570 mAP 0.3772 AP50 0.6465
+[SEED_37] RESULT pp test: macro_f1 0.9549 mAP 0.3864 AP50 0.6729
+10-23 06:29 DONE SEED_37 (gpu0)
+10-23 06:30 WATCHDOG fallback: queued seed replicate SEED_39
+10-23 06:30 START SEED_39 (gpu0)
+[SEED_38] epoch 20 val: accuracy 0.9415 macro_f1 0.9470 balanced_accuracy 0.9505 mAP 0.2978 AP50 0.5720 || test: accuracy 0.9351 macro_f1 0.9425 balanced_accuracy 0.9443 mAP 0.3038 AP50 0.5946
+[SEED_39] epoch 4 val: accuracy 0.9138 macro_f1 0.9223 balanced_accuracy 0.9232 mAP 0.1411 AP50 0.3609 || test: accuracy 0.9191 macro_f1 0.9275 balanced_accuracy 0.9289 mAP 0.1356 AP50 0.3641
+[SEED_38] epoch 24 val: accuracy 0.9436 macro_f1 0.9495 balanced_accuracy 0.9509 mAP 0.3302 AP50 0.6126 || test: accuracy 0.9362 macro_f1 0.9434 balanced_accuracy 0.9436 mAP 0.3406 AP50 0.6341
+[SEED_39] epoch 8 val: accuracy 0.9160 macro_f1 0.9211 balanced_accuracy 0.9170 mAP 0.2041 AP50 0.4478 || test: accuracy 0.9234 macro_f1 0.9309 balanced_accuracy 0.9275 mAP 0.2014 AP50 0.4664
+[SEED_38] epoch 28 val: accuracy 0.9426 macro_f1 0.9486 balanced_accuracy 0.9501 mAP 0.3463 AP50 0.6301 || test: accuracy 0.9372 macro_f1 0.9451 balanced_accuracy 0.9452 mAP 0.3561 AP50 0.6532
+[SEED_39] epoch 12 val: accuracy 0.9266 macro_f1 0.9342 balanced_accuracy 0.9335 mAP 0.2311 AP50 0.4851 || test: accuracy 0.9053 macro_f1 0.9153 balanced_accuracy 0.9175 mAP 0.2314 AP50 0.5115
+[SEED_38] epoch 32 val: accuracy 0.9394 macro_f1 0.9460 balanced_accuracy 0.9474 mAP 0.3561 AP50 0.6379 || test: accuracy 0.9383 macro_f1 0.9457 balanced_accuracy 0.9463 mAP 0.3623 AP50 0.6550
+[SEED_39] epoch 16 val: accuracy 0.9404 macro_f1 0.9478 balanced_accuracy 0.9484 mAP 0.2723 AP50 0.5396 || test: accuracy 0.9340 macro_f1 0.9419 balanced_accuracy 0.9419 mAP 0.2776 AP50 0.5652
+[SEED_38] val: accuracy 0.9436 macro_f1 0.9499 balanced_accuracy 0.9517 mAP 0.3552 AP50 0.6373
+[SEED_38] test: accuracy 0.9372 macro_f1 0.9453 balanced_accuracy 0.9454 mAP 0.3663 AP50 0.6589
+[SEED_38] RESULT {"val": {"macro_f1": 0.9499, "mAP": 0.3552, "AP50": 0.6373}, "test": {"macro_f1": 0.9453, "mAP": 0.3663, "AP50": 0.6589}}
+[SEED_38] RESULT pp val: macro_f1 0.9510 mAP 0.3732 AP50 0.6436
+[SEED_38] RESULT pp test: macro_f1 0.9518 mAP 0.3826 AP50 0.6615
+10-23 07:32 DONE SEED_38 (gpu1)
+10-23 07:32 WATCHDOG fallback: queued seed replicate SEED_40
+10-23 07:32 START SEED_40 (gpu1)
+[SEED_39] epoch 20 val: accuracy 0.9457 macro_f1 0.9519 balanced_accuracy 0.9526 mAP 0.3081 AP50 0.5915 || test: accuracy 0.9383 macro_f1 0.9449 balanced_accuracy 0.9447 mAP 0.3129 AP50 0.6208
+[SEED_40] epoch 4 val: accuracy 0.9160 macro_f1 0.9235 balanced_accuracy 0.9254 mAP 0.1485 AP50 0.3793 || test: accuracy 0.9181 macro_f1 0.9260 balanced_accuracy 0.9290 mAP 0.1485 AP50 0.3848
+[SEED_39] epoch 24 val: accuracy 0.9426 macro_f1 0.9492 balanced_accuracy 0.9498 mAP 0.3346 AP50 0.6151 || test: accuracy 0.9457 macro_f1 0.9518 balanced_accuracy 0.9509 mAP 0.3460 AP50 0.6398
+[SEED_40] epoch 8 val: accuracy 0.9223 macro_f1 0.9326 balanced_accuracy 0.9333 mAP 0.2038 AP50 0.4575 || test: accuracy 0.9255 macro_f1 0.9347 balanced_accuracy 0.9345 mAP 0.2042 AP50 0.4769
+[SEED_39] epoch 28 val: accuracy 0.9426 macro_f1 0.9492 balanced_accuracy 0.9498 mAP 0.3492 AP50 0.6322 || test: accuracy 0.9447 macro_f1 0.9512 balanced_accuracy 0.9508 mAP 0.3619 AP50 0.6562
+[SEED_40] epoch 12 val: accuracy 0.9266 macro_f1 0.9348 balanced_accuracy 0.9352 mAP 0.2264 AP50 0.4875 || test: accuracy 0.9340 macro_f1 0.9415 balanced_accuracy 0.9426 mAP 0.2241 AP50 0.4936
+[SEED_39] epoch 32 val: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9516 mAP 0.3591 AP50 0.6377 || test: accuracy 0.9426 macro_f1 0.9490 balanced_accuracy 0.9482 mAP 0.3741 AP50 0.6679
+[SEED_40] epoch 16 val: accuracy 0.9426 macro_f1 0.9497 balanced_accuracy 0.9500 mAP 0.2682 AP50 0.5336 || test: accuracy 0.9404 macro_f1 0.9473 balanced_accuracy 0.9485 mAP 0.2784 AP50 0.5669
+[SEED_39] val: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9507 mAP 0.3612 AP50 0.6412
+[SEED_39] test: accuracy 0.9426 macro_f1 0.9490 balanced_accuracy 0.9482 mAP 0.3729 AP50 0.6628
+[SEED_39] RESULT {"val": {"macro_f1": 0.9501, "mAP": 0.3612, "AP50": 0.6412}, "test": {"macro_f1": 0.949, "mAP": 0.3729, "AP50": 0.6628}}
+[SEED_39] RESULT pp val: macro_f1 0.9548 mAP 0.3789 AP50 0.6487
+[SEED_39] RESULT pp test: macro_f1 0.9556 mAP 0.3897 AP50 0.6710
+10-23 08:36 DONE SEED_39 (gpu0)
+10-23 08:37 WATCHDOG fallback: queued seed replicate SEED_41
+10-23 08:37 START SEED_41 (gpu0)
+[SEED_40] epoch 20 val: accuracy 0.9436 macro_f1 0.9488 balanced_accuracy 0.9498 mAP 0.3087 AP50 0.5856 || test: accuracy 0.9447 macro_f1 0.9515 balanced_accuracy 0.9508 mAP 0.3196 AP50 0.6136
+[SEED_41] epoch 4 val: accuracy 0.8979 macro_f1 0.9100 balanced_accuracy 0.9105 mAP 0.1495 AP50 0.3723 || test: accuracy 0.9064 macro_f1 0.9161 balanced_accuracy 0.9153 mAP 0.1449 AP50 0.3703
+[SEED_40] epoch 24 val: accuracy 0.9447 macro_f1 0.9498 balanced_accuracy 0.9505 mAP 0.3243 AP50 0.6039 || test: accuracy 0.9489 macro_f1 0.9554 balanced_accuracy 0.9551 mAP 0.3473 AP50 0.6391
+[SEED_41] epoch 8 val: accuracy 0.9160 macro_f1 0.9278 balanced_accuracy 0.9277 mAP 0.1982 AP50 0.4522 || test: accuracy 0.9138 macro_f1 0.9254 balanced_accuracy 0.9226 mAP 0.1915 AP50 0.4618
+[SEED_40] epoch 28 val: accuracy 0.9447 macro_f1 0.9494 balanced_accuracy 0.9513 mAP 0.3477 AP50 0.6298 || test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9542 mAP 0.3598 AP50 0.6599
+[SEED_41] epoch 12 val: accuracy 0.9234 macro_f1 0.9320 balanced_accuracy 0.9316 mAP 0.2397 AP50 0.4937 || test: accuracy 0.9138 macro_f1 0.9216 balanced_accuracy 0.9240 mAP 0.2428 AP50 0.5111
+[SEED_40] epoch 32 val: accuracy 0.9436 macro_f1 0.9484 balanced_accuracy 0.9504 mAP 0.3572 AP50 0.6316 || test: accuracy 0.9489 macro_f1 0.9554 balanced_accuracy 0.9551 mAP 0.3713 AP50 0.6651
+[SEED_41] epoch 16 val: accuracy 0.9372 macro_f1 0.9443 balanced_accuracy 0.9445 mAP 0.2772 AP50 0.5434 || test: accuracy 0.9426 macro_f1 0.9498 balanced_accuracy 0.9495 mAP 0.2871 AP50 0.5669
+[SEED_40] val: accuracy 0.9436 macro_f1 0.9484 balanced_accuracy 0.9504 mAP 0.3562 AP50 0.6332
+[SEED_40] test: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9542 mAP 0.3712 AP50 0.6672
+[SEED_40] RESULT {"val": {"macro_f1": 0.9484, "mAP": 0.3562, "AP50": 0.6332}, "test": {"macro_f1": 0.9545, "mAP": 0.3712, "AP50": 0.6672}}
+[SEED_40] RESULT pp val: macro_f1 0.9487 mAP 0.3725 AP50 0.6415
+[SEED_40] RESULT pp test: macro_f1 0.9507 mAP 0.3891 AP50 0.6712
+10-23 09:34 DONE SEED_40 (gpu1)
+10-23 09:34 WATCHDOG fallback: queued seed replicate SEED_42
+10-23 09:34 START SEED_42 (gpu1)
+[SEED_41] epoch 20 val: accuracy 0.9457 macro_f1 0.9525 balanced_accuracy 0.9534 mAP 0.3174 AP50 0.5858 || test: accuracy 0.9436 macro_f1 0.9509 balanced_accuracy 0.9515 mAP 0.3180 AP50 0.6105
+[SEED_42] epoch 4 val: accuracy 0.9053 macro_f1 0.9189 balanced_accuracy 0.9164 mAP 0.1524 AP50 0.3930 || test: accuracy 0.9085 macro_f1 0.9212 balanced_accuracy 0.9200 mAP 0.1479 AP50 0.3770
+[SEED_41] epoch 24 val: accuracy 0.9457 macro_f1 0.9521 balanced_accuracy 0.9532 mAP 0.3353 AP50 0.6101 || test: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9522 mAP 0.3457 AP50 0.6395
+[SEED_42] epoch 8 val: accuracy 0.9138 macro_f1 0.9226 balanced_accuracy 0.9237 mAP 0.2034 AP50 0.4533 || test: accuracy 0.9255 macro_f1 0.9340 balanced_accuracy 0.9343 mAP 0.2029 AP50 0.4759
+[SEED_41] epoch 28 val: accuracy 0.9500 macro_f1 0.9562 balanced_accuracy 0.9570 mAP 0.3538 AP50 0.6326 || test: accuracy 0.9511 macro_f1 0.9563 balanced_accuracy 0.9578 mAP 0.3657 AP50 0.6606
+[SEED_42] epoch 12 val: accuracy 0.9223 macro_f1 0.9325 balanced_accuracy 0.9291 mAP 0.2361 AP50 0.4921 || test: accuracy 0.9287 macro_f1 0.9384 balanced_accuracy 0.9366 mAP 0.2377 AP50 0.5234
+[SEED_41] epoch 32 val: accuracy 0.9489 macro_f1 0.9547 balanced_accuracy 0.9561 mAP 0.3627 AP50 0.6395 || test: accuracy 0.9457 macro_f1 0.9517 balanced_accuracy 0.9534 mAP 0.3740 AP50 0.6645
+[SEED_42] epoch 16 val: accuracy 0.9415 macro_f1 0.9467 balanced_accuracy 0.9471 mAP 0.2833 AP50 0.5538 || test: accuracy 0.9330 macro_f1 0.9399 balanced_accuracy 0.9406 mAP 0.2911 AP50 0.5907
+[SEED_41] val: accuracy 0.9479 macro_f1 0.9537 balanced_accuracy 0.9552 mAP 0.3619 AP50 0.6408
+[SEED_42] epoch 20 val: accuracy 0.9287 macro_f1 0.9360 balanced_accuracy 0.9349 mAP 0.2989 AP50 0.5686 || test: accuracy 0.9298 macro_f1 0.9378 balanced_accuracy 0.9368 mAP 0.3126 AP50 0.6096
+[SEED_41] test: accuracy 0.9447 macro_f1 0.9507 balanced_accuracy 0.9526 mAP 0.3729 AP50 0.6608
+[SEED_41] RESULT {"val": {"macro_f1": 0.9537, "mAP": 0.3619, "AP50": 0.6408}, "test": {"macro_f1": 0.9507, "mAP": 0.3729, "AP50": 0.6608}}
+[SEED_41] RESULT pp val: macro_f1 0.9551 mAP 0.3785 AP50 0.6486
+[SEED_41] RESULT pp test: macro_f1 0.9620 mAP 0.3888 AP50 0.6690
+10-23 10:43 DONE SEED_41 (gpu0)
+10-23 10:43 WATCHDOG fallback: queued seed replicate SEED_43
+10-23 10:43 START SEED_43 (gpu0)
+[SEED_42] epoch 24 val: accuracy 0.9447 macro_f1 0.9506 balanced_accuracy 0.9523 mAP 0.3331 AP50 0.6146 || test: accuracy 0.9404 macro_f1 0.9468 balanced_accuracy 0.9479 mAP 0.3502 AP50 0.6481
+[SEED_43] epoch 4 val: accuracy 0.8702 macro_f1 0.8794 balanced_accuracy 0.8820 mAP 0.1378 AP50 0.3735 || test: accuracy 0.8745 macro_f1 0.8881 balanced_accuracy 0.8883 mAP 0.1337 AP50 0.3677
+[SEED_42] epoch 28 val: accuracy 0.9479 macro_f1 0.9534 balanced_accuracy 0.9551 mAP 0.3575 AP50 0.6311 || test: accuracy 0.9394 macro_f1 0.9456 balanced_accuracy 0.9461 mAP 0.3678 AP50 0.6597
+[SEED_43] epoch 8 val: accuracy 0.8766 macro_f1 0.8926 balanced_accuracy 0.8957 mAP 0.1944 AP50 0.4342 || test: accuracy 0.8851 macro_f1 0.9004 balanced_accuracy 0.9021 mAP 0.1849 AP50 0.4335
+[SEED_42] epoch 32 val: accuracy 0.9479 macro_f1 0.9537 balanced_accuracy 0.9550 mAP 0.3630 AP50 0.6373 || test: accuracy 0.9404 macro_f1 0.9465 balanced_accuracy 0.9470 mAP 0.3724 AP50 0.6625
+[SEED_43] epoch 12 val: accuracy 0.9287 macro_f1 0.9366 balanced_accuracy 0.9353 mAP 0.2397 AP50 0.5038 || test: accuracy 0.9234 macro_f1 0.9319 balanced_accuracy 0.9314 mAP 0.2390 AP50 0.5276
+[SEED_42] val: accuracy 0.9457 macro_f1 0.9515 balanced_accuracy 0.9533 mAP 0.3626 AP50 0.6378
+[SEED_42] test: accuracy 0.9394 macro_f1 0.9451 balanced_accuracy 0.9461 mAP 0.3754 AP50 0.6605
+[SEED_42] RESULT {"val": {"macro_f1": 0.9515, "mAP": 0.3626, "AP50": 0.6378}, "test": {"macro_f1": 0.9451, "mAP": 0.3754, "AP50": 0.6605}}
+[SEED_42] RESULT pp val: macro_f1 0.9533 mAP 0.3790 AP50 0.6443
+[SEED_42] RESULT pp test: macro_f1 0.9514 mAP 0.3926 AP50 0.6693
+10-23 11:36 DONE SEED_42 (gpu1)
+10-23 11:37 WATCHDOG fallback: queued seed replicate SEED_44
+10-23 11:37 START SEED_44 (gpu1)
+[SEED_43] epoch 16 val: accuracy 0.9383 macro_f1 0.9447 balanced_accuracy 0.9463 mAP 0.2858 AP50 0.5587 || test: accuracy 0.9351 macro_f1 0.9423 balanced_accuracy 0.9421 mAP 0.2878 AP50 0.5782
+[SEED_44] epoch 4 val: accuracy 0.9053 macro_f1 0.9132 balanced_accuracy 0.9174 mAP 0.1503 AP50 0.3727 || test: accuracy 0.9032 macro_f1 0.9126 balanced_accuracy 0.9165 mAP 0.1405 AP50 0.3714
+[SEED_43] epoch 20 val: accuracy 0.9468 macro_f1 0.9530 balanced_accuracy 0.9536 mAP 0.3086 AP50 0.5909 || test: accuracy 0.9447 macro_f1 0.9512 balanced_accuracy 0.9517 mAP 0.3212 AP50 0.6196
+[SEED_44] epoch 8 val: accuracy 0.9191 macro_f1 0.9272 balanced_accuracy 0.9299 mAP 0.1934 AP50 0.4381 || test: accuracy 0.9234 macro_f1 0.9322 balanced_accuracy 0.9328 mAP 0.1980 AP50 0.4615
+[SEED_43] epoch 24 val: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9507 mAP 0.3382 AP50 0.6191 || test: accuracy 0.9415 macro_f1 0.9485 balanced_accuracy 0.9489 mAP 0.3480 AP50 0.6478
+[SEED_44] epoch 12 val: accuracy 0.9170 macro_f1 0.9269 balanced_accuracy 0.9300 mAP 0.2387 AP50 0.4957 || test: accuracy 0.9106 macro_f1 0.9194 balanced_accuracy 0.9230 mAP 0.2404 AP50 0.5153
+[SEED_43] epoch 28 val: accuracy 0.9426 macro_f1 0.9495 balanced_accuracy 0.9499 mAP 0.3509 AP50 0.6347 || test: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9490 mAP 0.3644 AP50 0.6557
+[SEED_44] epoch 16 val: accuracy 0.9372 macro_f1 0.9441 balanced_accuracy 0.9438 mAP 0.2695 AP50 0.5418 || test: accuracy 0.9287 macro_f1 0.9375 balanced_accuracy 0.9380 mAP 0.2785 AP50 0.5794
+[SEED_43] epoch 32 val: accuracy 0.9426 macro_f1 0.9495 balanced_accuracy 0.9499 mAP 0.3583 AP50 0.6390 || test: accuracy 0.9415 macro_f1 0.9478 balanced_accuracy 0.9481 mAP 0.3723 AP50 0.6627
+[SEED_44] epoch 20 val: accuracy 0.9415 macro_f1 0.9487 balanced_accuracy 0.9499 mAP 0.3084 AP50 0.5911 || test: accuracy 0.9404 macro_f1 0.9471 balanced_accuracy 0.9478 mAP 0.3205 AP50 0.6251
+[SEED_43] val: accuracy 0.9447 macro_f1 0.9511 balanced_accuracy 0.9515 mAP 0.3616 AP50 0.6442
+[SEED_43] test: accuracy 0.9426 macro_f1 0.9488 balanced_accuracy 0.9490 mAP 0.3768 AP50 0.6658
+[SEED_43] RESULT {"val": {"macro_f1": 0.9511, "mAP": 0.3616, "AP50": 0.6442}, "test": {"macro_f1": 0.9488, "mAP": 0.3768, "AP50": 0.6658}}
+[SEED_43] RESULT pp val: macro_f1 0.9564 mAP 0.3777 AP50 0.6503
+[SEED_43] RESULT pp test: macro_f1 0.9572 mAP 0.3936 AP50 0.6701
+10-23 12:49 DONE SEED_43 (gpu0)
+10-23 12:49 WATCHDOG fallback: queued seed replicate SEED_45
+10-23 12:49 START SEED_45 (gpu0)
+[SEED_44] epoch 24 val: accuracy 0.9479 macro_f1 0.9545 balanced_accuracy 0.9551 mAP 0.3308 AP50 0.6074 || test: accuracy 0.9436 macro_f1 0.9498 balanced_accuracy 0.9505 mAP 0.3520 AP50 0.6451
+[SEED_45] epoch 4 val: accuracy 0.9053 macro_f1 0.9157 balanced_accuracy 0.9206 mAP 0.1469 AP50 0.3591 || test: accuracy 0.9117 macro_f1 0.9203 balanced_accuracy 0.9248 mAP 0.1435 AP50 0.3750
+[SEED_44] epoch 28 val: accuracy 0.9457 macro_f1 0.9524 balanced_accuracy 0.9525 mAP 0.3514 AP50 0.6313 || test: accuracy 0.9457 macro_f1 0.9516 balanced_accuracy 0.9523 mAP 0.3691 AP50 0.6649
+[SEED_45] epoch 8 val: accuracy 0.9372 macro_f1 0.9442 balanced_accuracy 0.9445 mAP 0.2039 AP50 0.4521 || test: accuracy 0.9340 macro_f1 0.9415 balanced_accuracy 0.9420 mAP 0.2016 AP50 0.4689
+[SEED_44] epoch 32 val: accuracy 0.9468 macro_f1 0.9531 balanced_accuracy 0.9541 mAP 0.3602 AP50 0.6408 || test: accuracy 0.9457 macro_f1 0.9516 balanced_accuracy 0.9523 mAP 0.3754 AP50 0.6679
+[SEED_45] epoch 12 val: accuracy 0.9298 macro_f1 0.9363 balanced_accuracy 0.9370 mAP 0.2383 AP50 0.4932 || test: accuracy 0.9372 macro_f1 0.9447 balanced_accuracy 0.9454 mAP 0.2437 AP50 0.5277
+[SEED_44] val: accuracy 0.9468 macro_f1 0.9532 balanced_accuracy 0.9542 mAP 0.3617 AP50 0.6378
+[SEED_44] test: accuracy 0.9457 macro_f1 0.9516 balanced_accuracy 0.9523 mAP 0.3779 AP50 0.6682
+[SEED_44] RESULT {"val": {"macro_f1": 0.9532, "mAP": 0.3617, "AP50": 0.6378}, "test": {"macro_f1": 0.9516, "mAP": 0.3779, "AP50": 0.6682}}
+[SEED_44] RESULT pp val: macro_f1 0.9527 mAP 0.3767 AP50 0.6433
+[SEED_44] RESULT pp test: macro_f1 0.9516 mAP 0.3932 AP50 0.6726
+10-23 13:39 DONE SEED_44 (gpu1)
+10-23 13:39 WATCHDOG fallback: queued seed replicate SEED_46
+10-23 13:39 START SEED_46 (gpu1)
+[SEED_45] epoch 16 val: accuracy 0.9309 macro_f1 0.9383 balanced_accuracy 0.9404 mAP 0.2642 AP50 0.5313 || test: accuracy 0.9340 macro_f1 0.9418 balanced_accuracy 0.9435 mAP 0.2744 AP50 0.5603
+[SEED_46] epoch 4 val: accuracy 0.9138 macro_f1 0.9227 balanced_accuracy 0.9203 mAP 0.1525 AP50 0.3683 || test: accuracy 0.9032 macro_f1 0.9128 balanced_accuracy 0.9129 mAP 0.1431 AP50 0.3687
+[SEED_45] epoch 20 val: accuracy 0.9394 macro_f1 0.9456 balanced_accuracy 0.9472 mAP 0.3030 AP50 0.5871 || test: accuracy 0.9436 macro_f1 0.9501 balanced_accuracy 0.9514 mAP 0.3127 AP50 0.6225
+[SEED_46] epoch 8 val: accuracy 0.9106 macro_f1 0.9202 balanced_accuracy 0.9230 mAP 0.1899 AP50 0.4487 || test: accuracy 0.9138 macro_f1 0.9221 balanced_accuracy 0.9223 mAP 0.1826 AP50 0.4395
+[SEED_45] epoch 24 val: accuracy 0.9447 macro_f1 0.9508 balanced_accuracy 0.9522 mAP 0.3210 AP50 0.6052 || test: accuracy 0.9457 macro_f1 0.9520 balanced_accuracy 0.9532 mAP 0.3370 AP50 0.6421
+[SEED_46] epoch 12 val: accuracy 0.9277 macro_f1 0.9354 balanced_accuracy 0.9361 mAP 0.2416 AP50 0.5072 || test: accuracy 0.9245 macro_f1 0.9310 balanced_accuracy 0.9333 mAP 0.2391 AP50 0.5231
+[SEED_45] epoch 28 val: accuracy 0.9436 macro_f1 0.9500 balanced_accuracy 0.9515 mAP 0.3356 AP50 0.6174 || test: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9522 mAP 0.3560 AP50 0.6495
+[SEED_46] epoch 16 val: accuracy 0.9362 macro_f1 0.9418 balanced_accuracy 0.9427 mAP 0.2651 AP50 0.5294 || test: accuracy 0.9415 macro_f1 0.9464 balanced_accuracy 0.9457 mAP 0.2785 AP50 0.5658
+[SEED_45] epoch 32 val: accuracy 0.9457 macro_f1 0.9517 balanced_accuracy 0.9532 mAP 0.3466 AP50 0.6310 || test: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9522 mAP 0.3668 AP50 0.6583
+[SEED_46] epoch 20 val: accuracy 0.9362 macro_f1 0.9437 balanced_accuracy 0.9434 mAP 0.3034 AP50 0.5752 || test: accuracy 0.9372 macro_f1 0.9433 balanced_accuracy 0.9448 mAP 0.3090 AP50 0.6095
+[SEED_45] val: accuracy 0.9457 macro_f1 0.9517 balanced_accuracy 0.9532 mAP 0.3494 AP50 0.6349
+[SEED_45] test: accuracy 0.9447 macro_f1 0.9510 balanced_accuracy 0.9522 mAP 0.3689 AP50 0.6598
+[SEED_45] RESULT {"val": {"macro_f1": 0.9517, "mAP": 0.3494, "AP50": 0.6349}, "test": {"macro_f1": 0.951, "mAP": 0.3689, "AP50": 0.6598}}
+[SEED_45] RESULT pp val: macro_f1 0.9508 mAP 0.3653 AP50 0.6405
+[SEED_45] RESULT pp test: macro_f1 0.9484 mAP 0.3849 AP50 0.6653
+10-23 14:55 DONE SEED_45 (gpu0)
+10-23 14:56 WATCHDOG fallback: queued seed replicate SEED_47
+10-23 14:56 START SEED_47 (gpu0)
+[SEED_46] epoch 24 val: accuracy 0.9426 macro_f1 0.9487 balanced_accuracy 0.9492 mAP 0.3269 AP50 0.6116 || test: accuracy 0.9457 macro_f1 0.9516 balanced_accuracy 0.9525 mAP 0.3391 AP50 0.6373
+[SEED_47] epoch 4 val: accuracy 0.9021 macro_f1 0.9133 balanced_accuracy 0.9141 mAP 0.1523 AP50 0.3815 || test: accuracy 0.9202 macro_f1 0.9298 balanced_accuracy 0.9306 mAP 0.1408 AP50 0.3713
+[SEED_46] epoch 28 val: accuracy 0.9404 macro_f1 0.9470 balanced_accuracy 0.9473 mAP 0.3501 AP50 0.6327 || test: accuracy 0.9468 macro_f1 0.9525 balanced_accuracy 0.9533 mAP 0.3608 AP50 0.6562
+[SEED_47] epoch 8 val: accuracy 0.9255 macro_f1 0.9330 balanced_accuracy 0.9329 mAP 0.1797 AP50 0.4097 || test: accuracy 0.9170 macro_f1 0.9266 balanced_accuracy 0.9254 mAP 0.1765 AP50 0.4219
+[SEED_46] epoch 32 val: accuracy 0.9415 macro_f1 0.9480 balanced_accuracy 0.9484 mAP 0.3578 AP50 0.6373 || test: accuracy 0.9479 macro_f1 0.9534 balanced_accuracy 0.9542 mAP 0.3706 AP50 0.6637
+[SEED_47] epoch 12 val: accuracy 0.9362 macro_f1 0.9415 balanced_accuracy 0.9428 mAP 0.2432 AP50 0.5071 || test: accuracy 0.9362 macro_f1 0.9425 balanced_accuracy 0.9435 mAP 0.2440 AP50 0.5293
+[SEED_46] val: accuracy 0.9415 macro_f1 0.9479 balanced_accuracy 0.9483 mAP 0.3564 AP50 0.6376
+[SEED_46] test: accuracy 0.9468 macro_f1 0.9524 balanced_accuracy 0.9533 mAP 0.3706 AP50 0.6625
+[SEED_46] RESULT {"val": {"macro_f1": 0.9479, "mAP": 0.3564, "AP50": 0.6376}, "test": {"macro_f1": 0.9524, "mAP": 0.3706, "AP50": 0.6625}}
+[SEED_46] RESULT pp val: macro_f1 0.9509 mAP 0.3743 AP50 0.6479
+[SEED_46] RESULT pp test: macro_f1 0.9515 mAP 0.3891 AP50 0.6710
+10-23 15:42 DONE SEED_46 (gpu1)
+10-23 15:42 WATCHDOG fallback: queued seed replicate SEED_48
+10-23 15:42 START SEED_48 (gpu1)
+[SEED_47] epoch 16 val: accuracy 0.9394 macro_f1 0.9453 balanced_accuracy 0.9461 mAP 0.2729 AP50 0.5341 || test: accuracy 0.9468 macro_f1 0.9526 balanced_accuracy 0.9524 mAP 0.2831 AP50 0.5730
+10-23 15:54 FAIL SEED_47 rc=143 (gpu0)
+10-23 15:54 RUNNER gpu0 stopped
+10-23 15:54 FAIL SEED_48 rc=1 (gpu1)
+10-23 15:54 RUNNER gpu1 stopped

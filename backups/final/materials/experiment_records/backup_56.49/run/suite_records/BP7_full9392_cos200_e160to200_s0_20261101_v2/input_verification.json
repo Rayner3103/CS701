@@ -1,0 +1,21 @@
+{
+  "time": "2026-11-01T14:47:31+08:00",
+  "epoch": 160,
+  "global_step": 93920,
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/training_state.pt",
+  "sha256": "8d4b5577d600aef6b7225bc1f103b36ee160a747ba4e8f288e5aa8c1c7d3c1dd",
+  "lr_factor": 0.09642144811900738,
+  "train_hours": 11.748667320145502,
+  "optimizer_and_rank_rng_saved": true,
+  "existing_e160_submission": {
+    "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip",
+    "sha256": "6df4c1cc49971afffff1a78da76a3533ea27031ec43732feee6e324ac190ed98",
+    "prediction_images": 1426,
+    "boxes": 60355,
+    "bytes": 9323490,
+    "format_passed": true,
+    "boxes_within_images": true,
+    "shift": -0.2,
+    "uploaded": false
+  }
+}

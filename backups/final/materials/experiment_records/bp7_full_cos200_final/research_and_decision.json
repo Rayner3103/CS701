@@ -1,0 +1,359 @@
+{
+  "status": "complete_e200_default_exports_ready",
+  "latest_user_priority": "No control groups with one day left; maximize likely score and GPU use",
+  "choice": "BP7 full9392, cosine200, stop/export e130 then resume to e160 and export",
+  "peak_lr": {
+    "head": 0.0001,
+    "backbone": 0.0003
+  },
+  "warmup_epochs": 1,
+  "seed": 0,
+  "global_batch": 16,
+  "data_policy": "All 9392 official training images. Official val inference only. No evaluation on local splits already used in full training.",
+  "resources": {
+    "gpus": [
+      0,
+      1
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "nice": 10,
+    "threads_per_rank": 1,
+    "workers_per_rank": 1,
+    "gpu_memory_fraction": 0.35,
+    "compile": false,
+    "gradient_checkpointing": true,
+    "allocator_config": "expandable_segments:True",
+    "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_r147"
+  },
+  "existing_lingbot": "Paused at user request on 2026-11-01; complete epoch64 checkpoint preserved. Only existing BP7 training continues.",
+  "evidence": [
+    {
+      "url": "https://arxiv.org/html/2405.18392v3",
+      "finding": "LLM constant plus cooldown can match cosine, but optimal stable LR was around half the cosine peak in their setup. This does not establish constant peak LR as best for SAR."
+    },
+    {
+      "url": "https://arxiv.org/abs/2410.05192",
+      "finding": "WSD studies distinguish progress during high-LR training from final convergence during decay; language-model evidence is indirect here."
+    },
+    {
+      "url": "https://arxiv.org/pdf/2103.12682",
+      "finding": "Vision results depend on regularization; cosine outperformed a simple constant-then-decay schedule in some L2-regularized ImageNet experiments."
+    },
+    {
+      "url": "https://arxiv.org/pdf/2203.16527",
+      "finding": "ViTDet uses AdamW with decay and warmup for detection fine-tuning; a recipe, not proof that its schedule is optimal for our LoRA model."
+    }
+  ],
+  "interpretation": "Slower cosine is a smaller extrapolation from the observed 52.78 recipe than holding the peak LR constant. No predicted score is promised.",
+  "not_selected_now": [
+    "local control-group grid",
+    "constant/WSD branch ablation",
+    "new architecture",
+    "peak LR or AdamW hyperparameter sweep"
+  ],
+  "causal_caution": "Full cos130 vs cos160 also differs in reproducible_loader; new GPU resource settings mean this run is a best-candidate attempt, not a strict causal ablation.",
+  "deadline": {
+    "phase1_closes_sgt": "2026-11-01T23:59:00+08:00",
+    "source": "https://web-production-c241e.up.railway.app/docs"
+  },
+  "official_uploads": "User submits manually; no automatic upload or posting.",
+  "updated_at": "2026-11-01T21:15:00+08:00",
+  "active_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2",
+  "failure_and_recovery": {
+    "original_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031",
+    "failure_time_sgt": "2026-10-31T19:51:09+08:00",
+    "failure": "CUDA allocation failed in epoch2 under the 20% allocator cap; reserved-but-unallocated memory indicated fragmentation/cap interaction.",
+    "change": "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True; retain 20% cap, LR, batch, scheduler, model and workers.",
+    "resume": "Original complete epoch1 state -> complete epoch2 recovery validation -> formal training from epoch3",
+    "validation_file": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable/validation/recovery_passed.json",
+    "limits": "One complete recovered epoch and prediction passed; this does not guarantee no later memory failure."
+  },
+  "e130_continuation_recovery": {
+    "failed_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_stop160_s0_20261031_expandable",
+    "failed_at": "2026-11-01T07:29:20+08:00",
+    "failure": "First resumed RPN conv allocation3.43+8.38GiB exceeded20% allocator cap despite sufficient physical memory.",
+    "change": "CUDA allocator cap raised from0.20 to0.35 only; original training recipe retained.",
+    "source_epoch": 130,
+    "validated_epoch": 131,
+    "validated_global_step": 76897,
+    "current_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+    "validation_file": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35/validation/probe_passed.json",
+    "e130_submission": "submissions/BP7_full_cos200_e130.zip",
+    "e160_submission": "submissions/BP7_full_cos200_e160.zip",
+    "limit": "Complete e131 and initial e132 passed; no guarantee against all future runtime errors."
+  },
+  "latest_official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e160_e170_e180/official_result.json",
+  "e130_score_assessment": {
+    "delta_m": 52.76,
+    "mAP": 53.22,
+    "difference_vs_best_delta_m": -0.02,
+    "best_observed_delta_m_retained": 52.78,
+    "continue_existing_e160": true,
+    "plan_change": false
+  },
+  "epoch147_recovery": {
+    "time": "2026-11-01T13:19:44+08:00",
+    "pid": 2590596,
+    "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp",
+    "source_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e130to160_s0_20261101_mem35",
+    "command": [
+      "/home/junkaichen@smu.edu.sg/miniconda3/envs/cs701bench/bin/python",
+      "-u",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/code/tools/run_bp7_e147_recovery.py",
+      "--suite",
+      "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp"
+    ],
+    "temp_dir": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/bp7_r147",
+    "cpu_tests_passed": 17,
+    "gpu_validation": "passed complete epoch148",
+    "watchdog_seconds": 300,
+    "gpu_memory_fraction": 0.35,
+    "checkpoint_validation": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/checkpoint_after_resume_validation.json",
+    "trigger": "Multiprocessing resource_sharer ENOSPC creating /tmp/pymp-*; source saved complete e147 before loader stalled."
+  },
+  "completed_at": "2026-11-01T14:09:32+08:00",
+  "completion_record": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/completion_e160.json",
+  "e160_output": {
+    "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e160.zip",
+    "sha256": "6df4c1cc49971afffff1a78da76a3533ea27031ec43732feee6e324ac190ed98",
+    "bytes": 9323490,
+    "official_score": {
+      "delta_m": 53.41,
+      "macro_f1": 95.02,
+      "mAP": 53.56,
+      "accuracy": 95.37,
+      "AP50": 73.41
+    }
+  },
+  "last_chance_plan": {
+    "recorded_at": "2026-11-01T14:34:22+08:00",
+    "remaining_submission_opportunities_user_reported": 8,
+    "priority": "Continue unchanged cos200 from complete e160 state to e200; preserve e180 and generate e180/e200 submissions",
+    "continuation_state": "complete",
+    "estimated_hours": 3,
+    "peak_lr_unchanged": true,
+    "lingbot": "paused",
+    "automatic_upload": false,
+    "submission_strategy": "Prioritize e180 and e200; preserve remaining attempts for evidence-supported same-model postprocessing and final verification",
+    "weight_averaging": "Permitted by TA as explicitly confirmed by user; single averaged model, no prediction ensemble",
+    "posting_reminder": "Current best must be manually posted before 2026-11-01 23:59 SGT; private best does not automatically replace an existing posted entry",
+    "launch_record": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e160_to200_launch.json",
+    "classification_candidate": "submissions/BP7_e160_cls2.zip",
+    "classification_changed_images": 4,
+    "classification_default_lambda": 1,
+    "classification_candidate_lambda": 2,
+    "failed_before_training_attempt": "experiments/bp7_full_cos200_final/e160_to200_attempt1.json",
+    "observed_epoch": 200,
+    "observed_iteration": 587,
+    "preferred_submission_candidates": [
+      "BP7_full_cos200_e180.zip",
+      "BP7_full_cos200_e200.zip"
+    ],
+    "optional_submission_candidate": "BP7_e160_cls2.zip",
+    "classification_candidate_status": "Officially scored; delta_m53.446672487364765, a small classification-only improvement",
+    "remaining_submissions_note": "8 reported by user before these candidates; no automatic uploads",
+    "classification_candidate_official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/classification_e160_lambda2/official_result.json",
+    "classification_followup": "Keep lambda2 as a candidate; finish unchanged training and prioritize e180/e200 before further fusion search",
+    "submissions_since_user_reported_eight": 8,
+    "remaining_submission_opportunities_estimated": 0,
+    "quota_note": "Estimate only: assumes eight feedback reports are the only uses since user reported8 and no quota reset; generating local files consumes no submissions.",
+    "e180_immediate_submission": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_cls2.zip",
+      "classification_lambda": 2.0,
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/submission_validation.json",
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_immediate/official_result.json",
+      "metrics": {
+        "delta_m": 53.47032436421459,
+        "macro_f1": 95.09184780172882,
+        "mAP": 53.57679225936561,
+        "accuracy": 95.44179523141655,
+        "AP50": 73.31166855365139
+      }
+    },
+    "latest_score_assessment": "Average of e160/e170/e180 reaches55.26, approximately +0.43 versus previous best54.83; preserved as current best.",
+    "e180_last_stage_candidate": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_last_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/submission_validation.json",
+      "official_score": {
+        "delta_m": 52.795712771286595,
+        "macro_f1": 95.09184780172882,
+        "mAP": 53.22421989836656,
+        "accuracy": 95.44179523141655,
+        "AP50": 73.08810586862549
+      },
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/official_result.json",
+      "decision": "rejected: keep mean boxes"
+    },
+    "e180_softsigma05_candidate": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_softsigma05/submission_validation.json",
+      "official_score": {
+        "delta_m": 53.76391470788862,
+        "macro_f1": 95.09184780172882,
+        "mAP": 53.73023142602209,
+        "accuracy": 95.44179523141655,
+        "AP50": 73.75888190774275
+      },
+      "change": "Soft-NMS sigma0.75 ->0.5 only",
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_softsigma05/official_result.json",
+      "decision": "current best"
+    },
+    "next_candidate_priority": {
+      "method": "e100/e120/e140/e160 equal parameter average",
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg100120140160_rpn2000_obj0_soft05_cls2.zip",
+      "status": "generated and validated; pending user feedback"
+    },
+    "e180_objpow0_candidate": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_obj0_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_objpow0_soft05/submission_validation.json",
+      "official_score": {
+        "delta_m": 54.814733403957426,
+        "macro_f1": 95.09184780172882,
+        "mAP": 54.27942096343708,
+        "accuracy": 95.44179523141655,
+        "AP50": 74.1149489604344
+      },
+      "change": "Objectness exponent0.25 ->0 only, sigma0.5 mean boxes lambda2",
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_objpow0_soft05/official_result.json",
+      "decision": "current best"
+    },
+    "max_delta_reasoning": {
+      "recorded_at": "2026-11-01T17:28:21+08:00",
+      "best_delta_m": 54.814733403957426,
+      "best_mAP": 54.27942096343708,
+      "best_settings": {
+        "epoch": 180,
+        "stage_box": "mean",
+        "soft_sigma": 0.5,
+        "obj_pow": 0,
+        "classification_lambda": 2,
+        "shift": -0.2
+      },
+      "empirical_score_sensitivity": {
+        "delta_per_mAP_percentage_point": 1.9133989715372017,
+        "delta_per_macro_f1_percentage_point": 0.5358665998691309,
+        "source": "Inferred from full-precision official feedback; not directly read baseline constants"
+      },
+      "mAP_for_delta60_at_same_F1": 56.989397645339864,
+      "interpretation": "Training plateau under previous decoding did not establish a model ceiling; same e180 decoding changes increased delta_m by1.344409039742836.",
+      "unlabeled_diagnostics": {
+        "pre_threshold_candidates_obj025": 199557,
+        "pre_threshold_candidates_obj0": 297238,
+        "final_detections_obj025": 50722,
+        "final_detections_obj0": 60846,
+        "warning": "No hidden labels used; candidate counts are not recall; ranking/threshold/NMS contributions are not isolated."
+      },
+      "aggressive_three_submission_strategy": [
+        "e180 RPN topn2000 using mean/lambda2/sigma0.5/obj0/shift-0.2; higher-upside but lower-certainty candidate, new single-view inference required",
+        "e200 with whichever proposal-count setting wins against the preserved e180 best; do not submit obsolete defaults merely because they exist",
+        "Best candidate with sigma0.35 only, or retain the final attempt if no useful evidence"
+      ],
+      "not_launched": true,
+      "quality_head_note": "Learning IoU quality is a higher-risk new-training/architecture direction, not selected under current no-architecture-change preference and limited submissions.",
+      "posting_observation": {
+        "observed_sgt": "2026-11-01T17:21:00+08:00",
+        "team7_public_delta_m": 45.82630255377934,
+        "action": "User should manually post current best before deadline; no automatic posting"
+      }
+    },
+    "e180_rpn2000_candidate": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_rpn2000_obj0_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_rpn2000_obj0/submission_validation.json",
+      "official_score": {
+        "delta_m": 54.83,
+        "macro_f1": 95.09,
+        "mAP": 54.29,
+        "accuracy": 95.44,
+        "AP50": 74.09
+      },
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_rpn2000_obj0/official_result.json",
+      "decision": "marginal new best; no evidence for large proposal-expansion gains"
+    },
+    "e200_rpn2000_best_settings_candidate": {
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e200_rpn2000_obj0_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e200_rpn2000_obj0/submission_validation.json",
+      "official_score": {
+        "delta_m": 54.71,
+        "macro_f1": 95.09,
+        "mAP": 54.23,
+        "accuracy": 95.44,
+        "AP50": 73.9
+      },
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e200_rpn2000_obj0/official_result.json",
+      "decision": "below e180; retain e180"
+    },
+    "checkpoint_average_local_candidate": {
+      "method": "0.5*e180 parameters+0.5*e200 parameters",
+      "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e180_e200/averaged_model.pt",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e180_e200/average_validation.json",
+      "smoke_passed": true,
+      "rule_status": "User explicitly confirmed TA permits single-model checkpoint parameter averaging",
+      "official_submission_ready": false,
+      "automatic_upload": false,
+      "superseded_by": "User requested earlier checkpoints; selected e160/e170/e180"
+    },
+    "checkpoint_average_early_candidate": {
+      "method": "Equal parameter average then single-model inference",
+      "source_epochs": [
+        160,
+        170,
+        180
+      ],
+      "coefficients": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e160_e170_e180/averaged_model.pt",
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg160170180_rpn2000_obj0_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e160_e170_e180/submission_validation.json",
+      "rule_status": "User explicitly confirmed TA permits single-model checkpoint parameter averaging",
+      "official_score": {
+        "delta_m": 55.26,
+        "macro_f1": 95.01,
+        "mAP": 54.53,
+        "accuracy": 95.37,
+        "AP50": 74.21
+      },
+      "official_result": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e160_e170_e180/official_result.json",
+      "decision": "current best"
+    },
+    "checkpoint_average_e100_e120_e140_e160_candidate": {
+      "method": "Equal parameter average then single-model inference",
+      "source_epochs": [
+        100,
+        120,
+        140,
+        160
+      ],
+      "coefficients": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "checkpoint": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e100_e120_e140_e160/averaged_model.pt",
+      "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg100120140160_rpn2000_obj0_soft05_cls2.zip",
+      "validation": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/checkpoint_average_e100_e120_e140_e160/submission_validation.json",
+      "rule_status": "User explicitly confirmed TA permits single-model checkpoint parameter averaging",
+      "official_score": "pending user feedback"
+    }
+  },
+  "best_reported_project_delta_m": 56.49,
+  "best_submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg100-180x9_rpn2000_obj0_soft05_cls2_agn_g1_k9.zip",
+  "completion_e200_record": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/completion_e200.json",
+  "best_reported_score_precision": "Displayed two decimals",
+  "phase1_final_chain_20261101_evening": {
+    "avg100120140160 + hard_cls2": "built, not submitted",
+    "avg100-180x9 rpn2000 obj0 soft05 cls2 hard": 56.41,
+    "avg100-180x9 rpn2000 obj0 soft05 cls2 agn_g1_k9": 56.49,
+    "avg100120140160 rpn2000 obj0 soft05 cls2 (previous best)": 55.41,
+    "phase2_recipe": "avg e100..e180 (9) + rpn2000 + obj_pow 0 + soft sigma 0.5 + stage mean + cls_lambda 2 + shift -0.2 + fusion agn gamma 1 topk 9",
+    "local_validation_tooling": "scratchpad boot_eval.py (paired bootstrap COCO evaluator, validated vs pycocotools) on cs701_runs/BP7_LR130_local_s0_20261029_v2/lr1x with W3 (e70-120) averaged weights"
+  }
+}

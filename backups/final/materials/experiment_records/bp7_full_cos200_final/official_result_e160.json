@@ -1,0 +1,42 @@
+{
+  "recorded_at": "2026-11-01T14:34:22+08:00",
+  "source": "User-provided official score, displayed to two decimal places",
+  "submission_association": "BP7 cos200 e160 explicitly identified in the question answered by the user",
+  "submission": "submissions/BP7_full_cos200_e160.zip",
+  "submission_sha256": "6df4c1cc49971afffff1a78da76a3533ea27031ec43732feee6e324ac190ed98",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e147to160_s0_20261101_tmp/full_train_e160/ckpt_e160.pt",
+  "checkpoint_sha256": "a8de35f3209f2772b5f5c262c3b79a262a568ba570feb623e449157d98ded0de",
+  "training_images": 9392,
+  "epoch": 160,
+  "schedule_epochs": 200,
+  "seed": 0,
+  "metrics": {
+    "delta_m": 53.41,
+    "macro_f1": 95.02,
+    "mAP": 53.56,
+    "accuracy": 95.37,
+    "AP50": 73.41
+  },
+  "best_reported_project_delta_m": false,
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "differences_from_previous_best_cos160_e130": {
+    "delta_m": 0.63,
+    "macro_f1": -0.33,
+    "mAP": 0.41,
+    "accuracy": -0.21,
+    "AP50": -0.35
+  },
+  "differences_from_same_trajectory_cos200_e130": {
+    "delta_m": 0.65,
+    "macro_f1": -0.02,
+    "mAP": 0.34,
+    "accuracy": 0.0,
+    "AP50": -0.24
+  },
+  "difference_units": "delta_m points; all other metrics percentage points",
+  "interpretation": "Highest reported project score when reported; superseded by the same e160 checkpoint with classification lambda2. Detection results are identical. Same-trajectory e130 to e160 improvement remains single-run evidence.",
+  "best_at_report_time": true,
+  "superseded_by": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/classification_e160_lambda2/official_result.json",
+  "superseded_at": "2026-11-01T14:54:21+08:00"
+}

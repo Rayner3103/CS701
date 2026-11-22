@@ -1,0 +1,13 @@
+[
+ {
+  "updated": "10月23日 15:55",
+  "running": "已暂停（GPU 空闲）",
+  "next": "等待指示；候选：F3 = F2 + S5（空间先验）+ N1",
+  "phase": "暂停",
+  "elapsed_h": 81.9,
+  "budget_h": 96,
+  "ref_f1": 91.56,
+  "ref_map": 22.86,
+  "ref_runs": 1
+ }
+]

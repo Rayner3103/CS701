@@ -1,0 +1,11 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/submission.pending.zip",
+  "sha256": "47d3437bfed91b56adf99cad282e43799a77c8526e69aa27a8c8973045905fda",
+  "prediction_images": 1426,
+  "boxes": 120104,
+  "bytes": 18550863,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false
+}

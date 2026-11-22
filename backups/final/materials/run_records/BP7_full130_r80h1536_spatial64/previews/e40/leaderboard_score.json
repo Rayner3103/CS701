@@ -1,0 +1,25 @@
+{
+  "recorded_at": "2026-10-29T17:19:36.411829+08:00",
+  "source": "User-provided leaderboard screenshot in this conversation; values transcribed as displayed.",
+  "phase": 1,
+  "checkpoint_epoch": 40,
+  "submission_path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full130_r80h1536_spatial64_e40_val_shift-0.2.zip",
+  "submission_sha256": "153bda464763f57672759d86854ab7c639959dc9c4cbbf2ba82f1d1835a92a0b",
+  "post_shift": -0.2,
+  "scores_percent": {
+    "delta_m": 32.89,
+    "macro_f1": 95.61,
+    "mAP": 42.68,
+    "accuracy": 95.93,
+    "AP50": 70.72
+  },
+  "precision_note": "The screenshot contains rounded values. Preserve displayed delta_m rather than recomputing it from rounded component metrics.",
+  "comparison_sc2_e130": {
+    "delta_m_difference": -18.97,
+    "macro_f1_difference": 0.26,
+    "mAP_difference": -9.98,
+    "accuracy_difference": 0.35,
+    "AP50_difference": -2.46,
+    "note": "Different training duration and cosine schedule; not a controlled test of SpatialPrior."
+  }
+}

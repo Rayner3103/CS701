@@ -1,0 +1,77 @@
+{
+  "audit_date_sgt": "2026-10-31",
+  "official_rules_page": "https://web-production-c241e.up.railway.app/docs#terms",
+  "official_rules_public_asset": "https://web-production-c241e.up.railway.app/assets/Docs-DK1tB6x4.js",
+  "access": "Anonymous public GET only. No team private account access.",
+  "counts_method": "No weight loading, data forward/backward, GPU or optimizer. See each JSON for construction vs projected totals.",
+  "upstream_lingbot_files": [
+    {
+      "file": "vit.py",
+      "sha": "897fef8dc03204ae48de9ed3c35453b7296fa93f",
+      "source": "https://github.com/Robbyant/lingbot-vision/blob/main/lingbot_vision/vit.py"
+    },
+    {
+      "file": "layers.py",
+      "sha": "78906e656a9465d753abffb61b35d424bd009c21",
+      "source": "https://github.com/Robbyant/lingbot-vision/blob/main/lingbot_vision/layers.py"
+    },
+    {
+      "file": "attention.py",
+      "sha": "af8ef97d96a2fae7a33f2685d8fc9f322414615e",
+      "source": "https://github.com/Robbyant/lingbot-vision/blob/main/lingbot_vision/attention.py"
+    },
+    {
+      "file": "build.py",
+      "sha": "6ebb765ae8b9b9b8d03e0ca9c99e83a6ad59106e",
+      "source": "https://github.com/Robbyant/lingbot-vision/blob/main/lingbot_vision/build.py"
+    }
+  ],
+  "files": {
+    "/tmp/cs701_backbone_rules_20261031/Docs-DK1tB6x4.js": {
+      "bytes": 37194,
+      "sha256": "3651c33ae12387243723f7065efb3e2e5589c850030254e9de001528f79d8fbc"
+    },
+    "/tmp/cs701_backbone_audit_20261031/radio_timm_README.md": {
+      "bytes": 7259,
+      "sha256": "e1854a68a435480f2d8bf25c372a6777646f682a99714a14047a7c6acb6e6d7e"
+    },
+    "/tmp/cs701_backbone_audit_20261031/radio_timm_config.json": {
+      "bytes": 885,
+      "sha256": "7fb4c9596bc64fac84068a1b227f064286cd42f87b08849b20c22d6e09b0710d"
+    },
+    "/tmp/cs701_backbone_audit_20261031/count_models.py": {
+      "bytes": 2812,
+      "sha256": "1b582dedd9ae11e4fae60c1b6376e35d962b30a4823fef08605edb69248e470c"
+    },
+    "/tmp/cs701_backbone_audit_20261031/count_tips.py": {
+      "bytes": 1735,
+      "sha256": "d66461396849a4b370947acac0298c157c16f68ca744062b6a094f5cb8273d4c"
+    },
+    "/tmp/cs701_backbone_audit_20261031/tips_image_encoder.py": {
+      "bytes": 30764,
+      "sha256": "7e8194f1c93d002cdd96c60bdb3ac71443dc669eb172478a6178992c83828c53"
+    },
+    "/home/junkaichen@smu.edu.sg/CS701/backups/51.86-full150ep-e130-DINOv3-LoRA80-Head1536-Cascade-NWD-SizeIoU-FlipBias-shift0.2/run/metrics.json": {
+      "bytes": 2050,
+      "sha256": "11e92b83e3597d6e938c7caebc75265344ba0590e9d9539b2f0e45db2c3486af"
+    },
+    "vit_counts.json": {
+      "sha256": "58b24da80047ed1027015aac92ebc75ec38776e4bf98fb499c39beaa216c5eb3"
+    },
+    "tips_counts.json": {
+      "sha256": "2f2e2c264f30a536d75b4dd355d1863e52d8cacc369c5f581546e5fa9a45ce73"
+    },
+    "radio_counts.json": {
+      "sha256": "1a4f184a3426da58a1dcc62c4d3fb3678be5ef99866a3d66a6ad4519b8d3fbaf"
+    },
+    "convnext_counts.json": {
+      "sha256": "f4f85a80deaeb48636db3c38d95c46fc260293240c3993651f0351d29b558fcf"
+    },
+    "mambavision_counts.json": {
+      "sha256": "b68a951220bc4454264960dd6e7e5b6dd0acc290eb72f75f809be93aa41633ab"
+    },
+    "hierarchical_counts.json": {
+      "sha256": "24b1b88dc470f7bbea4c1f3db73eac3e74aa62b2c377bd4959cd5b5da0c719cc"
+    }
+  }
+}

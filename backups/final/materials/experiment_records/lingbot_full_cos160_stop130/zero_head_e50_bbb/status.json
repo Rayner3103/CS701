@@ -1,0 +1,14 @@
+{
+  "pid": 2298323,
+  "started_at": "2026-10-31T15:29:15+08:00",
+  "head_source_epoch": 50,
+  "new_training_steps": 0,
+  "output": "/mnt/hdd/junkaichen/CS701/CS701/submissions/bbb.zip",
+  "uploaded": false,
+  "stage": "complete",
+  "updated_at": "2026-10-31T15:31:04+08:00",
+  "child_pid": 2299685,
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/bbb.zip",
+  "bytes": 19785405,
+  "boxes": 127460
+}

@@ -1,0 +1,8 @@
+{
+  "outputs": {
+    "mean": "/mnt/hdd/junkaichen/CS701/CS701/experiments/bp7_full_cos200_final/e180_stage_last/mean_gpu_reproduction.zip",
+    "last": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_e180_last_cls2.zip"
+  },
+  "allocated_peak_bytes": 339249664,
+  "automatic_upload": false
+}

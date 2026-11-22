@@ -1,0 +1,25 @@
+{
+  "pid": 3669143,
+  "started_at": "2026-10-31T03:26:33+08:00",
+  "suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full_selected_20261031",
+  "wait_for_suite": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_fixedLR160_local_s0_20261030_direct",
+  "maximum_new_training_runs": 1,
+  "gpus": [
+    0,
+    1
+  ],
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "global_batch": 16,
+  "official_submissions": 0,
+  "automatic_full_data_retrain": true,
+  "stage": "stopped_by_user",
+  "updated_at": "2026-10-31T03:45:24.441203+08:00",
+  "dependency_stage": "training",
+  "active_trial": null,
+  "reason": "User requested stop current experiment and immediately start BP7 classification-only context trial."
+}

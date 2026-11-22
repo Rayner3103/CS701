@@ -1,0 +1,13 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_full_cos200_e180.zip",
+  "sha256": "c28929d8545233279f09a1adc906ebdf1f16917f39d8490e16498400d9d75ce1",
+  "prediction_images": 1426,
+  "boxes": 58599,
+  "bytes": 9053463,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false,
+  "epoch": 180,
+  "checkpoint_sha256": "b7f2f5689ee2323273945fb77a73bf3451af8b2cd39f0d1096c5aca4acd2295a"
+}

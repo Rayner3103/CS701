@@ -1,0 +1,23 @@
+{
+  "comparison": "Same seed0, train7512,160cos,e150; submission post shift-0.2",
+  "local_test_delta_m_difference": -0.11618954711346419,
+  "metric_differences_pp": {
+    "mAP": -0.1789003931640165,
+    "macro_f1": 0.4903444618046149,
+    "accuracy": 0.5319148936170248,
+    "AP50": -0.06491367398319126,
+    "AP75": -0.30366541538738856
+  },
+  "per_class_differences_pp": {
+    "aircraft": 1.9100372031912283,
+    "airport": -4.023533662946422,
+    "bridge": -0.2427855100504417,
+    "car": -1.1620874694776573,
+    "harbor": -1.325736374407882,
+    "oil_tank": 1.9176742210206044,
+    "playground": 0.3065140203148631,
+    "ship": 1.151742324448085,
+    "wind_turbine": -0.14192829056839384
+  },
+  "note": "Historically used test; not pristine. Fixed pair, no settings tuned."
+}

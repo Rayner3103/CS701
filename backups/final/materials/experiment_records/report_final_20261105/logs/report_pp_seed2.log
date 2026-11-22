@@ -1,0 +1,23 @@
+old PP, e180                 mAP 57.073 AP50 76.64 F1 96.228 dm 60.77 boxes 43413
++ sigma 0.5                  mAP 57.239 AP50 77.01 F1 96.228 dm 61.09 boxes 37374
++ objectness power 0         mAP 57.490 AP50 77.16 F1 96.228 dm 61.57 boxes 45652
++ RPN 2000                   mAP 57.505 AP50 77.18 F1 96.228 dm 61.60 boxes 47197
++ lambda 2                   mAP 57.505 AP50 77.18 F1 96.425 dm 61.70 boxes 47197
++ average e100-180           mAP 58.213 AP50 78.26 F1 96.122 dm 62.90 boxes 52654
++ hard fusion                mAP 58.354 AP50 78.26 F1 96.122 dm 63.17 boxes 42745
+agn fusion instead           mAP 58.377 AP50 78.28 F1 96.122 dm 63.21 boxes 43286
++ min_keep 100               mAP 58.397 AP50 78.29 F1 96.122 dm 63.25 boxes 73212
++ lattice snap (FINAL)       mAP 58.755 AP50 78.31 F1 96.122 dm 63.94 boxes 73212
+FINAL without snap           mAP 58.397 AP50 78.29 F1 96.122 dm 63.25 boxes 73212
+FINAL min_keep 30            mAP 58.736 AP50 78.29 F1 96.122 dm 63.90 boxes 43286
+FINAL no fusion              mAP 58.571 AP50 78.26 F1 96.122 dm 63.58 boxes 70691
+FINAL hard fusion            mAP 58.735 AP50 78.30 F1 96.122 dm 63.90 boxes 68471
+FINAL sigma 0.75             mAP 58.655 AP50 77.88 F1 96.122 dm 63.74 boxes 79161
+FINAL objectness 0.25        mAP 58.606 AP50 78.18 F1 96.122 dm 63.65 boxes 71628
+FINAL RPN 1000               mAP 58.770 AP50 78.31 F1 96.237 dm 64.02 boxes 76515
+FINAL last-stage box         mAP 58.464 AP50 78.16 F1 96.122 dm 63.38 boxes 64727
+FINAL shift 0                mAP 58.026 AP50 78.16 F1 96.122 dm 62.54 boxes 73217
+FINAL shift -0.4             mAP 57.500 AP50 78.24 F1 96.122 dm 61.53 boxes 73215
+FINAL lambda 1               mAP 58.755 AP50 78.31 F1 96.165 dm 63.96 boxes 73212
+FINAL single e180            mAP 58.188 AP50 77.33 F1 96.425 dm 63.01 boxes 73928
+FINAL single e160            mAP 58.347 AP50 77.66 F1 96.271 dm 63.23 boxes 74272

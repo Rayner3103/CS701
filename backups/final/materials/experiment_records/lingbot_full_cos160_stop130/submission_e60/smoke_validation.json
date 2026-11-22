@@ -1,0 +1,11 @@
+{
+  "path": "/mnt/hdd/junkaichen/CS701/CS701/experiments/lingbot_full_cos160_stop130/submission_e60/smoke.zip",
+  "sha256": "8eb89b92b7f1bbcf8c0bada7ab457bad5237074f46face903f6fc7860371389e",
+  "prediction_images": 8,
+  "boxes": 619,
+  "bytes": 95299,
+  "format_passed": true,
+  "boxes_within_images": true,
+  "shift": -0.2,
+  "uploaded": false
+}

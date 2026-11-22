@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-11-01T21:02:00+08:00",
+  "submission": "/mnt/hdd/junkaichen/CS701/CS701/submissions/BP7_avg100-180x9_rpn2000_obj0_soft05_cls2_hardfuse.zip",
+  "method": "equal parameter average of cos200 ckpts e100,e110,...,e180 (9), one forward; rpn_topn 2000, obj_pow 0, soft-NMS sigma 0.5, stage_box mean, cls_lambda 2, shift -0.2, fusion hard (boxes of the argmax image class, score 1 - p_bg)",
+  "weights": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180.pt",
+  "raw": "/mnt/hdd/junkaichen/CS701/CS701/.runtime/avg/avg_e100-180_val_raw.pt",
+  "delta_m": 56.41, "macro_f1": 95.27, "mAP": 55.06, "accuracy": 95.58, "AP50": 74.79,
+  "previous_best": {"delta_m": 55.41, "submission": "BP7_avg100120140160_rpn2000_obj0_soft05_cls2.zip"},
+  "decomposition_vs_previous_best": {"mAP_pp": 0.50, "delta_m_from_mAP": 0.96, "F1_pp": 0.07, "delta_m_from_F1": 0.04}
+}

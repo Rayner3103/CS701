@@ -1,0 +1,5 @@
+weights/
+runs/
+*.pt
+F2_full_*_shift-0.2.zip
+!submission/F2_full_val_shift-0.2.zip

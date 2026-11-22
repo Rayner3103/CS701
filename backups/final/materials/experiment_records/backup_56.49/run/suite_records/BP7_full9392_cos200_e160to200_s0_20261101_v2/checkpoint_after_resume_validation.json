@@ -1,0 +1,10 @@
+{
+  "time": "2026-11-01T14:52:36+08:00",
+  "epoch": 161,
+  "global_step": 94507,
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/BP7_full9392_cos200_e160to200_s0_20261101_v2/full_train_e200/training_state.pt",
+  "sha256": "209694bf90ebc98084e4b234f85ab9123edde1bd49dabfcd8df1974623381212",
+  "lr_factor": 0.09181213929280047,
+  "train_hours": 11.810081055627931,
+  "optimizer_and_rank_rng_saved": true
+}

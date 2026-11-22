@@ -1,0 +1,35 @@
+{
+  "reported_date_sgt": "2026-11-01",
+  "source": "User-provided leaderboard screenshot; values displayed to 2 decimal places",
+  "submission_association": "lingb_e60.zip supplied immediately before this feedback",
+  "submission": "submissions/lingb_e60.zip",
+  "submission_sha256": "47d3437bfed91b56adf99cad282e43799a77c8526e69aa27a8c8973045905fda",
+  "checkpoint": "/mnt/hdd/junkaichen/CS701/cs701_runs/LingBotB_full9392_cos160_stop130_s0_20261031_nocompile/full_train/ckpt_e60.pt",
+  "checkpoint_sha256": "debf8f5018d9d59fbe84e7aedaafbad4c46c282c9a070514f36b511b34c9a2b0",
+  "backbone": "lingbot_b",
+  "training_images": 9392,
+  "epoch": 60,
+  "schedule_epochs": 160,
+  "seed": 0,
+  "metrics": {
+    "delta_m": 39.23,
+    "macro_f1": 94.02,
+    "mAP": 46.44,
+    "accuracy": 94.60,
+    "AP50": 72.63
+  },
+  "submitted_by": "user",
+  "posted_to_leaderboard": null,
+  "historical_references": [
+    {"model": "BP7 full cos130", "epoch": 40, "delta_m": 32.89, "mAP": 42.68, "macro_f1": 95.61},
+    {"model": "BP7 full cos130", "epoch": 80, "delta_m": 48.40, "mAP": 50.75, "macro_f1": 95.71},
+    {"model": "BP7 full cos160", "epoch": 130, "delta_m": 52.78, "mAP": 53.15, "macro_f1": 95.35}
+  ],
+  "interpretation": "No demonstrated advantage over BP7 yet. LingBot e60 detection mAP lies between historical BP7 e40 and e80, while classification F1 is lower than both. Different epochs and schedules prevent concluding that final LingBot performance will be worse.",
+  "decision": "Continue the already authorized LingBot e130 and BP7 cos200 runs. No extra intermediate export or upload scheduled from this feedback.",
+  "comparison_limitations": [
+    "No same-epoch matched official BP7 score here.",
+    "Backbone, schedule, execution and loader history differ across historical runs.",
+    "Single reported run, rounded screenshot values; do not linearly extrapolate to e130."
+  ]
+}
